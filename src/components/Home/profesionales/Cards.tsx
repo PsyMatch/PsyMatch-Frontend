@@ -38,7 +38,7 @@ const Cards = () => {
     return(
         <>
             {profesionales.map((profesional) => (
-                <div className="p-5 mx-10 border-2 border-gray-300 rounded-xl w-96 min-h-72 max-h-fit">
+                <div key={profesional.id} className="p-5 border-2 border-gray-300 md:mx-10 rounded-xl w-80 md:w-96 min-h-72 max-h-fit">
                     <div className="flex flex-row items-center gap-3">
                         <div className="bg-[#DFDFDF] rounded-full w-14 h-14"></div>
                         <div className="flex flex-col">
@@ -51,8 +51,8 @@ const Cards = () => {
                     </div>
 
                     <ul className="flex flex-row flex-wrap gap-3 mt-5">
-                        {profesional.especialidades.map((especialidad) => (
-                            <li className="py-1 text-[12px] px-2 w-fit text-black bg-[#DFDFDF] rounded-[50px]">{especialidad}</li>
+                        {profesional.especialidades.map((especialidad, index) => (
+                            <li key={index} className="py-1 text-[12px] px-2 w-fit text-black bg-[#DFDFDF] rounded-[50px]">{especialidad}</li>
                         ))}
                     </ul>
 
