@@ -1,5 +1,3 @@
-import Image from "next/image"
-import logoCerebro from "../assets/logoCerebro.svg"
 import { Brain } from 'lucide-react';
 
 const botonesPacientes = [
@@ -28,41 +26,41 @@ const Footer = () => {
                 <div className="w-80">
                     <div className="flex flex-row gap-2">
                         <Brain className="text-[#5046E7]"/>
-                        <h3 className="text-white font-bold">PsyMatch</h3>
+                        <h3 className="font-bold text-white">PsyMatch</h3>
                     </div>
-                    <div className="w-80 mt-5">
-                        <span className="text-gray-400 font-medium">Conectandote con los profesionales de salud mental adecuados a través del emparejamiento</span>
+                    <div className="mt-5 w-80">
+                        <span className="font-medium text-gray-400">Conectandote con los profesionales de salud mental adecuados a través del emparejamiento</span>
                     </div>
                 </div>
 
                 <div className="w-40">
-                    <h3 className="text-white font-bold">Para Pacientes</h3>
-                    <div className="w-fit mt-5">
+                    <h3 className="font-bold text-white">Para Pacientes</h3>
+                    <div className="mt-5 w-fit">
                         {botonesPacientes.map(boton => (
-                            <li key={boton.key} className="list-none mb-2 w-fit text-gray-400 font-medium">{boton}</li>
+                            <li key={boton.key} className="mb-2 font-medium text-gray-400 list-none w-fit">{boton}</li>
                         ))}
                     </div>
                 </div>
 
                 <div className="w-40">
-                    <h3 className="text-white font-bold">Para Profecionales</h3>
-                    <div className="w-fit mt-5">
+                    <h3 className="font-bold text-white">Para Profecionales</h3>
+                    <div className="mt-5 w-fit">
                         {botonesProfecionales.map(boton => (
-                            <li key={boton.key} className="list-none mb-2 w-fit text-gray-400 font-medium">{boton}</li>
+                            <li key={boton.key} className="mb-2 font-medium text-gray-400 list-none w-fit">{boton}</li>
                         ))}
                     </div>
                 </div>
 
                 <div className="w-40">
-                    <h3 className="text-white font-bold">Empresa</h3>
-                    <div className="w-fit mt-5">
+                    <h3 className="font-bold text-white">Empresa</h3>
+                    <div className="mt-5 w-fit">
                         {botonesEmpresa.map(boton => (
-                            <li key={boton.key} className="list-none mb-2 w-fit text-gray-400 font-medium">{boton}</li>
+                            <li key={boton.key} className="mb-2 font-medium text-gray-400 list-none w-fit">{boton}</li>
                         ))}
                     </div>
                 </div>
             </div>
-            <span className="mt-6 text-gray-600 font-semibold">2025 PsyMatch. Todos los derechos reservados.</span>
+            <span className="mt-6 font-semibold text-gray-600">2025 PsyMatch. Todos los derechos reservados.</span>
         </div>
     )
 }
