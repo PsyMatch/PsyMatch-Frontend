@@ -1,4 +1,3 @@
-//Arrays de checkboxes
 import { arrayEspecialidades } from "./arrayEspecialidades";
 import { arrayEnfoques } from "./arrayEnfoques";
 import { arrayTipos } from "./arrayTipos";
@@ -28,5 +27,6 @@ export const initialValues = {
   horarioInicial: "",
   horarioFinal: ""
 }
+
 
 

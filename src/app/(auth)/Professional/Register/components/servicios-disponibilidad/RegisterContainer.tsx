@@ -2,14 +2,14 @@ import RegisterForm from "./RegisterForm"
 
 const RegisterContainer = () => {
     return(
-        <div className="w-screen lg:w-[50%] bg-[#CECECE] flex flex-col">
+        <div className="w-screen lg:w-[50%] bg-[#CECECE] flex flex-col pb-20">
             <div className="m-auto">
                 <h1 className="text-[30px] my-5 font-bold text-[#5046E7]">Únete a nuestra red profesional</h1>
                 <div className="text-end">
                     <div className="w-full h-2 mb-2 bg-white rounded-xl">
                         <div className="w-full h-2 bg-black rounded-xl"></div>
                     </div>
-                    <span className="text-gray-500">Paso 4 de 4</span>
+                    <span className="text-gray-500">Paso 3 de 3</span>
                 </div>
             </div>
 
