@@ -21,7 +21,7 @@ const botonesEmpresa = [
 
 const Footer = () => {
     return (
-        <div className="w-screen h-fit bg-[#111827] flex flex-col items-center py-9">
+        <div className="w-[100%] h-fit bg-[#111827] flex flex-col items-center py-9">
             <div className="flex flex-col gap-10 lg:flex-row lg:gap-0 justify-between w-[80%] h-fit border-b-gray-800 border-b-2 pb-3">
                 <div className="w-80">
                     <div className="flex flex-row gap-2">
