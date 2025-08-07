@@ -1,90 +1,11 @@
 "use client"
 import { Formik } from "formik";
-import * as yup from "yup";
 
 import {initialValues} from "../../../../../../helpers/formRegister/initialValues"
 
 import PrimeraSeccion from "./PrimeraSeccion";
 import SegundaSeccion from "./SegundaSeccion";
-
-const RegisterSchema = yup.object().shape({
-    
-    dias: yup
-    .object()
-    .required("Seleccioná al menos 1 día")
-    .test("min-1", "Seleccioná al menos 1 día", (value) => {
-        return value && Object.values(value).filter(Boolean).length >= 1;
-    }),
-
-    especialidades: yup
-        .object()
-        .test("min-3", "Seleccioná al menos 3 especialidades", (value) => {
-        return value && Object.values(value).filter(Boolean).length >= 3;
-        }),
-
-    enfoques: yup
-        .object()
-        .test("min-2", "Seleccioná al menos 2 enfoques", (value) => {
-        return value && Object.values(value).filter(Boolean).length >= 2;
-        }),
-
-
-    tipos: yup
-    .object()
-    .required("Seleccioná al menos 1 día")
-    .test("min-1", "Seleccioná al menos 1 tipo", (value) => {
-        return value && Object.values(value).filter(Boolean).length >= 1;
-    }),
-
-    modalidades: yup
-    .object()
-    .required("Seleccioná al menos 1 día")
-    .test("min-1", "Seleccioná al menos 1 modalidad", (value) => {
-        return value && Object.values(value).filter(Boolean).length >= 1;
-    }),
-
-sesionIndividual: yup
-  .number()
-  .typeError("Debe ser un número válido")
-  .positive("Debe ser mayor a cero")
-  .when(["tipos"], ([tipos], schema) =>
-    tipos?.individual
-      ? schema.required("El precio de sesión individual es obligatorio")
-      : schema.notRequired()
-  ),
-
-sesionDePareja: yup
-  .number()
-  .typeError("Debe ser un número válido")
-  .positive("Debe ser mayor a cero")
-  .when(["tipos"], ([tipos], schema) =>
-    tipos?.pareja
-      ? schema.required("El precio de sesión de pareja es obligatorio")
-      : schema.notRequired()
-  ),
-
-sesionFamiliar: yup
-  .number()
-  .typeError("Debe ser un número válido")
-  .positive("Debe ser mayor a cero")
-  .when(["tipos"], ([tipos], schema) =>
-    tipos?.familia
-      ? schema.required("El precio de sesión familiar es obligatorio")
-      : schema.notRequired()
-  ),
-
-sesionGrupo: yup
-  .number()
-  .typeError("Debe ser un número válido")
-  .positive("Debe ser mayor a cero")
-  .when(["tipos"], ([tipos], schema) =>
-    tipos?.grupo
-      ? schema.required("El precio de sesión grupal es obligatorio")
-      : schema.notRequired()
-  ),
-
-
-})
+import { RegisterSchema } from "@/helpers/formRegister/schema";
 
 
 const RegisterForm = () => {
@@ -94,69 +15,10 @@ const RegisterForm = () => {
                 initialValues={initialValues}
                 validationSchema={RegisterSchema}
 
-
-                onSubmit={(values, {setSubmitting}) => {
-                    //seccion 1
-                    const arrayDeObjeto = Object.entries(values.especialidades)
-                    const arrayDeObjetoEnfoques = Object.entries(values.enfoques)
-                    const arrayDeObjetoTipos = Object.entries(values.tipos)
-                    const arrayDeObjetoModalidades = Object.entries(values.modalidades)
-
-                
-                    const seleccionado = arrayDeObjeto.filter((seleccionado) => {
-                        if(seleccionado[1] === true){
-                            return seleccionado
-                        }
-                    })
-
-                    const seleccionadoEnfoques = arrayDeObjetoEnfoques.filter((seleccionado) => {
-                        if(seleccionado[1] === true){
-                            return seleccionado
-                        }
-                    })
-
-                    const seleccionadoTipos = arrayDeObjetoTipos.filter((seleccionado) => {
-                        if(seleccionado[1] === true){
-                            return seleccionado
-                        }
-                    })
-
-
-                    const seleccionadoModalidades = arrayDeObjetoModalidades.filter((seleccionado) => {
-                        if(seleccionado[1] === true){
-                            return seleccionado
-                        }
-                    })
-
-                    //seccion 2
-                    const arrayDeObjetoObras = Object.entries(values.obras)
-                    const arrayDeObjetoDias = Object.entries(values.dias)
-
-                    const seleccionadoObras = arrayDeObjetoObras.filter((seleccionado) => {
-                        if(seleccionado[1] === true){
-                            return seleccionado
-                        }
-                    })
-
-                    const seleccionadoDias = arrayDeObjetoDias.filter((seleccionado) => {
-                        if(seleccionado[1] === true){
-                            return seleccionado
-                        }
-                    })
-
-
-                    console.log(seleccionado)
-                    console.log(seleccionadoEnfoques)
-                    console.log(seleccionadoTipos)
-                    console.log(seleccionadoModalidades)
-                    console.log(seleccionadoObras)
-                    console.log(seleccionadoDias)
-                    console.log(values.sesionDePareja)
-                    console.log(values.sesionIndividual)
-                    console.log(values.sesionFamiliar)
-                    console.log(values.sesionGrupal)
-                    console.log(values.horarioInicial)
-                    console.log(values.horarioFinal)
+                onSubmit={(values, {setSubmitting, resetForm}) => {
+                    
+                    resetForm()
+                    alert("Registrado con exito. Te avisaremos a la brevedad cuando validemos tus credenciales")
                     setSubmitting(false)
                 }}
             >
@@ -169,7 +31,7 @@ const RegisterForm = () => {
                 handleSubmit,
                 isSubmitting,
                 setFieldValue,
-                setFieldError,
+                setFieldError
             }) => {
                 console.log(errors)
                 

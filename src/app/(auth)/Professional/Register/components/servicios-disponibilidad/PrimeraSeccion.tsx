@@ -15,7 +15,7 @@ interface PrimeraSeccionProps {
 }
 
 
-const PrimeraSeccion = ({ errors, touched, handleChange, handleTiposChange,handleBlur }: PrimeraSeccionProps) => {
+const PrimeraSeccion = ({ errors, touched, handleChange, handleTiposChange, handleBlur }: PrimeraSeccionProps) => {
 return (
     <>
         <span className="ml-5 font-bold">Especialidades* (Selecciona al menos 3)</span>
