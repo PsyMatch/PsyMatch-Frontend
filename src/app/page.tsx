@@ -1,6 +1,8 @@
-import Information from '@/components/Home/Information/Information';
-import Match from '@/components/Home/Match/Match';
-import Profesionales from '@/components/Home/profesionales/Profesionales';
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import Information from "@/components/Home/Information/Information";
+import Match from "@/components/Home/Match/Match";
+import Profesionales from "@/components/Home/profesionales/Profesionales";
 import Start from '@/components/Home/Start/Start';
 
 export default function Home() {
