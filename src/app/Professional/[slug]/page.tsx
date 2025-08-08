@@ -1,12 +1,12 @@
 import { profesionales } from "@/helpers/professional";
 
 import React from "react"
-import Professional from "../components/Professional";
-import SobreMi from "../components/SobreMi";
-import InfoRapida from "../components/InfoRapida";
-import SesionesPrecios from "../components/SesionesPrecios";
-import Contacto from "../components/Contacto";
-import Reseñas from "../components/Reseñas";
+import Professional from "../../../components/perfil-profesional/Professional";
+import SobreMi from "../../../components/perfil-profesional/SobreMi";
+import InfoRapida from "../../../components/perfil-profesional/InfoRapida";
+import SesionesPrecios from "../../../components/perfil-profesional/SesionesPrecios";
+import Contacto from "../../../components/perfil-profesional/Contacto";
+import Reseñas from "../../../components/perfil-profesional/Reseñas";
 
 export default async function Page({
   params,
