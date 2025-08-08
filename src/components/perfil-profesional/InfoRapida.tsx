@@ -14,8 +14,8 @@ const InfoRapida = ({ data }: { data: Profesional }) => {
             <div className="flex flex-col gap-1">
                 <span className="font-semibold">Idiomas</span>
                 <ul className="flex flex-row">
-                    {data.infoRapida.idiomasHablados.map((idioma) => (
-                        <li className="px-2 py-[0.8px] mr-1 text-[11px] text-white text-center bg-[#5046E7] w-fit h-fit rounded-xl">
+                    {data.infoRapida.idiomasHablados.map((idioma, index) => (
+                        <li key={index} className="px-2 py-[0.8px] mr-1 text-[11px] text-white text-center bg-[#5046E7] w-fit h-fit rounded-xl">
                             {idioma}
                         </li>
                     ))}
@@ -25,8 +25,8 @@ const InfoRapida = ({ data }: { data: Profesional }) => {
             <div className="flex flex-col gap-1">
                 <span className="font-semibold">Modalidad de las Sesiones</span>
                 <ul className="flex flex-row">
-                    {data.infoRapida.modalidad.map((modalidad) => (
-                        <li className="px-2 py-[0.8px] mr-1 text-[11px] text-white text-center bg-[#5046E7] w-fit h-fit rounded-xl">
+                    {data.infoRapida.modalidad.map((modalidad, index) => (
+                        <li key={index} className="px-2 py-[0.8px] mr-1 text-[11px] text-white text-center bg-[#5046E7] w-fit h-fit rounded-xl">
                             {modalidad}
                         </li>
                     ))}
@@ -35,8 +35,8 @@ const InfoRapida = ({ data }: { data: Profesional }) => {
             <div className="flex flex-col gap-1">
                 <span className="font-semibold">Obra Social Aceptadas</span>
                 <ul className="flex flex-row">
-                    {data.infoRapida.obraSocial.map((obra) => (
-                        <li className="px-2 py-[0.8px] mr-1 text-[11px] text-white text-center bg-[#5046E7] w-fit h-fit rounded-xl">
+                    {data.infoRapida.obraSocial.map((obra, index) => (
+                        <li key={index} className="px-2 py-[0.8px] mr-1 text-[11px] text-white text-center bg-[#5046E7] w-fit h-fit rounded-xl">
                             {obra}
                         </li>
                     ))}

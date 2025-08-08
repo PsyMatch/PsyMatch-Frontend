@@ -10,8 +10,8 @@ const Reseñas = ({ data }: { data: Profesional }) => {
                 <span className="text-xs font-semibold text-black">Todas las reseñas son verificadas y analizadas.</span>
             </div>
             <div className="flex flex-col gap-3 mt-6">
-                {data.reseñas.map((reseña) => (
-                    <div className="w-full p-3 h-fit bg-violet-300 rounded-xl">
+                {data.reseñas.map((reseña, index) => (
+                    <div key={index} className="w-full p-3 h-fit bg-violet-300 rounded-xl">
                         <div className="flex flex-row gap-2">
                             <div className="w-10 h-10 bg-white rounded-full"></div>
                             <span className="font-bold">{reseña.autor}</span>
