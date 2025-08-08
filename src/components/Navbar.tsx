@@ -3,12 +3,13 @@ import Image from "next/image"
 import logoCabeza from "../assets/logoCabeza.svg"
 import {Menu} from "lucide-react"
 import { useState } from "react"
+import Link from "next/link"
 
 const botonesNavBarHome = [
         <a href="">Buscar Terapeutas</a>,
         <a href="">Como Funciona</a>,
-        <a href="">Iniciar Sesión</a>,
-        <a href="" className="px-4 py-2 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">Comenzar</a>
+        <Link href="/login">Iniciar Sesión</Link>,
+        <Link href="/register-user" className="px-4 py-2 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">Comenzar</Link>
 ]
 const botonesNavBarHomeLogeado = [
         <a href="">Buscar Terapeutas</a>,
@@ -22,7 +23,7 @@ const Navbar = () => {
 
 
     return (
-        <div className="flex flex-row items-center justify-between w-full px-6 h-20 bg-[#ffffff] md:px-36">
+        <div className="flex flex-row items-center justify-between w-[100%] px-6 h-20 bg-[#ffffff] md:px-36">
             <a href="" className="flex flex-row items-center gap-2 cursor-pointer">
                 <Image src={logoCabeza} alt="logo"/>
                 <h3 className="text-xl font-bold text-black">PsyMatch</h3>
