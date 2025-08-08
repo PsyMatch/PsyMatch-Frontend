@@ -22,8 +22,8 @@ const Professional = ({ data }: { data: Profesional }) => {
                 </div>
 
                 <ul className="flex flex-row">
-                    {data.infoPersonal.serviciosYEspecialidades.map((especialidad) => (
-                        <li className="px-2 py-[0.8px] mr-1 text-[11px] text-white text-center bg-[#5046E7] w-fit h-fit rounded-xl">{especialidad}</li>
+                    {data.infoPersonal.serviciosYEspecialidades.map((especialidad, index) => (
+                        <li key={index} className="px-2 py-[0.8px] mr-1 text-[11px] text-white text-center bg-[#5046E7] w-fit h-fit rounded-xl">{especialidad}</li>
                     ))}
                 </ul>
                 
