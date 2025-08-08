@@ -81,9 +81,9 @@ export default function LoginForm() {
 
       <div className="text-center text-xs sm:text-sm text-gray-600">
         ¿Eres un profesional de salud mental?{' '}
-        <a href="#" className="text-blue-600 hover:underline">
+        <Link href="/Professional/Register" className="text-blue-600 hover:underline">
           Únete a Nuestra Red
-        </a>
+        </Link>
       </div>
     </div>
   )
