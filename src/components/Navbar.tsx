@@ -23,7 +23,7 @@ const Navbar = () => {
 
 
     return (
-        <div className="flex flex-row items-center justify-between w-full px-6 h-20 bg-[#ffffff] md:px-36">
+        <div className="flex flex-row items-center justify-between w-[100%] px-6 h-20 bg-[#ffffff] md:px-36">
             <a href="" className="flex flex-row items-center gap-2 cursor-pointer">
                 <Image src={logoCabeza} alt="logo"/>
                 <h3 className="text-xl font-bold text-black">PsyMatch</h3>
