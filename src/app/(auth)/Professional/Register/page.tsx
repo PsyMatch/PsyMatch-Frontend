@@ -1,12 +1,13 @@
-import Info_RegisterContainer from "./components/infoProfesional/Info-RegisterContainer";
-import RegisterContainer from "./components/servicios-disponibilidad/RegisterContainer";
+import Info_RegisterContainer from './components/infoProfesional/Info-RegisterContainer';
+import RegisterContainer from './components/servicios-disponibilidad/RegisterContainer';
 
-const RegisterProfessional =  () => {
+const RegisterProfessional = () => {
     return (
         <div className="bg-[#5046E7]">
             <Info_RegisterContainer />
+            <RegisterContainer />
         </div>
-    )
-}
+    );
+};
 
 export default RegisterProfessional;

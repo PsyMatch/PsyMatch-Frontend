@@ -1,7 +1,8 @@
-import Info_RegisterForm from "./Info-RegisterForm"
+import PersonalInformation from '@/components/Register/PersonalInformation';
+import Info_RegisterForm from './Info-RegisterForm';
 
 const Info_RegisterContainer = () => {
-    return(
+    return (
         <div className="w-screen lg:w-[50%] bg-[#CECECE] flex flex-col pb-20">
             <div className="m-auto">
                 <h1 className="text-[30px] my-5 font-bold text-[#5046E7]">Únete a nuestra red profesional</h1>
@@ -18,8 +19,9 @@ const Info_RegisterContainer = () => {
                 <h4 className="font-medium text-gray-700">Su licencia e información profesional</h4>
             </div>
             <Info_RegisterForm />
+            <PersonalInformation />
         </div>
-    )
-}
+    );
+};
 
-export default Info_RegisterContainer
+export default Info_RegisterContainer;
