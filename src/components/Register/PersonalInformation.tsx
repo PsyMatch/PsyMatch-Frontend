@@ -44,7 +44,7 @@ const PersonalInformation = () => {
 
     return (
         <div className=" bg-white text-gray-900 shadow-sm">
-            <div className="flex flex-col space-y-1.5 p-6">
+            <div className="flex flex-col space-y-1.5 py-6">
                 <div className="text-2xl font-semibold leading-none tracking-tight flex items-center">
                     <User className="h-5 w-5 mr-2" />
                     Información Personal
@@ -52,7 +52,7 @@ const PersonalInformation = () => {
                 <div className="text-sm text-gray-500">Cuéntanos sobre ti</div>
             </div>
 
-            <div className="p-6 pt-0 space-y-6">
+            <div className="pb-6 space-y-6">
                 <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit}>
                     {({ setFieldValue, isSubmitting }) => (
                         <Form className="space-y-6">
@@ -181,17 +181,6 @@ const PersonalInformation = () => {
                                         </div>
                                     </div>
                                 ))}
-                            </div>
-
-                            {/* Botón Continuar */}
-                            <div className="flex justify-end">
-                                <button
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                    className="inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 h-10 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
-                                >
-                                    Continuar
-                                </button>
                             </div>
                         </Form>
                     )}
