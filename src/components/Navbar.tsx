@@ -15,7 +15,7 @@ const botonesNavBarHome = [
 const botonesNavBarHomeLogeado = [
         <a href="">Buscar Terapeutas</a>,
         <a href="">Como Funciona</a>,
-        <a href="">Perfil</a>,
+        <a href="" className="px-4 py-2 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">Perfil</a>,
 ]
 
 const botonesNavBarMatch = [
@@ -24,7 +24,7 @@ const botonesNavBarMatch = [
 ]
 
 const Navbar = () => {
-    const isAuth = true
+    const isAuth = false
     const [menu, setMenu] = useState(false)
 
     const pathname = usePathname()
@@ -61,7 +61,7 @@ const Navbar = () => {
 
             {pathname === "/" && 
             <div className="hidden lg:block">
-                {isAuth ? 
+                {!isAuth ? 
                     <ul className="flex flex-row items-center gap-4 p-3 top-20 right-1">
                         {botonesNavBarHome.map((boton, index)=> (
                             <li key={index} className="text-sm list-none hover:text-gray-700">{boton}</li>
