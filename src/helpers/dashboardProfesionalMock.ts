@@ -48,7 +48,8 @@ export const dashboardProfesionalMock = {
         horario: "10:00",
         duracion: "45min",
         tipoSesion: "Sesión Individual",
-        Notas: "Seguimiento de técnicas de relajación"
+        Notas: "Seguimiento de técnicas de relajación",
+        estado: "aceptado"
       },
       {
         fecha: "28 ENE",
@@ -56,7 +57,8 @@ export const dashboardProfesionalMock = {
         horario: "14:30",
         duracion: "60min",
         tipoSesion: "Terapia de Pareja",
-        Notas: "Trabajo en comunicación y resolución de conflictos"
+        Notas: "Trabajo en comunicación y resolución de conflictos",
+        estado: "pendiente"
       },
       {
         fecha: "30 ENE",
@@ -64,7 +66,8 @@ export const dashboardProfesionalMock = {
         horario: "09:15",
         duracion: "45min",
         tipoSesion: "Sesión Individual",
-        Notas: "Evaluación de progreso en manejo de ansiedad"
+        Notas: "Evaluación de progreso en manejo de ansiedad",
+        estado: "cancelado"
       }
     ],
     reseñas: [
