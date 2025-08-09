@@ -23,6 +23,17 @@ export default function LoginForm() {
     // aca la lógica para login bro
   }
 
+  // Handler para login con Google
+  const handleGoogleLogin = async () => {
+    try {
+      //aca hay que redirigir al edpoint de auth de google suerte dea
+      // Por ejemplo:
+      window.location.href = process.env.NEXT_PUBLIC_BACKEND_URL + '/auth/google';
+    } catch (error) {
+      console.error('Error al iniciar sesión con Google:', error);
+    }
+  };
+
   return (
     <div className="w-full max-w-sm sm:max-w-md space-y-4 sm:space-y-6">
       <div className="text-center space-y-2">
@@ -70,10 +81,34 @@ export default function LoginForm() {
                 Iniciar Sesión
               </Button>
               <Link href="/register-user">
-              <Button className="w-full sm:flex-1 bg-white hover:text-blue-700  text-black">
-                Crear Cuenta 
-              </Button>
+                <Button className="w-full sm:flex-1 bg-white hover:text-blue-700  text-black">
+                  Crear Cuenta 
+                </Button>
               </Link>
+            </div>
+
+            <div className="pt-2">
+              <Button
+                type="button"
+                onClick={handleGoogleLogin}
+                className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 rounded-full shadow-sm font-medium py-2 px-4 transition-all"
+                style={{ minHeight: 44 }}
+              >
+                <svg width="22" height="22" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <g clipPath="url(#clip0_17_40)">
+                    <path d="M47.532 24.552c0-1.636-.146-3.2-.418-4.704H24.48v9.02h13.02c-.56 3.02-2.24 5.58-4.76 7.3v6.06h7.7c4.5-4.14 7.09-10.24 7.09-17.68z" fill="#4285F4"/>
+                    <path d="M24.48 48c6.48 0 11.92-2.14 15.89-5.82l-7.7-6.06c-2.14 1.44-4.88 2.3-8.19 2.3-6.3 0-11.64-4.26-13.56-9.98H2.6v6.24C6.56 43.98 14.7 48 24.48 48z" fill="#34A853"/>
+                    <path d="M10.92 28.44c-.5-1.44-.8-2.98-.8-4.44s.3-3 .8-4.44v-6.24H2.6A23.97 23.97 0 000 24c0 3.98.96 7.76 2.6 11.24l8.32-6.8z" fill="#FBBC05"/>
+                    <path d="M24.48 9.52c3.54 0 6.68 1.22 9.16 3.62l6.86-6.86C36.4 2.14 30.96 0 24.48 0 14.7 0 6.56 4.02 2.6 10.76l8.32 6.24c1.92-5.72 7.26-9.98 13.56-9.98z" fill="#EA4335"/>
+                  </g>
+                  <defs>
+                    <clipPath id="clip0_17_40">
+                      <rect width="48" height="48" fill="white"/>
+                    </clipPath>
+                  </defs>
+                </svg>
+                <span className="text-base">Continuar con Google</span>
+              </Button>
             </div>
           </Form>
         )}

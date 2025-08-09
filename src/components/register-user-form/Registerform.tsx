@@ -34,6 +34,12 @@ const RegisterSchema = Yup.object().shape({
   confirmPassword: Yup.string()
     .oneOf([Yup.ref('password')], 'Las contraseñas no coinciden')
     .required('Confirmar contraseña es requerido'),
+  dni: Yup.string()
+    .matches(/^\d{7,9}$/, 'DNI inválido')
+    .required('El DNI es requerido'),
+  address: Yup.string()
+    .min(5, 'La dirección debe tener al menos 5 caracteres')
+    .required('La dirección es requerida'),
   socialWork: Yup.string(),
   emergencyContact: Yup.string()
     .matches(/^[0-9+\-\s()]+$/, 'Número de contacto inválido')
@@ -51,6 +57,8 @@ export interface RegisterFormValues {
   email: string;
   password: string;
   confirmPassword: string;
+  dni: string;
+  address: string;
   socialWork: string;
   emergencyContact: string;
 }
@@ -89,6 +97,8 @@ export default function RegisterForm() {
           email: '',
           password: '',
           confirmPassword: '',
+          dni: '',
+          address: '',
           socialWork: '',
           emergencyContact: '',
         }}
@@ -123,31 +133,57 @@ export default function RegisterForm() {
                 />
               </div>
 
-              <div className="md:col-span-1">
-                <CustomInput
-                  label="Número de teléfono"
-                  id="phone"
-                  type="tel"
-                  name="phone"
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={values.phone}
-                  error={errors.phone && touched.phone && errors.phone}
-                />
-              </div>
+        <div className="md:col-span-1">
+        <CustomInput
+          label="Número de teléfono"
+          id="phone"
+          type="tel"
+          name="phone"
+          onChange={handleChange}
+          onBlur={handleBlur}
+          value={values.phone}
+          error={errors.phone && touched.phone && errors.phone}
+        />
+        </div>
 
-              <div className="md:col-span-1">
-                <CustomInput
-                  label="Correo electrónico"
-                  id="email"
-                  type="email"
-                  name="email"
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  value={values.email}
-                  error={errors.email && touched.email && errors.email}
-                />
-              </div>
+        <div className="md:col-span-1">
+        <CustomInput
+          label="DNI"
+          id="dni"
+          name="dni"
+          onChange={handleChange}
+          onBlur={handleBlur}
+          value={values.dni}
+          error={errors.dni && touched.dni && errors.dni}
+          placeholder="Ej: 12345678"
+        />
+        </div>
+
+        <div className="md:col-span-1">
+        <CustomInput
+          label="Correo electrónico"
+          id="email"
+          type="email"
+          name="email"
+          onChange={handleChange}
+          onBlur={handleBlur}
+          value={values.email}
+          error={errors.email && touched.email && errors.email}
+        />
+        </div>
+
+        <div className="md:col-span-1">
+        <CustomInput
+          label="Dirección"
+          id="address"
+          name="address"
+          onChange={handleChange}
+          onBlur={handleBlur}
+          value={values.address}
+          error={errors.address && touched.address && errors.address}
+          placeholder="Calle, número, ciudad"
+        />
+        </div>
 
               <div className="md:col-span-1">
                 <CustomInput
@@ -184,6 +220,7 @@ export default function RegisterForm() {
                   onBlur={handleBlur}
                   value={values.socialWork}
                   error={errors.socialWork && touched.socialWork && errors.socialWork}
+                  placeholder="(opcional)"
                 />
               </div>
 
@@ -197,8 +234,8 @@ export default function RegisterForm() {
                   onBlur={handleBlur}
                   value={values.emergencyContact}
                   error={errors.emergencyContact && touched.emergencyContact && errors.emergencyContact}
-                  placeholder="Número de contacto"
                 />
+                <p className="text-xs text-grey-500 mt-1">¨* Este número no puede coincidir con el de teléfono principal.</p>
               </div>
             </div>
 
@@ -207,11 +244,15 @@ export default function RegisterForm() {
                 Foto de Perfil
               </Label>
               <div className="flex items-center space-x-4">
-                <Avatar className="w-12 h-12 sm:w-16 sm:h-16">
-                  <AvatarImage src={profileImage || undefined} />
-                  <AvatarFallback className="bg-gray-200">
-                    <Camera className="w-4 h-4 sm:w-6 sm:h-6 text-gray-400" />
-                  </AvatarFallback>
+                <Avatar className="w-12 h-12 sm:w-16 sm:h-16 aspect-square overflow-hidden">
+                  {profileImage
+                    ? <AvatarImage src={profileImage} className="object-cover w-full h-full" />
+                    : (
+                      <AvatarFallback className="bg-gray-200">
+                        <Camera className="w-4 h-4 sm:w-6 sm:h-6 text-gray-400" />
+                      </AvatarFallback>
+                    )
+                  }
                 </Avatar>
                 <div>
                   <input

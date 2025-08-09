@@ -15,12 +15,12 @@ const botonesNavBarHome = [
 const botonesNavBarHomeLogeado = [
         <a href="">Buscar Terapeutas</a>,
         <a href="">Como Funciona</a>,
-        <a href="" className="px-4 py-2 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">Perfil</a>,
+        <Link href="dashboard/perfil-user" className="px-4 py-2 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">Perfil</Link>,
 ]
 
 const botonesNavBarMatch = [
     <a href="">Como funciona</a>,
-    <a href="" className="px-4 py-2 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">Perfil</a>
+    <Link href="/register-user" className="px-4 py-2 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">Perfil</Link>
 ]
 
 const Navbar = () => {
@@ -85,12 +85,12 @@ const Navbar = () => {
                     </ul>
             </div> }
 
-            {(pathname === "/dashboard/professional" || pathname === `/professionalProfile/${id}`) && 
+            {(pathname === "/dashboard/professional" || pathname === `/professionalProfile/${id}` || pathname === "/dashboard/user") && 
                 <div className="hidden lg:block">
                     <button className="px-4 py-1 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">
-                        Cerrar Sesión
+                         Cerrar Sesión
                     </button>
-                </div>
+                 </div>
             }
         </div>
     )
