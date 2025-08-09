@@ -24,14 +24,9 @@ export default function LoginForm() {
   }
 
   // Handler para login con Google
-  const handleGoogleLogin = async () => {
-    try {
-      //aca hay que redirigir al edpoint de auth de google suerte dea
-      // Por ejemplo:
-      window.location.href = process.env.NEXT_PUBLIC_BACKEND_URL + '/auth/google';
-    } catch (error) {
-      console.error('Error al iniciar sesión con Google:', error);
-    }
+  const handleGoogleLogin = () => {
+    // Redirige directamente al endpoint de Google Auth (redirect real)
+    window.location.replace(process.env.NEXT_PUBLIC_BACKEND_URL + '/auth/google');
   };
 
   return (

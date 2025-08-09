@@ -15,7 +15,7 @@ const botonesNavBarHome = [
 const botonesNavBarHomeLogeado = [
         <a href="">Buscar Terapeutas</a>,
         <a href="">Como Funciona</a>,
-        <Link href="dashboard/perfil-user" className="px-4 py-2 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">Perfil</Link>,
+        <Link href="dashboard/user" className="px-4 py-2 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">Perfil</Link>,
 ]
 
 const botonesNavBarMatch = [
