@@ -8,21 +8,21 @@ const Cards = () => {
     }
     return (
         <div className="grid grid-cols-4 gap-4 mt-4">
-            <div className="flex flex-col px-12 py-6 text-start bg-[#4138CA] h-fit rounded-xl">
+            <div className="flex flex-col px-12 py-6 text-start bg-[#ffffff] h-fit rounded-xl">
                 <span className="text-[24px] font-bold">{userPanel.terapeutasActivos}</span>
-                <span className="text-sm text-white">Terapeutas activos</span>
+                <span className="text-sm text-black">Terapeutas activos</span>
             </div>
-            <div className="flex flex-col px-12 py-6 text-start bg-[#4138CA] h-fit rounded-xl">
+            <div className="flex flex-col px-12 py-6 text-start bg-[#ffffff] h-fit rounded-xl">
                 <span className="text-[24px] font-bold">{userPanel.turnosProximos}</span>
-                <span className="text-sm text-white">Turnos próximos</span>
+                <span className="text-sm text-black">Turnos próximos</span>
             </div>
-            <div className="flex flex-col px-12 py-6 text-start bg-[#4138CA] h-fit rounded-xl">
+            <div className="flex flex-col px-12 py-6 text-start bg-[#ffffff] h-fit rounded-xl">
                 <span className="text-[24px] font-bold">{userPanel.valoracionMedia}</span>
-                <span className="text-sm text-white">Valoración media</span>
+                <span className="text-sm text-black">Valoración media</span>
             </div>
-            <div className="flex flex-col px-12 py-6 text-start bg-[#4138CA] h-fit rounded-xl">
+            <div className="flex flex-col px-12 py-6 text-start bg-[#ffffff] h-fit rounded-xl">
                 <span className="text-[24px] font-bold">{userPanel.gastos}</span>
-                <span className="text-sm text-white">Gastos del Mes</span>
+                <span className="text-sm text-black">Gastos del Mes</span>
             </div>
         </div>
     )

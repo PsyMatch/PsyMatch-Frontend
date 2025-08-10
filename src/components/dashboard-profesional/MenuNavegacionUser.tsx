@@ -20,7 +20,7 @@ const MenuNavegacionUser = () => {
             <div className="grid items-center w-full h-10 grid-cols-4 gap-3 px-1 mt-6 bg-white rounded-md">
                 {pestanas.map((pestana) => (
                     <button key={pestana.id} className={`h-[80%] rounded-md transition-colors ${
-                        pestanaActiva === pestana.id ? "bg-violet-300" : "hover:bg-violet-200"
+                        pestanaActiva === pestana.id ? "bg-blue-200" : "hover:bg-blue-100"
                     }`}
                     onClick={() => setPestanaActiva(pestana.id)}
                     >

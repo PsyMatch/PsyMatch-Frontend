@@ -86,7 +86,7 @@ const Perfil = () => {
                             <label className="block text-sm font-medium mb-1">Especialidades</label>
                             <div className="flex flex-row gap-2 flex-wrap">
                                 {dashboardProfesionalMock.profesional.serviciosYEspecialidades.map((serv, index) => (
-                                    <span key={index} className="bg-violet-400 px-4 py-[2px] text-sm font-bold rounded-xl">{serv}</span>
+                                    <span key={index} className="bg-white-400 px-4 py-[2px] text-sm font-bold rounded-xl">{serv}</span>
                                 ))}
                             </div>
                         </div>
@@ -94,7 +94,7 @@ const Perfil = () => {
                             <label className="block text-sm font-medium mb-1">Idiomas</label>
                             <div className="flex flex-row gap-2 flex-wrap">
                                 {dashboardProfesionalMock.profesional.idioma.map((idioma, index) => (
-                                    <span key={index} className="bg-violet-400 px-4 py-[2px] text-sm font-bold rounded-xl">{idioma}</span>
+                                    <span key={index} className="bg-white-400 px-4 py-[2px] text-sm font-bold rounded-xl">{idioma}</span>
                                 ))}
                             </div>
                         </div>

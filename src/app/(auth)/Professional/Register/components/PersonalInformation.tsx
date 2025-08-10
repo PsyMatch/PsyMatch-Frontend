@@ -1,5 +1,4 @@
 'use client';
-
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import * as Yup from 'yup';
 import { User, Mail, Phone, Camera, Upload } from 'lucide-react';
@@ -9,7 +8,6 @@ import Cookies from 'js-cookie';
 
 const PersonalInformation = () => {
     const {avanzarPaso} = useBotonesRegisterContext()
-
     const [initialValues, setInitialValues] = useState({
         name: "",
         email: '',
