@@ -5,6 +5,8 @@ import * as Yup from 'yup'
 import CustomInput from '@/components/ui/Custom-input'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 
 
@@ -18,15 +20,56 @@ const LoginSchema = Yup.object().shape({
 })
 
 export default function LoginForm() {
+  const router = useRouter()
+  const [loginError, setLoginError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+
   const handleSubmit = async (values: { email: string; password: string }) => {
-    console.log('Login values:', values)
-    // aca la lógica para login bro
+    setIsLoading(true)
+    setLoginError('')
+    
+    try {
+      const response = await fetch('https://psymatch-backend-app.onrender.com/auth/signin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Guardar token en localStorage si viene en la respuesta
+        if (data.token) {
+          localStorage.setItem('authToken', data.token)
+        }
+        
+        // Redirigir según el tipo de usuario
+        if (data.userType === 'professional') {
+          router.push('/dashboard/professional')
+        } else {
+          router.push('/dashboard/user')
+        }
+      } else {
+        // Mostrar error del servidor
+        setLoginError(data.message || 'Error al iniciar sesión')
+      }
+    } catch (error) {
+      console.error('Error en login:', error)
+      setLoginError('Error de conexión. Intenta nuevamente.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   // Handler para login con Google
   const handleGoogleLogin = () => {
     // Redirige directamente al endpoint de Google Auth (redirect real)
-    window.location.replace(process.env.NEXT_PUBLIC_BACKEND_URL + '/auth/google');
+    window.location.replace('http://localhost:8080/auth/google');
   };
 
   return (
@@ -43,6 +86,12 @@ export default function LoginForm() {
       >
         {({ isSubmitting, errors, touched, handleChange, handleBlur, values }) => (
           <Form className="space-y-3 sm:space-y-4">
+            {loginError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md text-sm">
+                {loginError}
+              </div>
+            )}
+            
             <CustomInput
               label="Correo electrónico"
               id="email"
@@ -70,10 +119,10 @@ export default function LoginForm() {
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-2">
               <Button
                 type="submit"
-                disabled={isSubmitting}
-                className="w-full sm:flex-1 bg-blue-600  hover:bg-blue-700 text-white"
+                disabled={isSubmitting || isLoading}
+                className="w-full sm:flex-1 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
               >
-                Iniciar Sesión
+                {isLoading ? 'Iniciando Sesión...' : 'Iniciar Sesión'}
               </Button>
               <Link href="/register-user">
                 <Button className="w-full sm:flex-1 bg-white hover:text-blue-700  text-black">
