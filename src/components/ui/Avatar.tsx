@@ -8,8 +8,8 @@ export function Avatar({ className, children }: React.PropsWithChildren<{ classN
   );
 }
 
-export function AvatarImage({ src }: { src?: string }) {
-  return src ? <img src={src} alt="avatar" className="w-full h-full object-cover" /> : null;
+export function AvatarImage({ src, className }: { src?: string; className?: string }) {
+  return src ? <img src={src} alt="avatar" className={`w-full h-full object-cover ${className || ''}`} /> : null;
 }
 
 export function AvatarFallback({ children, className }: React.PropsWithChildren<{ className?: string }>) {

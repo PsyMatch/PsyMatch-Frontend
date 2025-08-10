@@ -8,11 +8,12 @@ interface CustomInputProps {
   type?: string
   name: string
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-  onBlur: (e: React.FocusEvent<HTMLInputElement>) => void
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void
   value: string | number
   error?: string | false
   placeholder?: string
   className?: string
+  disabled?: boolean;
 }
 
 export default function CustomInput({
@@ -25,7 +26,8 @@ export default function CustomInput({
   value,
   error,
   placeholder,
-  className = ""
+  className = "",
+  disabled = false
 }: CustomInputProps) {
   return (
     <div className="space-y-2">
@@ -41,6 +43,7 @@ export default function CustomInput({
         value={value}
         className={`w-full ${error ? 'border-red-500' : ''} ${className}`}
         placeholder={placeholder}
+        disabled={disabled}
       />
       {error && (
         <div className="text-red-500 text-xs">

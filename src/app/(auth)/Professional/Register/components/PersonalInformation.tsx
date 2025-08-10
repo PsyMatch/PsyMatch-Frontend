@@ -1,15 +1,13 @@
 'use client';
-
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import * as Yup from 'yup';
 import { User, Mail, Phone, Camera, Upload } from 'lucide-react';
-import Cookies from "js-cookie";
 import { useBotonesRegisterContext } from '@/context/botonesRegisterContext';
 import { useEffect, useState } from 'react';
+import Cookies from 'js-cookie';
 
 const PersonalInformation = () => {
     const {avanzarPaso} = useBotonesRegisterContext()
-
     const [initialValues, setInitialValues] = useState({
         name: "",
         email: '',
@@ -22,26 +20,27 @@ const PersonalInformation = () => {
         reverseIDCard: null,
     });
 
-  useEffect(() => {
-    const cookieData = Cookies.get("userDataPaso1");
-    if (cookieData) {
-      try {
-        const parsed = JSON.parse(cookieData);
-        setInitialValues({
-            name: parsed.name || "",
-            email: parsed.email || "",
-            phone: parsed.phone|| '',
-            contraseña: parsed.contraseña || "",
-            confirmarContraseña: parsed.confirmarContraseña || "",
-            dateOfBirth: parsed.dateOfBirth || '',
-            profilePhoto: parsed.profilePhoto || null,
-            frontIDCard: parsed.frontIDCard ||  null,
-            reverseIDCard: parsed.reverseIDCard || null,
-        });
-      } catch {
-      }
-    }
-  }, []);
+    useEffect(() => {
+        const cookieData = Cookies.get("userDataPaso1");
+        if (cookieData) {
+            try {
+                const parsed = JSON.parse(cookieData);
+                setInitialValues({
+                        name: parsed.name || "",
+                        email: parsed.email || "",
+                        phone: parsed.phone|| '',
+                        contraseña: parsed.contraseña || "",
+                        confirmarContraseña: parsed.confirmarContraseña || "",
+                        dateOfBirth: parsed.dateOfBirth || '',
+                        // Nunca hidratar archivos desde cookie, siempre null
+                        profilePhoto: null,
+                        frontIDCard: null,
+                        reverseIDCard: null,
+                });
+            } catch {
+            }
+        }
+    }, []);
 
     const validationSchema = Yup.object({
         name: Yup.string().required('El nombre es obligatorio'),
@@ -51,12 +50,36 @@ const PersonalInformation = () => {
             .matches(/^\d{2}\s?\d{4}\s?\d{4}$/, 'El número debe tener 10 dígitos, puede incluir espacios'),
         contraseña: Yup.string().required('La contraseña es obligatoria'),
         confirmarContraseña: Yup.string()
-            .oneOf([Yup.ref('contraseña'), undefined], 'Las contraseñas deben coincidir')
+            .oneOf([Yup.ref('contraseña')], 'Las contraseñas deben coincidir')
             .required('Confirmar contraseña es obligatorio'),
-        dateOfBirth: Yup.date().required('La fecha de nacimiento es obligatoria').nullable(),
-        profilePhoto: Yup.mixed().required('La foto de perfil es obligatoria'),
-        frontIDCard: Yup.mixed().required('El frente del DNI es obligatorio'),
-        reverseIDCard: Yup.mixed().required('El reverso del DNI es obligatorio'),
+        dateOfBirth: Yup.string().required('La fecha de nacimiento es obligatoria'),
+        profilePhoto: Yup.mixed()
+            .required('La foto de perfil es obligatoria')
+            .test('fileType', 'Debe ser una imagen', value => {
+                if (!value) return false;
+                if (typeof File !== 'undefined' && value instanceof File) {
+                    return value.type.startsWith('image/');
+                }
+                return false;
+            }),
+        frontIDCard: Yup.mixed()
+            .required('El frente del DNI es obligatorio')
+            .test('fileType', 'Debe ser una imagen', value => {
+                if (!value) return false;
+                if (typeof File !== 'undefined' && value instanceof File) {
+                    return value.type.startsWith('image/');
+                }
+                return false;
+            }),
+        reverseIDCard: Yup.mixed()
+            .required('El reverso del DNI es obligatorio')
+            .test('fileType', 'Debe ser una imagen', value => {
+                if (!value) return false;
+                if (typeof File !== 'undefined' && value instanceof File) {
+                    return value.type.startsWith('image/');
+                }
+                return false;
+            }),
     });
 
     interface PersonalInformationFormValues {
@@ -70,17 +93,10 @@ const PersonalInformation = () => {
     }
 
     const handleSubmit = (values: PersonalInformationFormValues) => {
-
-
-        Cookies.set("userDataPaso1", JSON.stringify(values));
-
-        const savedData = Cookies.get("userDataPaso1");
-            if (savedData) {
-            const parsedData = JSON.parse(savedData);
-            console.log(parsedData);
-        }
-
-        avanzarPaso()
+        // No guardar archivos en cookies, solo datos serializables
+        const { profilePhoto, frontIDCard, reverseIDCard, ...rest } = values;
+        Cookies.set("userDataPaso1", JSON.stringify(rest));
+        avanzarPaso();
     };
 
     return (
@@ -95,7 +111,7 @@ const PersonalInformation = () => {
 
             <div className="pb-6 space-y-6">
                 <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit} enableReinitialize >
-                    {({ setFieldValue, isSubmitting }) => (
+                    {({ setFieldValue }) => (
                         <Form className="space-y-6">
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
@@ -166,6 +182,7 @@ const PersonalInformation = () => {
                                     <Field
                                         name="contraseña"
                                         id="contraseña"
+                                        type="password"
                                         className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
                                     />
                                     <ErrorMessage name="contraseña" component="div" className="mt-1 text-sm text-red-500" />
@@ -177,6 +194,7 @@ const PersonalInformation = () => {
                                     <Field
                                         name="confirmarContraseña"
                                         id="confirmarContraseña"
+                                        type="password"
                                         className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
                                     />
                                     <ErrorMessage name="confirmarContraseña" component="div" className="mt-1 text-sm text-red-500" />
