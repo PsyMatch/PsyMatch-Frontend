@@ -226,14 +226,7 @@ useEffect(() => {
                                         Foto de perfil profesional *
                                     </label>
                                     <div className="flex items-center mt-2 space-x-4">
-                                            <img
-                                                alt="Foto de perfil"
-                                                className="object-cover w-20 h-20 rounded-md"
-                                            />
-                                            :
-                                            <div className="flex items-center justify-center w-20 h-20 bg-gray-200 rounded-md">
-                                                <Camera className="w-8 h-8 text-gray-400" />
-                                            </div>
+                                           
                                             {profileImagePreview && <img src={profileImagePreview} alt="Preview" />}
                                         <div>
                                             <input
@@ -247,7 +240,7 @@ useEffect(() => {
                                                 htmlFor='profile_picture'
                                                 className="inline-flex items-center h-10 gap-2 px-4 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                                             >
-                                                <Upload className="w-4 h-4" />
+                                                <Upload className="h-4 min-w-4 w-fit" />
                                                 Subir Foto
                                             </label>
                                             <p className="mt-1 text-sm text-gray-500">JPG, PNG hasta 5MB</p>
