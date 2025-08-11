@@ -5,7 +5,6 @@ import * as Yup from 'yup'
 import { Camera } from 'lucide-react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useRouter } from 'next/navigation'
 import CustomInput from '@/components/ui/Custom-input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -139,72 +138,6 @@ export default function RegisterForm() {
     } finally {
       setIsLoading(false)
     }
-    setIsLoading(true)
-    setRegisterError('')
-    
-    try {
-      // Crear FormData para enviar archivos
-      const formData = new FormData()
-      
-      // Agregar todos los campos del formulario
-      formData.append('name', values.fullName)
-      
-      // Convertir birthDate a formato ISO si existe
-      if (values.birthDate) {
-        const birthdateISO = new Date(values.birthDate).toISOString()
-        formData.append('birthdate', birthdateISO)
-      }
-      
-      formData.append('phone', values.phone)
-      formData.append('email', values.email)
-      formData.append('password', values.password)
-      formData.append('dni', values.dni)
-      formData.append('address', values.address)
-      
-      // Solo agregar campos opcionales si tienen valor
-      if (values.socialWork) {
-        formData.append('social_security_number', values.socialWork)
-      }
-      
-      if (values.emergencyContact) {
-        formData.append('emergency_contact', values.emergencyContact)
-      }
-      
-      // Agregar la imagen como archivo si existe
-      if (profileImageFile) {
-        formData.append('profile_picture', profileImageFile)
-      }
-
-      const response = await fetch('http://localhost:8080/auth/signup', {
-        method: 'POST',
-        body: formData, // Enviar FormData sin Content-Type header
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
-        // Registro exitoso - guardar token si viene
-        if (data.token) {
-          localStorage.setItem('authToken', data.token)
-        }
-        
-        // Redirigir al dashboard de usuario o login
-        if (data.token) {
-          router.push('/dashboard/user')
-        } else {
-          // Si no retorna token, redirigir a login con mensaje de éxito
-          router.push('/login?message=Registro exitoso. Por favor inicia sesión.')
-        }
-      } else {
-        // Mostrar error del servidor
-        setRegisterError(data.message || 'Error al crear la cuenta')
-      }
-    } catch (error) {
-      console.error('Error en registro:', error)
-      setRegisterError('Error de conexión. Intenta nuevamente.')
-    } finally {
-      setIsLoading(false)
-    }
   }
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -247,6 +180,12 @@ export default function RegisterForm() {
       >
         {({ isSubmitting, errors, touched, handleChange, handleBlur, values }) => (
           <Form className="space-y-3 sm:space-y-4">
+            {registerError && (
+              <div className="px-3 py-2 text-sm text-red-700 border border-red-200 rounded-md bg-red-50">
+                {registerError}
+              </div>
+            )}
+            
             <div className="space-y-3 sm:space-y-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
               <div className="md:col-span-1">
                 <CustomInput
@@ -298,7 +237,57 @@ export default function RegisterForm() {
           placeholder="Ej: 12345678"
         />
         </div>
+        <div className="md:col-span-1">
+        <CustomInput
+          label="Número de teléfono"
+          id="phone"
+          type="tel"
+          name="phone"
+          onChange={handleChange}
+          onBlur={handleBlur}
+          value={values.phone}
+          error={errors.phone && touched.phone && errors.phone}
+        />
+        </div>
 
+        <div className="md:col-span-1">
+        <CustomInput
+          label="DNI"
+          id="dni"
+          name="dni"
+          onChange={handleChange}
+          onBlur={handleBlur}
+          value={values.dni}
+          error={errors.dni && touched.dni && errors.dni}
+          placeholder="Ej: 12345678"
+        />
+        </div>
+
+        <div className="md:col-span-1">
+        <CustomInput
+          label="Correo electrónico"
+          id="email"
+          type="email"
+          name="email"
+          onChange={handleChange}
+          onBlur={handleBlur}
+          value={values.email}
+          error={errors.email && touched.email && errors.email}
+        />
+        </div>
+
+        <div className="md:col-span-1">
+        <CustomInput
+          label="Dirección"
+          id="address"
+          name="address"
+          onChange={handleChange}
+          onBlur={handleBlur}
+          value={values.address}
+          error={errors.address && touched.address && errors.address}
+          placeholder="Calle, número, ciudad"
+        />
+        </div>
         <div className="md:col-span-1">
         <CustomInput
           label="Correo electrónico"
@@ -375,6 +364,7 @@ export default function RegisterForm() {
                   value={values.emergencyContact}
                   error={errors.emergencyContact && touched.emergencyContact && errors.emergencyContact}
                 />
+                <p className="mt-1 text-xs text-grey-500">¨* Este número no puede coincidir con el de teléfono principal.</p>
               </div>
             </div>
 
