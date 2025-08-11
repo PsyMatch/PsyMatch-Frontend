@@ -181,7 +181,7 @@ export default function RegisterForm() {
         {({ isSubmitting, errors, touched, handleChange, handleBlur, values }) => (
           <Form className="space-y-3 sm:space-y-4">
             {registerError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md text-sm">
+              <div className="px-3 py-2 text-sm text-red-700 border border-red-200 rounded-md bg-red-50">
                 {registerError}
               </div>
             )}
@@ -314,7 +314,7 @@ export default function RegisterForm() {
                   value={values.emergencyContact}
                   error={errors.emergencyContact && touched.emergencyContact && errors.emergencyContact}
                 />
-                <p className="text-xs text-grey-500 mt-1">¨* Este número no puede coincidir con el de teléfono principal.</p>
+                <p className="mt-1 text-xs text-grey-500">¨* Este número no puede coincidir con el de teléfono principal.</p>
               </div>
             </div>
 
@@ -323,15 +323,11 @@ export default function RegisterForm() {
                 Foto de Perfil
               </Label>
               <div className="flex items-center space-x-4">
-                <Avatar className="w-12 h-12 sm:w-16 sm:h-16 aspect-square overflow-hidden">
-                  {profileImage
-                    ? <AvatarImage src={profileImage} className="object-cover w-full h-full" />
-                    : (
-                      <AvatarFallback className="bg-gray-200">
-                        <Camera className="w-4 h-4 sm:w-6 sm:h-6 text-gray-400" />
-                      </AvatarFallback>
-                    )
-                  }
+                <Avatar className="w-12 h-12 sm:w-16 sm:h-16">
+                  <AvatarImage src={profileImage || undefined} />
+                  <AvatarFallback className="bg-gray-200">
+                    <Camera className="w-4 h-4 text-gray-400 sm:w-6 sm:h-6" />
+                  </AvatarFallback>
                 </Avatar>
                 <div>
                   <input
@@ -354,8 +350,8 @@ export default function RegisterForm() {
             <div className="flex flex-col pt-2 space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">
               <Button
                 type="submit"
-                disabled={isSubmitting || isLoading}
-                className="w-full sm:flex-1 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+                disabled={isSubmitting}
+                className="w-full text-white bg-blue-600 sm:flex-1 hover:bg-blue-700"
               >
                 {isLoading ? 'Creando Cuenta...' : 'Crear Cuenta'}
               </Button>

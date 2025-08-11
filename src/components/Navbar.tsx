@@ -19,7 +19,7 @@ const botonesNavBarHomeLogeado = [
 ]
 
 const botonesNavBarMatch = [
-    <a href="">Como funciona</a>,
+    <a href="como-funciona">Como funciona</a>,
     <Link href="/register-user" className="px-4 py-2 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">Perfil</Link>
 ]
 
