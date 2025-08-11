@@ -11,15 +11,15 @@ const Contacto = ({ data }: { data: Profesional }) => {
             <h3 className="text-xl font-bold text-black">Opciones de Contacto</h3>
             <div className="flex flex-col gap-3">
                     <div className="flex flex-col">
-                            <div className="flex flex-row items-center gap-2 px-5 py-2 mb-3 bg-violet-300">
+                            <div className="flex flex-row items-center gap-2 px-5 py-2 mb-3 bg-gray-200 border-2 border-gray-300 rounded-lg">
                                 <PhoneCall />
                                 <span>{data.opcionesContacto.telefono}</span>
                             </div>
-                            <div className="flex flex-row items-center gap-2 px-5 py-2 mb-3 bg-violet-300">
+                            <div className="flex flex-row items-center gap-2 px-5 py-2 mb-3 bg-gray-200 border-2 border-gray-300 rounded-lg">
                                 <Video />
                                 <span>{data.opcionesContacto.video}</span>
                             </div>
-                            <div className="flex flex-row items-center gap-2 px-5 py-2 mb-3 bg-violet-300">
+                            <div className="flex flex-row items-center gap-2 px-5 py-2 mb-3 bg-gray-200 border-2 border-gray-300 rounded-lg">
                                 <MessageCircle />
                                 <span>{data.opcionesContacto.mensaje}</span>
                             </div>

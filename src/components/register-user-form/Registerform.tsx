@@ -156,10 +156,10 @@ export default function RegisterForm() {
   }
 
   return (
-    <div className="w-full max-w-sm sm:max-w-md space-y-4 sm:space-y-6">
-      <div className="text-center space-y-2">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Comenzar</h1>
-        <p className="text-sm sm:text-base text-gray-600">Únete a miles de usuarios que han encontrado a su terapeuta ideal</p>
+    <div className="w-full max-w-sm space-y-4 sm:max-w-md sm:space-y-6">
+      <div className="space-y-2 text-center">
+        <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">Comenzar</h1>
+        <p className="text-sm text-gray-600 sm:text-base">Únete a miles de usuarios que han encontrado a su terapeuta ideal</p>
       </div>
 
       <Formik
@@ -181,7 +181,7 @@ export default function RegisterForm() {
         {({ isSubmitting, errors, touched, handleChange, handleBlur, values }) => (
           <Form className="space-y-3 sm:space-y-4">
             {registerError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md text-sm">
+              <div className="px-3 py-2 text-sm text-red-700 border border-red-200 rounded-md bg-red-50">
                 {registerError}
               </div>
             )}
@@ -237,7 +237,57 @@ export default function RegisterForm() {
           placeholder="Ej: 12345678"
         />
         </div>
+        <div className="md:col-span-1">
+        <CustomInput
+          label="Número de teléfono"
+          id="phone"
+          type="tel"
+          name="phone"
+          onChange={handleChange}
+          onBlur={handleBlur}
+          value={values.phone}
+          error={errors.phone && touched.phone && errors.phone}
+        />
+        </div>
 
+        <div className="md:col-span-1">
+        <CustomInput
+          label="DNI"
+          id="dni"
+          name="dni"
+          onChange={handleChange}
+          onBlur={handleBlur}
+          value={values.dni}
+          error={errors.dni && touched.dni && errors.dni}
+          placeholder="Ej: 12345678"
+        />
+        </div>
+
+        <div className="md:col-span-1">
+        <CustomInput
+          label="Correo electrónico"
+          id="email"
+          type="email"
+          name="email"
+          onChange={handleChange}
+          onBlur={handleBlur}
+          value={values.email}
+          error={errors.email && touched.email && errors.email}
+        />
+        </div>
+
+        <div className="md:col-span-1">
+        <CustomInput
+          label="Dirección"
+          id="address"
+          name="address"
+          onChange={handleChange}
+          onBlur={handleBlur}
+          value={values.address}
+          error={errors.address && touched.address && errors.address}
+          placeholder="Calle, número, ciudad"
+        />
+        </div>
         <div className="md:col-span-1">
         <CustomInput
           label="Correo electrónico"
@@ -314,7 +364,7 @@ export default function RegisterForm() {
                   value={values.emergencyContact}
                   error={errors.emergencyContact && touched.emergencyContact && errors.emergencyContact}
                 />
-                <p className="text-xs text-grey-500 mt-1">¨* Este número no puede coincidir con el de teléfono principal.</p>
+                <p className="mt-1 text-xs text-grey-500">¨* Este número no puede coincidir con el de teléfono principal.</p>
               </div>
             </div>
 
@@ -323,15 +373,11 @@ export default function RegisterForm() {
                 Foto de Perfil
               </Label>
               <div className="flex items-center space-x-4">
-                <Avatar className="w-12 h-12 sm:w-16 sm:h-16 aspect-square overflow-hidden">
-                  {profileImage
-                    ? <AvatarImage src={profileImage} className="object-cover w-full h-full" />
-                    : (
-                      <AvatarFallback className="bg-gray-200">
-                        <Camera className="w-4 h-4 sm:w-6 sm:h-6 text-gray-400" />
-                      </AvatarFallback>
-                    )
-                  }
+                <Avatar className="w-12 h-12 sm:w-16 sm:h-16">
+                  <AvatarImage src={profileImage || undefined} />
+                  <AvatarFallback className="bg-gray-200">
+                    <Camera className="w-4 h-4 text-gray-400 sm:w-6 sm:h-6" />
+                  </AvatarFallback>
                 </Avatar>
                 <div>
                   <input
@@ -343,7 +389,7 @@ export default function RegisterForm() {
                   />
                   <Label
                     htmlFor="profile-upload"
-                    className="cursor-pointer bg-gray-200 hover:bg-gray-300 px-3 py-2 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm"
+                    className="px-3 py-2 text-xs bg-gray-200 rounded-md cursor-pointer hover:bg-gray-300 sm:px-4 sm:py-2 sm:text-sm"
                   >
                     Subir foto
                   </Label>
@@ -351,16 +397,16 @@ export default function RegisterForm() {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-2">
+            <div className="flex flex-col pt-2 space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">
               <Button
                 type="submit"
-                disabled={isSubmitting || isLoading}
-                className="w-full sm:flex-1 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+                disabled={isSubmitting}
+                className="w-full text-white bg-blue-600 sm:flex-1 hover:bg-blue-700"
               >
                 {isLoading ? 'Creando Cuenta...' : 'Crear Cuenta'}
               </Button>
               <Link href="/login">
-              <Button className="w-full sm:flex-1 bg-white hover:text-blue-700  text-black">
+              <Button className="w-full text-black bg-white sm:flex-1 hover:text-blue-700">
                 Iniciar Sesión
               </Button>
               </Link>
@@ -369,9 +415,9 @@ export default function RegisterForm() {
         )}
       </Formik>
 
-      <div className="text-center text-xs sm:text-sm text-gray-600">
+      <div className="text-xs text-center text-gray-600 sm:text-sm">
         ¿Eres un profesional de salud mental?{' '}
-        <Link href="/Professional/Register" className="text-blue-600 hover:underline">
+        <Link href="/professional/register" className="text-blue-600 hover:underline">
           Únete a Nuestra Red
         </Link>
       </div>

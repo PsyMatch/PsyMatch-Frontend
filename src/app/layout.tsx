@@ -4,6 +4,7 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { BotonesRegisterProvider } from '@/context/botonesRegisterContext';
+import { FotoDePerfilProvider } from '@/context/fotoDePerfil';
 
 
 const geistSans = Geist({
@@ -31,7 +32,9 @@ export default function RootLayout({
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
                 <Navbar />
                     <BotonesRegisterProvider>
-                        {children}
+                        <FotoDePerfilProvider>
+                            {children}
+                        </FotoDePerfilProvider>
                     </BotonesRegisterProvider>
                 <Footer />
             </body>

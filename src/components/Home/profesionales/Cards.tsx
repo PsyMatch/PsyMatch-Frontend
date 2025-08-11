@@ -4,6 +4,7 @@ import { Star } from 'lucide-react';
 import { Clock } from 'lucide-react';
 import { MapPin } from 'lucide-react';
 import { DollarSign } from 'lucide-react';
+import Link from 'next/link';
 
 const Cards = () => {
     return (
@@ -45,11 +46,11 @@ const Cards = () => {
                     </div>
 
                     <div className="flex flex-row gap-5 mt-5 ">
-                        <button className="hover:bg-gray-200 px-3 w-[45%] py-1 border-2 border-gray-400 rounded-md text-md">Ver Perfil</button>
-                        <button className="hover:bg-gray-900 flex flex-row gap-2 px-3 w-[45%] py-1 bg-black text-white items-center justify-center rounded-md text-md">
+                        <Link href={`professionalProfile/${profesional.id}`} className="text-center hover:bg-gray-200 px-3 w-[45%] py-1 border-2 border-gray-400 rounded-md text-md">Ver Perfil</Link>
+                        <Link href={"#"} className="hover:bg-gray-900 flex flex-row gap-2 px-3 w-[45%] py-1 bg-black text-white items-center justify-center rounded-md text-md">
                             <Calendar height={20} />
                             Reservar
-                        </button>
+                        </Link>
                     </div>
                 </div>
             ))}

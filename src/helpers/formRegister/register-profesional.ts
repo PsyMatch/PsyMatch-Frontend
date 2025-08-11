@@ -40,8 +40,6 @@ export const enfoques = [
 
 export const tipos = ['Individual', 'Pareja', 'Familia', 'Grupo'];
 
-export const modalidades = ['Presencial', 'Online', 'Telefono'];
-
 export const Dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
 export const obrasSociales = [
@@ -64,136 +62,33 @@ export const obrasSociales = [
 ];
 
 export interface Valores {
-    opcionesSeleccionadas: string[];
-    opcionesEnfoqueSeleccionadas: string[];
-    opcionesTipoSeleccionadas: string[];
-    opcionesModalidadSeleccionadas: string[];
-    opcionesObrasSeleccionadas: string[];
-    opcionesDiasSeleccionadas: string[];
-
-    fieldPareja: string;
-    fieldIndividual: string;
-    fieldFamiliar: string;
-    fieldGrupo: string;
-
-    fieldLunes: string;
-    fieldMartes: string;
-    fieldMiercoles: string;
-    fieldJueves: string;
-    fieldViernes: string;
-    fieldSabado: string;
-    fieldDomingo: string;
-
-    Tarifas: string;
-    Horarios: string;
+    specialities: string[];
+    therapy_approaches: string[];
+    session_types: string[];
+    modality: string;
+    insurance_accepted: string[];
+    availability: string[];
 }
 
 export const initialValuesTipos: Valores = {
-    opcionesSeleccionadas: [],
-    opcionesEnfoqueSeleccionadas: [],
-    opcionesTipoSeleccionadas: [],
-    opcionesModalidadSeleccionadas: [],
-    opcionesObrasSeleccionadas: [],
-    opcionesDiasSeleccionadas: [],
-
-    fieldPareja: '',
-    fieldIndividual: '',
-    fieldFamiliar: '',
-    fieldGrupo: '',
-
-    fieldLunes: '',
-    fieldMartes: '',
-    fieldMiercoles: '',
-    fieldJueves: '',
-    fieldViernes: '',
-    fieldSabado: '',
-    fieldDomingo: '',
-
-    Tarifas: '',
-    Horarios: '',
+    specialities: [],
+    therapy_approaches: [],
+    session_types: [],
+    modality: '',
+    insurance_accepted: [],
+    availability: [],
 };
 
 import * as Yup from 'yup';
 
 export const validationSchema = Yup.object().shape({
-    opcionesSeleccionadas: Yup.array().min(3, 'Selecciona al menos 3 especialidades').required('Debes seleccionar especialidades'),
+    specialities: Yup.array().min(3, 'Selecciona al menos 3 especialidades').required('Debes seleccionar especialidades'),
 
-    opcionesEnfoqueSeleccionadas: Yup.array().min(2, 'Selecciona al menos 2 enfoques terapéuticos').required('Debes seleccionar enfoques'),
+    therapy_approaches: Yup.array().min(2, 'Selecciona al menos 2 enfoques terapéuticos').required('Debes seleccionar enfoques'),
 
-    opcionesTipoSeleccionadas: Yup.array().min(1, 'Selecciona al menos un tipo de sesión').required('Debes seleccionar tipos de sesión'),
+    session_types: Yup.array().min(1, 'Selecciona al menos un tipo de sesión').required('Debes seleccionar tipos de sesión'),
 
-    opcionesModalidadSeleccionadas: Yup.array().min(1, 'Selecciona al menos una modalidad').required('Debes seleccionar modalidad'),
+    modality: Yup.string().required('Debes seleccionar modalidad'),
 
-    fieldPareja: Yup.string().when('opcionesTipoSeleccionadas', (tipos: string[], schema: Yup.StringSchema) => {
-        if (Array.isArray(tipos) && tipos.includes('Pareja')) {
-            return schema.required('La tarifa para sesión de pareja es obligatoria');
-        }
-        return schema.notRequired();
-    }),
-
-    fieldIndividual: Yup.string().when('opcionesTipoSeleccionadas', (tipos: string[], schema: Yup.StringSchema) => {
-        if (Array.isArray(tipos) && tipos.includes('Individual')) {
-            return schema.required('La tarifa para sesión individual es obligatoria');
-        }
-        return schema.notRequired();
-    }),
-
-    fieldFamiliar: Yup.string().when('opcionesTipoSeleccionadas', (tipos: string[], schema: Yup.StringSchema) => {
-        if (Array.isArray(tipos) && tipos.includes('Familia')) {
-            return schema.required('La tarifa para sesión familiar es obligatoria');
-        }
-        return schema.notRequired();
-    }),
-
-    fieldGrupo: Yup.string().when('opcionesTipoSeleccionadas', (tipos: string[], schema: Yup.StringSchema) => {
-        if (Array.isArray(tipos) && tipos.includes('Grupo')) {
-            return schema.required('La tarifa para sesión de grupo es obligatoria');
-        }
-        return schema.notRequired();
-    }),
-
-    opcionesDiasSeleccionadas: Yup.array().min(1, 'Selecciona al menos un día disponible').required('Debes seleccionar días disponibles'),
-
-    fieldLunes: Yup.string().when('opcionesDiasSeleccionadas', (dias, schema) => {
-        if (Array.isArray(dias) && dias.includes('Lunes')) {
-            return schema.required('Indica disponibilidad para Lunes');
-        }
-        return schema.notRequired();
-    }),
-    fieldMartes: Yup.string().when('opcionesDiasSeleccionadas', (dias: string[], schema: Yup.StringSchema) => {
-        if (Array.isArray(dias) && dias.includes('Martes')) {
-            return schema.required('Indica disponibilidad para Martes');
-        }
-        return schema.notRequired();
-    }),
-    fieldMiercoles: Yup.string().when('opcionesDiasSeleccionadas', (dias: string[], schema: Yup.StringSchema) => {
-        if (Array.isArray(dias) && dias.includes('Miercoles')) {
-            return schema.required('Indica disponibilidad para Miércoles');
-        }
-        return schema.notRequired();
-    }),
-    fieldJueves: Yup.string().when('opcionesDiasSeleccionadas', (dias: string[], schema: Yup.StringSchema) => {
-        if (Array.isArray(dias) && dias.includes('Jueves')) {
-            return schema.required('Indica disponibilidad para Jueves');
-        }
-        return schema.notRequired();
-    }),
-    fieldViernes: Yup.string().when('opcionesDiasSeleccionadas', (dias: string[], schema: Yup.StringSchema) => {
-        if (Array.isArray(dias) && dias.includes('Viernes')) {
-            return schema.required('Indica disponibilidad para Viernes');
-        }
-        return schema.notRequired();
-    }),
-    fieldSabado: Yup.string().when('opcionesDiasSeleccionadas', (dias: string[], schema: Yup.StringSchema) => {
-        if (Array.isArray(dias) && dias.includes('Sabado')) {
-            return schema.required('Indica disponibilidad para Sabado');
-        }
-        return schema.notRequired();
-    }),
-    fieldDomingo: Yup.string().when('opcionesDiasSeleccionadas', (dias: string[], schema: Yup.StringSchema) => {
-        if (Array.isArray(dias) && dias.includes('Domingo')) {
-            return schema.required('Indica disponibilidad para Domingo');
-        }
-        return schema.notRequired();
-    }),
+    availability: Yup.array().min(1, 'Selecciona al menos un día disponible').required('Debes seleccionar días disponibles'),
 });

@@ -73,10 +73,10 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-sm sm:max-w-md space-y-4 sm:space-y-6">
-      <div className="text-center space-y-2">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Bienvenido de Vuelta</h1>
-        <p className="text-sm sm:text-base text-gray-600">Ingresa tus credenciales para acceder a tu cuenta</p>
+    <div className="w-full max-w-sm space-y-4 sm:max-w-md sm:space-y-6">
+      <div className="space-y-2 text-center">
+        <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">Bienvenido de Vuelta</h1>
+        <p className="text-sm text-gray-600 sm:text-base">Ingresa tus credenciales para acceder a tu cuenta</p>
       </div>
 
       <Formik
@@ -116,7 +116,7 @@ export default function LoginForm() {
               placeholder="Tu contraseña"
             />
 
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-2">
+            <div className="flex flex-col pt-2 space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">
               <Button
                 type="submit"
                 disabled={isSubmitting || isLoading}
@@ -158,9 +158,9 @@ export default function LoginForm() {
         )}
       </Formik>
 
-      <div className="text-center text-xs sm:text-sm text-gray-600">
+      <div className="text-xs text-center text-gray-600 sm:text-sm">
         ¿Eres un profesional de salud mental?{' '}
-        <Link href="/Professional/Register" className="text-blue-600 hover:underline">
+        <Link href="/professional/register" className="text-blue-600 hover:underline">
           Únete a Nuestra Red
         </Link>
       </div>

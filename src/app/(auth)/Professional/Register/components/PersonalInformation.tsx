@@ -4,43 +4,53 @@ import * as Yup from 'yup';
 import { User, Mail, Phone, Camera, Upload } from 'lucide-react';
 import { useBotonesRegisterContext } from '@/context/botonesRegisterContext';
 import { useEffect, useState } from 'react';
-import Cookies from 'js-cookie';
+import { AutoSaveCookies, dataToSave, getCookieObject, saveMerged } from '@/helpers/formRegister/helpers';
+import { useFotoDePerfil } from '@/context/fotoDePerfil';
+
+
+
 
 const PersonalInformation = () => {
     const {avanzarPaso} = useBotonesRegisterContext()
+    
+     const { profileImagePreview, handleImageUpload } = useFotoDePerfil();
+
+    
+
     const [initialValues, setInitialValues] = useState({
         name: "",
         email: '',
         phone: '',
-        contraseña: "",
-        confirmarContraseña: "",
-        dateOfBirth: '',
-        profilePhoto: null,
-        frontIDCard: null,
-        reverseIDCard: null,
+        password: "",
+        confirmPassword: "",
+        birthdate: '',
+        dni: "",
+        profile_picture: null
     });
+    
 
-    useEffect(() => {
-        const cookieData = Cookies.get("userDataPaso1");
-        if (cookieData) {
-            try {
-                const parsed = JSON.parse(cookieData);
-                setInitialValues({
-                        name: parsed.name || "",
-                        email: parsed.email || "",
-                        phone: parsed.phone|| '',
-                        contraseña: parsed.contraseña || "",
-                        confirmarContraseña: parsed.confirmarContraseña || "",
-                        dateOfBirth: parsed.dateOfBirth || '',
-                        // Nunca hidratar archivos desde cookie, siempre null
-                        profilePhoto: null,
-                        frontIDCard: null,
-                        reverseIDCard: null,
-                });
-            } catch {
-            }
-        }
-    }, []);
+useEffect(() => {
+  if (initialValues.name === "" && initialValues.email === "") {
+    const cookieData = getCookieObject();
+    if (cookieData) {
+      try {
+        setInitialValues({
+          name: cookieData.name || "",
+          email: cookieData.email || "",
+          phone: cookieData.phone || "",
+          password: cookieData.password || "",
+          confirmPassword: cookieData.confirmPassword || "",
+          birthdate: cookieData.birthdate || "",
+          dni: cookieData.dni || "",
+          profile_picture: null
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  }
+}, []);
+
 
     const validationSchema = Yup.object({
         name: Yup.string().required('El nombre es obligatorio'),
@@ -48,56 +58,45 @@ const PersonalInformation = () => {
         phone: Yup.string()
             .required('El número es obligatorio')
             .matches(/^\d{2}\s?\d{4}\s?\d{4}$/, 'El número debe tener 10 dígitos, puede incluir espacios'),
-        contraseña: Yup.string().required('La contraseña es obligatoria'),
-        confirmarContraseña: Yup.string()
-            .oneOf([Yup.ref('contraseña')], 'Las contraseñas deben coincidir')
+        password: Yup.string()
+            .min(8, 'La contraseña debe tener al menos 8 caracteres')
+            .matches(/(?=.*[a-z])/, 'Debe contener al menos una letra minúscula')
+            .matches(/(?=.*[A-Z])/, 'Debe contener al menos una letra mayúscula')
+            .matches(/(?=.*\d)/, 'Debe contener al menos un número')
+            .required('La contraseña es requerida'),
+        confirmPassword: Yup.string()
+            .oneOf([Yup.ref('password')], 'Las contraseñas deben coincidir')
             .required('Confirmar contraseña es obligatorio'),
-        dateOfBirth: Yup.string().required('La fecha de nacimiento es obligatoria'),
-        profilePhoto: Yup.mixed()
-            .required('La foto de perfil es obligatoria')
-            .test('fileType', 'Debe ser una imagen', value => {
-                if (!value) return false;
-                if (typeof File !== 'undefined' && value instanceof File) {
-                    return value.type.startsWith('image/');
-                }
-                return false;
-            }),
-        frontIDCard: Yup.mixed()
-            .required('El frente del DNI es obligatorio')
-            .test('fileType', 'Debe ser una imagen', value => {
-                if (!value) return false;
-                if (typeof File !== 'undefined' && value instanceof File) {
-                    return value.type.startsWith('image/');
-                }
-                return false;
-            }),
-        reverseIDCard: Yup.mixed()
-            .required('El reverso del DNI es obligatorio')
-            .test('fileType', 'Debe ser una imagen', value => {
-                if (!value) return false;
-                if (typeof File !== 'undefined' && value instanceof File) {
-                    return value.type.startsWith('image/');
-                }
-                return false;
-            }),
+        birthdate: Yup.date()
+            .required('La fecha de nacimiento es obligatoria')
+            .max(new Date(), 'La fecha de nacimiento no puede ser posterior a hoy')
+            .typeError('Debe ser una fecha válida'),
+        dni: Yup.string()
+            .required('El DNI es obligatorio')
+            .matches(/^\d{7,8}$/, 'El DNI debe tener entre 7 y 8 números'),
     });
 
     interface PersonalInformationFormValues {
         name: string;
         email: string;
         phone: string;
-        dateOfBirth: string;
-        profilePhoto: File | null;
-        frontIDCard: File | null;
-        reverseIDCard: File | null;
+        birthdate: string;
+        password: string;
+        confirmPassword: string;
+        dni: string;
+        profile_picture?: File | null;
     }
 
     const handleSubmit = (values: PersonalInformationFormValues) => {
-        // No guardar archivos en cookies, solo datos serializables
-        const { profilePhoto, frontIDCard, reverseIDCard, ...rest } = values;
-        Cookies.set("userDataPaso1", JSON.stringify(rest));
+        const toSave = dataToSave(values)
+        console.log("Guardando en cookie (submit):", toSave);
+        saveMerged(toSave)
+
+        //API
+
         avanzarPaso();
     };
+
 
     return (
         <div className="text-gray-900 bg-white shadow-sm ">
@@ -111,8 +110,9 @@ const PersonalInformation = () => {
 
             <div className="pb-6 space-y-6">
                 <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit} enableReinitialize >
-                    {({ setFieldValue }) => (
+                    {({ setFieldValue, values }) => (
                         <Form className="space-y-6">
+                            <AutoSaveCookies />
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
                                     <label className="text-sm font-medium leading-none" htmlFor="name">
@@ -126,16 +126,16 @@ const PersonalInformation = () => {
                                     <ErrorMessage name="name" component="div" className="mt-1 text-sm text-red-500" />
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium leading-none" htmlFor="dateOfBirth">
+                                    <label className="text-sm font-medium leading-none" htmlFor="birthdate">
                                         Fecha de nacimiento *
                                     </label>
                                     <Field
-                                        name="dateOfBirth"
+                                        name="birthdate"
                                         type="date"
-                                        id="dateOfBirth"
+                                        id="birthdate"
                                         className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
                                     />
-                                    <ErrorMessage name="dateOfBirth" component="div" className="mt-1 text-sm text-red-500" />
+                                    <ErrorMessage name="birthdate" component="div" className="mt-1 text-sm text-red-500" />
                                 </div>
                             </div>
 
@@ -173,73 +173,81 @@ const PersonalInformation = () => {
                                 </div>
                             </div>
 
-                            {/* Contraseñas */}
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
-                                    <label className="text-sm font-medium leading-none" htmlFor="contraseña">
-                                        Contraseña *
+                                    <label className="text-sm font-medium leading-none" htmlFor="dni">
+                                        Nro de Documento *
                                     </label>
                                     <Field
-                                        name="contraseña"
-                                        id="contraseña"
-                                        type="password"
+                                        name="dni"
+                                        id="dni"
+                                        type="number"
                                         className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
                                     />
-                                    <ErrorMessage name="contraseña" component="div" className="mt-1 text-sm text-red-500" />
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium leading-none" htmlFor="confirmarContraseña">
-                                        Confirmar Contraseña *
-                                    </label>
-                                    <Field
-                                        name="confirmarContraseña"
-                                        id="confirmarContraseña"
-                                        type="password"
-                                        className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
-                                    />
-                                    <ErrorMessage name="confirmarContraseña" component="div" className="mt-1 text-sm text-red-500" />
+                                    <ErrorMessage name="dni" component="div" className="mt-1 text-sm text-red-500" />
                                 </div>
                             </div>
 
+
+                            {/* Contraseñas */}
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div>
+                                    <label className="text-sm font-medium leading-none" htmlFor="password">
+                                        Contraseña *
+                                    </label>
+                                    <Field
+                                        name="password"
+                                        id="password"
+                                        type="password"
+                                        className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
+                                    />
+                                    <ErrorMessage name="password" component="div" className="mt-1 text-sm text-red-500" />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium leading-none" htmlFor="confirmPassword">
+                                        Confirmar Contraseña *
+                                    </label>
+                                    <Field
+                                        name="confirmPassword"
+                                        id="confirmPassword"
+                                        type="password"
+                                        className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
+                                    />
+                                    <ErrorMessage name="confirmPassword" component="div" className="mt-1 text-sm text-red-500" />
+                                </div>
+                            </div>
+
+
+
                             {/* Subidas de imágenes */}
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                {[
-                                    { id: 'frontIDCard', label: 'Frente del DNI *' },
-                                    { id: 'reverseIDCard', label: 'Reverso del DNI *' },
-                                    { id: 'profilePhoto', label: 'Foto de perfil profesional *' },
-                                ].map((item) => (
-                                    <div key={item.id}>
-                                        <label className="text-sm font-medium leading-none" htmlFor={item.id}>
-                                            {item.label}
-                                        </label>
-                                        <div className="flex items-center mt-2 space-x-4">
-                                            <div className="flex items-center justify-center w-20 h-20 bg-gray-200 rounded-md">
-                                                <Camera className="w-8 h-8 text-gray-400" />
-                                            </div>
-                                            <div>
-                                                <input
-                                                    id={item.id}
-                                                    accept="image/*"
-                                                    className="hidden"
-                                                    type="file"
-                                                    onChange={(event) => {
-                                                        const files = event.target.files;
-                                                        setFieldValue(item.id, files && files[0] ? files[0] : null);
-                                                    }}
-                                                />
-                                                <label
-                                                    htmlFor={item.id}
-                                                    className="inline-flex items-center h-10 gap-2 px-4 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                                                >
-                                                    <Upload className="w-4 h-4" />
-                                                    Subir Foto
-                                                </label>
-                                                <p className="mt-1 text-sm text-gray-500">JPG, PNG hasta 5MB</p>
-                                                <ErrorMessage name={item.id} component="div" className="mt-1 text-sm text-red-500" />
-                                            </div>
+                                <div>
+                                    <label className="text-sm font-medium leading-none" htmlFor='profile_picture'>
+                                        Foto de perfil profesional *
+                                    </label>
+                                    <div className="flex items-center mt-2 space-x-4">
+                                           
+                                            {profileImagePreview && <img src={profileImagePreview} alt="Preview" />}
+                                        <div>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageUpload}
+                                                className="hidden"
+                                                id="profile_picture"
+                                            />
+                                            <label
+                                                htmlFor='profile_picture'
+                                                className="inline-flex items-center h-10 gap-2 px-4 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                            >
+                                                <Upload className="h-4 min-w-4 w-fit" />
+                                                Subir Foto
+                                            </label>
+                                            <p className="mt-1 text-sm text-gray-500">JPG, PNG hasta 5MB</p>
+                                            <ErrorMessage name='profile_picture' component="div" className="mt-1 text-sm text-red-500" />
                                         </div>
                                     </div>
-                                ))}
+                                </div>
                             </div>
                             <button type="submit" className="px-4 py-1 mt-10 rounded-xl bg-violet-600">Continuar</button>
                         </Form>

@@ -6,9 +6,9 @@ import Link from 'next/link';
 
 const CardMatch = () => {
     return (
-        <div className="rounded-lg border border-gray-200 bg-white text-black shadow-sm max-w-4xl mx-auto mb-12">
+        <div className="max-w-4xl mx-auto mb-12 text-black bg-white border border-gray-200 rounded-lg shadow-sm">
             <div className="flex flex-col space-y-1.5 p-6">
-                <div className="text-2xl font-semibold leading-none tracking-tight flex items-center justify-center">
+                <div className="flex items-center justify-center text-2xl font-semibold leading-none tracking-tight">
                     Cuéntanos qué estás experimentando
                 </div>
                 <div className="text-sm text-gray-500">Describe tus síntomas o selecciona de las preocupaciones comunes a continuación</div>
@@ -20,7 +20,7 @@ const CardMatch = () => {
                     placeholder="He estado sintiéndome ansioso por el trabajo y tengo problemas para dormir..."
                 ></textarea>
 
-                <div className="flex flex-wrap gap-2 justify-center">
+                <div className="flex flex-wrap justify-center gap-2">
                     {commonSymptoms.map((symptom) => (
                         <div
                             key={symptom}
@@ -31,9 +31,9 @@ const CardMatch = () => {
                     ))}
                 </div>
 
-                <Link href="/matching">
+                <Link href="/search-professionals">
                     <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-800 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-gray-900 text-white hover:bg-gray-900/90 h-11 rounded-md px-8 w-full sm:w-auto">
-                        <Search className="h-5 w-5 mr-2" />
+                        <Search className="w-5 h-5 mr-2" />
                         Encontrar Mi Psicólogo
                     </button>
                 </Link>
