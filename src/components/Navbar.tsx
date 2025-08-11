@@ -86,11 +86,16 @@ const Navbar = () => {
             </div> }
 
             {(pathname === "/dashboard/professional" || pathname === `/professionalProfile/${id}` || pathname === "/dashboard/user") && 
+            {(pathname === "/dashboard/professional" || pathname === `/professionalProfile/${id}` || pathname === "/dashboard/user") && 
                 <div className="hidden lg:block">
+                    <Link href= '/'>
                     <Link href= '/'>
                     <button className="px-4 py-1 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">
                          Cerrar Sesión
+                         Cerrar Sesión
                     </button>
+                    </Link>
+                 </div>
                     </Link>
                  </div>
             }

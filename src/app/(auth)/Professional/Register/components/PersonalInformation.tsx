@@ -1,5 +1,5 @@
 'use client';
-import { ErrorMessage, Field, Form, Formik, useFormikContext } from 'formik';
+import { ErrorMessage, Field, Form, Formik } from 'formik';
 import * as Yup from 'yup';
 import { User, Mail, Phone, Camera, Upload } from 'lucide-react';
 import { useBotonesRegisterContext } from '@/context/botonesRegisterContext';
