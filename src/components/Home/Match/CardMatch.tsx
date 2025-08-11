@@ -3,19 +3,8 @@
 import { commonSymptoms } from '@/constants/symptoms';
 import { Search } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
 
 const CardMatch = () => {
-    const [symptoms, setSymptoms] = useState('');
-    const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
-
-    const handleSymptomClick = (symptom: string) => {
-        if (selectedSymptoms.includes(symptom)) {
-            setSelectedSymptoms(selectedSymptoms.filter((symp) => symp != symptom));
-        } else {
-            setSelectedSymptoms([...selectedSymptoms, symptom]);
-        }
-    };
     return (
         <div className="rounded-lg border border-gray-200 bg-white text-black shadow-sm max-w-4xl mx-auto mb-12">
             <div className="flex flex-col space-y-1.5 p-6">
