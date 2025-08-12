@@ -6,6 +6,7 @@ import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { dataToSave, getCookieObject, saveMerged } from '@/helpers/formRegister/helpers';
 import { useFotoDePerfil } from '@/context/fotoDePerfil';
+import { useAuthProfessionalContext } from '@/context/registerProfessional';
 
 const modalidades = [
     { label: 'Presencial', value: 'in_person' },
@@ -92,6 +93,7 @@ const Services_Prices = () => {
     const router = useRouter();
 
     const { profileImageFile } = useFotoDePerfil();
+    const {saveUserData} = useAuthProfessionalContext();
 
     const [initialValues, setInitialValues] = useState<typeof initialValuesTipos>({
         specialities: [],
