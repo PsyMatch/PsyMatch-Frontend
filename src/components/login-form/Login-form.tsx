@@ -87,7 +87,7 @@ export default function LoginForm() {
         {({ isSubmitting, errors, touched, handleChange, handleBlur, values }) => (
           <Form className="space-y-3 sm:space-y-4">
             {loginError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md text-sm">
+              <div className="px-3 py-2 text-sm text-red-700 border border-red-200 rounded-md bg-red-50">
                 {loginError}
               </div>
             )}
@@ -120,12 +120,12 @@ export default function LoginForm() {
               <Button
                 type="submit"
                 disabled={isSubmitting || isLoading}
-                className="w-full sm:flex-1 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+                className="w-full text-white bg-blue-600 sm:flex-1 hover:bg-blue-700 disabled:opacity-50"
               >
                 {isLoading ? 'Iniciando Sesión...' : 'Iniciar Sesión'}
               </Button>
               <Link href="/register-user">
-                <Button className="w-full sm:flex-1 bg-white hover:text-blue-700  text-black">
+                <Button className="w-full text-black bg-white sm:flex-1 hover:text-blue-700">
                   Crear Cuenta 
                 </Button>
               </Link>
@@ -135,7 +135,7 @@ export default function LoginForm() {
               <Button
                 type="button"
                 onClick={handleGoogleLogin}
-                className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 rounded-full shadow-sm font-medium py-2 px-4 transition-all"
+                className="flex items-center justify-center w-full gap-2 px-4 py-2 font-medium text-gray-700 transition-all bg-white border border-gray-300 rounded-full shadow-sm hover:bg-gray-100"
                 style={{ minHeight: 44 }}
               >
                 <svg width="22" height="22" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">

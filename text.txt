@@ -1,0 +1,39 @@
+{
+  "message": "Psychologist successfully registered",
+  "data": {
+    "id": "psychologist-uuid",
+    "name": "Dr. Carlos Mendoza",
+    "email": "carlos.mendoza@psychologist.com",
+    "dni": 20123456,
+    "office_address": "Consultorio en Av. Rivadavia 5000, 2do Piso",
+    "license_number": 123456,
+    "specialities": [
+      "anxiety_disorder",
+      "depression",
+      "trauma_ptsd"
+    ],
+    "insurance_accepted": [
+      "osde",
+      "swiss-medical",
+      "ioma"
+    ],
+    "availability": [
+      "monday",
+      "wednesday",
+      "friday"
+    ],
+    "verified": "pending",
+    "profile_picture": "https://cloudinary.com/optimized-url"
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+
+
+    FECHA DE NACIMIENTO
+    TELEFONO
+    BIOGRAFIA
+    IDIOMAS
+    AÑOS DE EXPERIENCIA
+    ENFOQUES TERAPEUTICOS
+    TIPO DE SESION
+    MODALIDAD DEL SERVICIO

@@ -1,11 +1,12 @@
 "use client"
-import { enfoques, initialValuesTipos, tipos, validationSchema, Valores } from "@/helpers/formRegister/register-profesional";
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import { initialValuesTipos, validationSchema, Valores } from "@/helpers/formRegister/register-profesional";
+import { Formik, Form, ErrorMessage } from "formik";
 import React, { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { dataToSave, getCookieObject, saveMerged } from "@/helpers/formRegister/helpers";
 import { useFotoDePerfil } from "@/context/fotoDePerfil";
+import { useAuthProfessionalContext } from "@/context/registerProfessional";
 
 
 const modalidades = [
@@ -92,8 +93,8 @@ const obrasSociales = [
 
 const Services_Prices = () => {
     const router = useRouter()
-
     const { profileImageFile } = useFotoDePerfil();
+    const {saveUserData} = useAuthProfessionalContext();
 
     const [initialValues, setInitialValues] = useState<typeof initialValuesTipos>({
         specialities: [], 
@@ -104,102 +105,102 @@ const Services_Prices = () => {
         availability: [], 
     });
 
-useEffect(() => {
-    const cookieData = getCookieObject();
-    if (cookieData) {
-      try {
-        setInitialValues({
-            specialities : cookieData.specialities || [],
-            therapy_approaches: cookieData.therapy_approaches || [],
-            session_types: cookieData.session_types || [],
-            modality: cookieData.modality || "",
-            insurance_accepted: cookieData.insurance_accepted || [],
-            availability: cookieData.availability || [],
-            });
-      } catch (error) {
-        console.error(error);
-      }
-  }
-}, []);
-
-
-
-const handleSubmit = async (values: Valores) => {
-
-    const toSave = dataToSave(values)
-    console.log("Guardando en cookie (submit):", toSave);
-    saveMerged(toSave)
-    console.log(Cookies.get('userDataCompleta'));
-
-    const fullData = getCookieObject();
-
-
-
-    
-    try {
-        const formData = new FormData();
-
-        // Agregar los datos normales (excluyendo la imagen y la modalidad)
-        Object.entries(fullData).forEach(([key, value]) => {
-        // Saltear modality aquí porque la manejamos por separado
-        if (key === 'modality') return;
-        
-        // Para arrays podés hacer:
-        if (Array.isArray(value)) {
-            value.forEach((item) => formData.append(`${key}[]`, item));
-        } else {
-            formData.append(key, String(value));
+    useEffect(() => {
+        const cookieData = getCookieObject();
+        if (cookieData) {
+        try {
+            setInitialValues({
+                specialities : cookieData.specialities || [],
+                therapy_approaches: cookieData.therapy_approaches || [],
+                session_types: cookieData.session_types || [],
+                modality: cookieData.modality || "",
+                insurance_accepted: cookieData.insurance_accepted || [],
+                availability: cookieData.availability || [],
+                });
+        } catch (error) {
+            console.error(error);
         }
-        });
-
-        // Agregar la modalidad solo si tiene un valor válido
-        if (values.modality && values.modality !== "") {
-            formData.append("modality", values.modality);
-        }
-
-        // Agregar la imagen solo si está
-        if (profileImageFile) {
-        formData.append("profile_picture", profileImageFile);
-        }
-
-
-        const response = await fetch('http://localhost:8080/auth/signup/psychologist', {
-            method: 'POST',
-            // headers: { 'Content-Type': 'application/json' },
-            body: formData
-
-        });
-        
-        if (!response.ok) {
-            const errorData = await response.json()
-            throw new Error(errorData.message);
-        }
-
-        const data = await response.json()
-        
-        if (response.ok) {
-        // Guardar token en localStorage si viene en la respuesta
-            if (data.token) {
-                localStorage.setItem('authToken', data.token)
-            }
-            
-            // Redirigir según el tipo de usuario
-            if (data.userType === 'professional') {
-            router.push('/dashboard/professional')
-            } else {
-            router.push('/dashboard/user')
-            }
-        }
-
-        Cookies.remove("userDataCompleta")
-        alert("Registrado con exito!")
-        router.push("/")
-        
-    } catch (error) {
-        console.error('Error:', error);
     }
+    }, []);
 
-}
+
+
+    const handleSubmit = async (values: Valores) => {
+        const toSave = dataToSave(values)
+        console.log("Guardando en cookie (submit):", toSave);
+        saveMerged(toSave)
+
+        const fullData = getCookieObject();
+    
+        try {
+            const formData = new FormData();
+
+            // Agregar los datos normales (excluyendo la imagen y la modalidad)
+            Object.entries(fullData).forEach(([key, value]) => {
+            // Saltear modality aquí porque la manejamos por separado
+            if (key === 'modality') return;
+            
+            // Para arrays podés hacer:
+            if (Array.isArray(value)) {
+                value.forEach((item) => formData.append(`${key}[]`, item));
+            } else {
+                formData.append(key, String(value));
+            }
+            });
+
+            // Agregar la modalidad solo si tiene un valor válido
+            if (values.modality && values.modality !== "") {
+                formData.append("modality", values.modality);
+            }
+
+            // Agregar la imagen solo si está
+            if (profileImageFile) {
+            formData.append("profile_picture", profileImageFile);
+            }
+
+
+            const response = await fetch('http://localhost:8080/auth/signup/psychologist', {
+                method: 'POST',
+                // headers: { 'Content-Type': 'application/json' },
+                body: formData
+                
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json()
+                throw new Error(errorData.message);
+            }
+
+            const data = await response.json()
+
+            if (response.ok) {
+            // Guardar token en localStorage si viene en la respuesta
+                if (data.token) {
+                    localStorage.setItem('authToken', data.token)
+                }
+                
+                // Redirigir según el tipo de usuario
+                if (data.data.role === 'psychologist') {
+                router.push('/dashboard/professional')
+                } else {
+                router.push('/dashboard/user')
+                }
+            }
+
+            Cookies.remove("userDataCompleta")
+            
+            //Guardamos la data del back en las cookies
+            console.log(data)
+            saveUserData(data)
+
+            alert("Registrado con exito!")
+            router.push("/")
+            
+        } catch (error) {
+            console.error('Error:', error);
+        }
+
+    }
 
 
   return (

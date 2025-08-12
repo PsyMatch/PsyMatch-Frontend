@@ -3,13 +3,42 @@ import { Pencil } from "lucide-react"
 import Input from "../ui/input"
 import { useState } from "react"
 import { dashboardProfesionalMock } from "@/helpers/dashboardProfesionalMock"
+import Cookies from "js-cookie"
+
+const traduccionesEspecialidades: Record<string, string> = {
+  anxiety_disorder: "Trastornos de Ansiedad",
+  couples_therapy: "Terapia de Pareja",
+  eating_disorder: "Trastornos de la Conducta Alimentaria",
+  bipolar_disorder: "Trastorno Bipolar",
+  life_transitions: "Transiciones de Vida",
+  child_adolescent_therapy: "Terapia Infantil y Adolescente",
+  sleep_disorders: "Trastornos del Sueño",
+  depression: "Depresión",
+  family_therapy: "Terapia Familiar",
+  adhd: "TDAH",
+  ocd: "TOC",
+  career_counseling: "Asesoramiento Laboral",
+  geriatric_psychology: "Psicología Geriátrica",
+  anger_management: "Manejo de la Ira",
+  trauma_ptsd: "Trauma y TEPT",
+  addiction_substance_abuse: "Adicciones y Abuso de Sustancias",
+  autism_spectrum_disorder: "Trastornos del Espectro Autista",
+  grief_loss: "Duelo y Pérdida",
+  lgbtqia: "Temas LGBTQ+",
+  chronic_pain_management: "Manejo del Dolor Crónico"
+};
+
+
 
 const Perfil = () => {
+    const cookies = Cookies.get('userDataCompleta');
+    const userData = cookies ? JSON.parse(cookies) : null;
+
     const [profileImage, setProfileImage] = useState<string>("https://ui-avatars.com/api/?name=Profesional&background=E0E7FF&color=3730A3");
     const [editable, setEditable] = useState<boolean>(false);
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
+        const file = userData.data.profile_profile
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -17,14 +46,16 @@ const Perfil = () => {
             };
             reader.readAsDataURL(file);
         }
+        return file
     };
 
+
     return (
-    <div className="flex flex-col md:flex-row gap-8 w-full bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-2 rounded-xl">
-        <div className="w-full md:w-1/2 flex flex-col items-center">
-            <div className="bg-white rounded-lg shadow p-8 flex flex-col items-center w-full">
+    <div className="flex flex-col w-full gap-8 px-2 py-8 md:flex-row bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl">
+        <div className="flex flex-col items-center w-full md:w-1/2">
+            <div className="flex flex-col items-center w-full p-8 bg-white rounded-lg shadow">
                 <div className="relative mb-4">
-                    <img src={profileImage} alt="profile" className="w-32 h-32 rounded-full object-cover bg-gray-200" />
+                    <img src={profileImage} alt="profile" className="object-cover w-32 h-32 bg-gray-200 rounded-full" />
                     {editable && (
                         <>
                             <Input
@@ -36,80 +67,74 @@ const Perfil = () => {
                             />
                             <label
                                 htmlFor="profile-upload-pro"
-                                className="absolute bottom-2 right-2 bg-gray-200 hover:bg-gray-300 p-2 rounded-full cursor-pointer shadow"
+                                className="absolute p-2 bg-gray-200 rounded-full shadow cursor-pointer bottom-2 right-2 hover:bg-gray-300"
                             >
                                 <Pencil className="w-5 h-5 text-gray-600" />
                             </label>
                         </>
                     )}
                 </div>
-                <h3 className="text-xl font-semibold mb-1">{dashboardProfesionalMock.profesional.nombre}</h3>
-                <p className="text-gray-500 mb-2">{dashboardProfesionalMock.profesional.titulo}</p>
-                <div className="text-sm text-gray-400 mb-2">{dashboardProfesionalMock.profesional.idioma.join(', ')}</div>
+                <h3 className="mb-1 text-xl font-semibold">{userData.data.name}</h3>
+                <p className="mb-2 text-gray-500">{dashboardProfesionalMock.profesional.titulo}</p>
+                <div className="mb-2 text-sm text-gray-400">{userData.data.languajes}</div>
             </div>
         </div>
-        <div className="w-full md:w-1/2 flex flex-col">
-            <div className="bg-white rounded-lg shadow-md p-8">
-                <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col w-full md:w-1/2">
+            <div className="p-8 bg-white rounded-lg shadow-md">
+                <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold">Mi cuenta profesional</h2>
-                    <button onClick={() => setEditable((e) => !e)} className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded">
+                    <button onClick={() => setEditable((e) => !e)} className="px-4 py-2 text-white rounded bg-violet-600 hover:bg-violet-700">
                         {editable ? 'Cancelar' : 'Editar'}
                     </button>
                 </div>
                 <form className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div>
-                            <label className="block text-sm font-medium mb-1">Nombre Completo</label>
+                            <label className="block mb-1 text-sm font-medium">Nombre Completo</label>
                             <Input
-                                className="border rounded px-3 py-2 w-full"
-                                value={dashboardProfesionalMock.profesional.nombre}
+                                className="w-full px-3 py-2 border rounded"
+                                value={userData.data.name}
                                 disabled={!editable}
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Título Profesional</label>
+                            <label className="block mb-1 text-sm font-medium">Título Profesional</label>
                             <Input
-                                className="border rounded px-3 py-2 w-full"
+                                className="w-full px-3 py-2 border rounded"
                                 value={dashboardProfesionalMock.profesional.titulo}
                                 disabled={!editable}
                             />
                         </div>
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium mb-1">Biografía Profesional</label>
+                            <label className="block mb-1 text-sm font-medium">Biografía Profesional</label>
                             <textarea
-                                className="border rounded px-3 py-2 w-full resize-none"
+                                className="w-full px-3 py-2 border rounded resize-none"
                                 value={dashboardProfesionalMock.profesional.biografia}
                                 disabled={!editable}
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Especialidades</label>
-                            <div className="flex flex-row gap-2 flex-wrap">
-                                {dashboardProfesionalMock.profesional.serviciosYEspecialidades.map((serv, index) => (
-                                    <span key={index} className="bg-white-400 px-4 py-[2px] text-sm font-bold rounded-xl">{serv}</span>
+                            <label className="block mb-1 text-sm font-medium">Especialidades</label>
+                            <ul>
+                                {userData?.data?.specialities?.map((serv: string, index: number) => (
+                                    <li key={index} className="bg-white-400 px-4 py-[2px] text-sm font-bold rounded-xl">
+                                        {traduccionesEspecialidades[serv] || serv}
+                                    </li>
                                 ))}
-                            </div>
+                            </ul>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Idiomas</label>
-                            <div className="flex flex-row gap-2 flex-wrap">
+                            <label className="block mb-1 text-sm font-medium">Idiomas</label>
+                            <div className="flex flex-row flex-wrap gap-2">
                                 {dashboardProfesionalMock.profesional.idioma.map((idioma, index) => (
                                     <span key={index} className="bg-white-400 px-4 py-[2px] text-sm font-bold rounded-xl">{idioma}</span>
                                 ))}
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Precio por Sesión ($)</label>
-                            <Input
-                                className="border rounded px-3 py-2 w-full"
-                                value={"14000"}
-                                disabled={!editable}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1">Disponibilidad</label>
+                            <label className="block mb-1 text-sm font-medium">Disponibilidad</label>
                             <textarea
-                                className="border rounded px-3 py-2 w-full resize-none h-20"
+                                className="w-full h-20 px-3 py-2 border rounded resize-none"
                                 value={dashboardProfesionalMock.diasDisponibles.join(', ')}
                                 disabled={!editable}
                             />
@@ -117,7 +142,7 @@ const Perfil = () => {
                     </div>
                     {editable && (
                         <div className="flex justify-end">
-                            <button type="button" className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded">
+                            <button type="button" className="px-6 py-2 text-white bg-green-600 rounded hover:bg-green-700">
                                 Guardar
                             </button>
                         </div>
