@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Input from '../ui/input';
 import { Camera } from 'lucide-react';
+import Image from 'next/image';
 
 const PerfilUser = () => {
     const [editable, setEditable] = useState(false);
@@ -33,7 +34,13 @@ const PerfilUser = () => {
             <div className="w-full md:w-1/2 flex flex-col items-center">
                 <div className="bg-white rounded-lg shadow p-8 flex flex-col items-center w-full">
                     <div className="relative mb-4">
-                        <img src={profileImage} alt="profile" className="w-32 h-32 rounded-full object-cover bg-gray-200" />
+                        <Image
+                            src={profileImage}
+                            alt="profile"
+                            width={128}
+                            height={128}
+                            className="w-32 h-32 rounded-full object-cover bg-gray-200"
+                        />
                         {editable && (
                             <>
                                 <Input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="profile-upload" />

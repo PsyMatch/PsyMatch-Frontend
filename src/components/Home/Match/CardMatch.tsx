@@ -5,6 +5,17 @@ import { Search } from 'lucide-react';
 import Link from 'next/link';
 
 const CardMatch = () => {
+    // const [symptoms, setSymptoms] = useState('');
+    // const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
+
+    // const handleSymptomClick = (symptom: string) => {
+    //     if (selectedSymptoms.includes(symptom)) {
+    //         setSelectedSymptoms(selectedSymptoms.filter((symp) => symp != symptom));
+    //     } else {
+    //         setSelectedSymptoms([...selectedSymptoms, symptom]);
+    //     }
+    // };
+
     return (
         <div className="max-w-4xl mx-auto mb-12 text-black bg-white border border-gray-200 rounded-lg shadow-sm">
             <div className="flex flex-col space-y-1.5 p-6">
