@@ -1,56 +1,50 @@
 'use client';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import * as Yup from 'yup';
-import { User, Mail, Phone, Camera, Upload } from 'lucide-react';
+import { User, Mail, Phone, Upload } from 'lucide-react';
 import { useBotonesRegisterContext } from '@/context/botonesRegisterContext';
 import { useEffect, useState } from 'react';
 import { AutoSaveCookies, dataToSave, getCookieObject, saveMerged } from '@/helpers/formRegister/helpers';
 import { useFotoDePerfil } from '@/context/fotoDePerfil';
-
-
-
+import Image from 'next/image';
 
 const PersonalInformation = () => {
-    const {avanzarPaso} = useBotonesRegisterContext()
-    
-     const { profileImagePreview, handleImageUpload } = useFotoDePerfil();
+    const { avanzarPaso } = useBotonesRegisterContext();
 
-    
+    const { profileImagePreview, handleImageUpload } = useFotoDePerfil();
 
     const [initialValues, setInitialValues] = useState({
-        name: "",
+        name: '',
         email: '',
         phone: '',
-        password: "",
-        confirmPassword: "",
+        password: '',
+        confirmPassword: '',
         birthdate: '',
-        dni: "",
-        profile_picture: null
+        dni: '',
+        profile_picture: null,
     });
-    
 
-useEffect(() => {
-  if (initialValues.name === "" && initialValues.email === "") {
-    const cookieData = getCookieObject();
-    if (cookieData) {
-      try {
-        setInitialValues({
-          name: cookieData.name || "",
-          email: cookieData.email || "",
-          phone: cookieData.phone || "",
-          password: cookieData.password || "",
-          confirmPassword: cookieData.confirmPassword || "",
-          birthdate: cookieData.birthdate || "",
-          dni: cookieData.dni || "",
-          profile_picture: null
-        });
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  }
-}, []);
-
+    useEffect(() => {
+        if (initialValues.name === '' && initialValues.email === '') {
+            const cookieData = getCookieObject();
+            if (cookieData) {
+                try {
+                    setInitialValues({
+                        name: cookieData.name || '',
+                        email: cookieData.email || '',
+                        phone: cookieData.phone || '',
+                        password: cookieData.password || '',
+                        confirmPassword: cookieData.confirmPassword || '',
+                        birthdate: cookieData.birthdate || '',
+                        dni: cookieData.dni || '',
+                        profile_picture: null,
+                    });
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+        }
+    }, [initialValues.email, initialValues.name]);
 
     const validationSchema = Yup.object({
         name: Yup.string().required('El nombre es obligatorio'),
@@ -88,15 +82,14 @@ useEffect(() => {
     }
 
     const handleSubmit = (values: PersonalInformationFormValues) => {
-        const toSave = dataToSave(values)
-        console.log("Guardando en cookie (submit):", toSave);
-        saveMerged(toSave)
+        const toSave = dataToSave(values as unknown as Record<string, unknown>);
+        console.log('Guardando en cookie (submit):', toSave);
+        saveMerged(toSave);
 
         //API
 
         avanzarPaso();
     };
-
 
     return (
         <div className="text-gray-900 bg-white shadow-sm ">
@@ -109,8 +102,8 @@ useEffect(() => {
             </div>
 
             <div className="pb-6 space-y-6">
-                <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit} enableReinitialize >
-                    {({ setFieldValue, values }) => (
+                <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit} enableReinitialize>
+                    {() => (
                         <Form className="space-y-6">
                             <AutoSaveCookies />
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -188,7 +181,6 @@ useEffect(() => {
                                 </div>
                             </div>
 
-
                             {/* Contraseñas */}
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
@@ -217,17 +209,22 @@ useEffect(() => {
                                 </div>
                             </div>
 
-
-
                             {/* Subidas de imágenes */}
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
-                                    <label className="text-sm font-medium leading-none" htmlFor='profile_picture'>
+                                    <label className="text-sm font-medium leading-none" htmlFor="profile_picture">
                                         Foto de perfil profesional *
                                     </label>
                                     <div className="flex items-center mt-2 space-x-4">
-                                           
-                                            {profileImagePreview && <img src={profileImagePreview} alt="Preview" />}
+                                        {profileImagePreview && (
+                                            <Image
+                                                src={profileImagePreview}
+                                                alt="Preview"
+                                                width={80}
+                                                height={80}
+                                                className="rounded-full object-cover"
+                                            />
+                                        )}
                                         <div>
                                             <input
                                                 type="file"
@@ -237,19 +234,21 @@ useEffect(() => {
                                                 id="profile_picture"
                                             />
                                             <label
-                                                htmlFor='profile_picture'
+                                                htmlFor="profile_picture"
                                                 className="inline-flex items-center h-10 gap-2 px-4 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                                             >
                                                 <Upload className="h-4 min-w-4 w-fit" />
                                                 Subir Foto
                                             </label>
                                             <p className="mt-1 text-sm text-gray-500">JPG, PNG hasta 5MB</p>
-                                            <ErrorMessage name='profile_picture' component="div" className="mt-1 text-sm text-red-500" />
+                                            <ErrorMessage name="profile_picture" component="div" className="mt-1 text-sm text-red-500" />
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <button type="submit" className="px-4 py-1 mt-10 rounded-xl bg-violet-600">Continuar</button>
+                            <button type="submit" className="px-4 py-1 mt-10 rounded-xl bg-violet-600">
+                                Continuar
+                            </button>
                         </Form>
                     )}
                 </Formik>

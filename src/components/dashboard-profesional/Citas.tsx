@@ -1,14 +1,12 @@
-import { useState } from "react";
-import { dashboardProfesionalMock } from "@/helpers/dashboardProfesionalMock";
-import { MessageCircle } from "lucide-react";
+import { useState } from 'react';
+import { dashboardProfesionalMock } from '@/helpers/dashboardProfesionalMock';
+import { MessageCircle } from 'lucide-react';
 
 interface CitasProps {
     isUserDashboard?: boolean;
 }
 
-
-
-type EstadoCita = "aceptado" | "pendiente" | "cancelado";
+type EstadoCita = 'aceptado' | 'pendiente' | 'cancelado';
 
 interface CitaConEstado {
     fecha: string;
@@ -21,13 +19,26 @@ interface CitaConEstado {
     estado: EstadoCita;
 }
 
+// Definir tipo para las citas del mock
+interface CitaMock {
+    fecha: string;
+    paciente: string;
+    horario: string;
+    duracion: string;
+    tipoSesion: string;
+    Notas: string;
+    estado?: string;
+    profesional?: string;
+}
+
 // Simulación de estados para las citas
-const citasIniciales: CitaConEstado[] = dashboardProfesionalMock.citas.map((cita: any, idx: number) => {
-    const { estado: _omitEstado, ...rest } = cita;
+const citasIniciales: CitaConEstado[] = dashboardProfesionalMock.citas.map((cita: CitaMock, idx: number) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { estado, ...rest } = cita;
     return {
         ...rest,
-        profesional: cita.profesional || "Dra. Lucía Ramírez",
-        estado: idx % 3 === 0 ? "aceptado" : idx % 3 === 1 ? "pendiente" : "cancelado"
+        profesional: cita.profesional || 'Dra. Lucía Ramírez',
+        estado: idx % 3 === 0 ? 'aceptado' : idx % 3 === 1 ? 'pendiente' : 'cancelado',
     };
 });
 
@@ -35,7 +46,7 @@ const Citas = ({ isUserDashboard = false }: CitasProps) => {
     const [citas, setCitas] = useState<CitaConEstado[]>(citasIniciales);
 
     const cancelarCita = (index: number) => {
-        setCitas(prev => prev.map((cita, idx) => idx === index ? { ...cita, estado: "cancelado" } : cita));
+        setCitas((prev) => prev.map((cita, idx) => (idx === index ? { ...cita, estado: 'cancelado' } : cita)));
     };
 
     return (
@@ -48,14 +59,18 @@ const Citas = ({ isUserDashboard = false }: CitasProps) => {
                 {citas.map((cita, index) => (
                     <div key={index} className="relative items-center w-full px-5 py-3 my-4 bg-gray-200 border-2 border-gray-300 rounded-lg ">
                         <div className="absolute top-3 right-4 flex flex-row gap-2 items-center z-10">
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                                cita.estado === "aceptado" ? "bg-green-200 text-green-800" :
-                                cita.estado === "pendiente" ? "bg-yellow-200 text-yellow-800" :
-                                "bg-red-200 text-red-800"}`}
+                            <span
+                                className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                    cita.estado === 'aceptado'
+                                        ? 'bg-green-200 text-green-800'
+                                        : cita.estado === 'pendiente'
+                                        ? 'bg-yellow-200 text-yellow-800'
+                                        : 'bg-red-200 text-red-800'
+                                }`}
                             >
                                 {cita.estado.charAt(0).toUpperCase() + cita.estado.slice(1)}
                             </span>
-                            {(cita.estado === "aceptado" || cita.estado === "pendiente") && (
+                            {(cita.estado === 'aceptado' || cita.estado === 'pendiente') && (
                                 <button
                                     className="ml-2 px-5 py-2 rounded font-bold bg-gradient-to-r from-red-500 to-red-700 text-white text-base shadow-lg border-2 border-red-700 hover:scale-105 transition-transform duration-150"
                                     onClick={() => cancelarCita(index)}
@@ -99,4 +114,4 @@ const Citas = ({ isUserDashboard = false }: CitasProps) => {
     );
 };
 
-export default Citas
+export default Citas;
