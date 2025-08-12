@@ -1,7 +1,7 @@
 "use client"
-import InfoProfesional from '@/app/(auth)/professional/register/components/infoProfesional';
-import PersonalInformation from '@/app/(auth)/professional/register/components/PersonalInformation';
-import Services_Prices from '@/app/(auth)/professional/register/components/Services_Prices';
+import InfoProfesional from '@/app/(auth)/Professional/Register/components/infoProfesional';
+import PersonalInformation from '@/app/(auth)/Professional/Register/components/PersonalInformation';
+import Services_Prices from '@/app/(auth)/Professional/Register/components/Services_Prices';
 import { useBotonesRegisterContext } from '@/context/botonesRegisterContext';
 
 
