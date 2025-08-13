@@ -9,13 +9,11 @@ import { useAuthProfessionalContext } from '@/context/registerProfessional';
 import Cookies from 'js-cookie';
 
 
-
-
-
-    const cookies = Cookies.get("userDataCompleta");
+    const cookies = Cookies.get("responseData");
     const userData = cookies ? JSON.parse(cookies) : null;
 
     const role = userData?.data?.role || '';
+    console.log(userData)
 
 
     const botonesNavBarHomeLogeado = [

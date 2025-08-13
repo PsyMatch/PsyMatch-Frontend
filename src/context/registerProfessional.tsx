@@ -61,24 +61,22 @@ export const AuthProfessionalProvider: FC<{children: ReactNode}> = ({children}) 
         const localToken = localStorage.getItem("authToken");
 
         if (cookieStr && localToken) {
-        const data = JSON.parse(cookieStr);
-        setUser({
-            name: data.data.name,
-            email: data.data.email,
-            birthdate: new Date(data.data.birthdate),
-            dni: data.data.dni,
-            profile_picture: data.data.profile_picture,
-            license_number: data.data.license_number,
-            office_address: data.data.office_address,
-            specialities: data.data.specialities,
-            insurance_accepted: data.data.insurance_accepted
-        });
-        setToken(localToken);
-        setIsAuth(true);
+            const data = JSON.parse(cookieStr);
+            setUser({
+                name: data.data.name,
+                email: data.data.email,
+                birthdate: new Date(data.data.birthdate),
+                dni: data.data.dni,
+                profile_picture: data.data.profile_picture,
+                license_number: data.data.license_number,
+                office_address: data.data.office_address,
+                specialities: data.data.specialities,
+                insurance_accepted: data.data.insurance_accepted
+            });
+            setToken(localToken);
+            setIsAuth(true);
         } else {
-        setIsAuth(false);
-        setUser(null);
-        setToken(null);
+            console.log("No hay cookie o token guardado");
         }
     }, []);
 
@@ -88,7 +86,7 @@ export const AuthProfessionalProvider: FC<{children: ReactNode}> = ({children}) 
         setToken(data.token)
         setIsAuth(true)
 
-        Cookies.set("userDataCompleta", JSON.stringify(data));
+        Cookies.set("responseData", JSON.stringify(data));
     }
 
 
