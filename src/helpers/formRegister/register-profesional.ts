@@ -61,11 +61,6 @@ export const obrasSociales = [
     'OSPSIP',
 ];
 
-// Uncomment if needed in future
-// interface Tarifa {
-//   tipo: string;
-//   valor: string;
-// }
 
 export interface Valores {
     specialities: string[];

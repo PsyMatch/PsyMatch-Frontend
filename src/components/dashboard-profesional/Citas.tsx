@@ -1,53 +1,27 @@
-import { useState } from 'react';
-import { dashboardProfesionalMock } from '@/helpers/dashboardProfesionalMock';
-import { MessageCircle } from 'lucide-react';
+"use client"
+import { useEffect, useState } from 'react';
 
-interface CitasProps {
-    isUserDashboard?: boolean;
-}
 
-type EstadoCita = 'aceptado' | 'pendiente' | 'cancelado';
+const Citas = () => {
+    const [citas, setCitas] = useState("");
 
-interface CitaConEstado {
-    fecha: string;
-    paciente: string;
-    profesional: string;
-    horario: string;
-    duracion: string;
-    tipoSesion: string;
-    Notas: string;
-    estado: EstadoCita;
-}
+    useEffect(() => {
+        const token = localStorage.getItem("authToken");
+        if (!token) return;
 
-// Definir tipo para las citas del mock
-interface CitaMock {
-    fecha: string;
-    paciente: string;
-    horario: string;
-    duracion: string;
-    tipoSesion: string;
-    Notas: string;
-    estado?: string;
-    profesional?: string;
-}
+        fetch("http://localhost:8080/psychologist/appointments", {
+            headers: { 
+                Authorization: `Bearer ${token}` 
+            },
+        })
+        .then(res => res.json())
+            .then(response => {
+            setCitas(response.message);
+        })
+        .catch(console.error);
+    }, []);
 
-// Simulación de estados para las citas
-const citasIniciales: CitaConEstado[] = dashboardProfesionalMock.citas.map((cita: CitaMock, idx: number) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { estado, ...rest } = cita;
-    return {
-        ...rest,
-        profesional: cita.profesional || 'Dra. Lucía Ramírez',
-        estado: idx % 3 === 0 ? 'aceptado' : idx % 3 === 1 ? 'pendiente' : 'cancelado',
-    };
-});
-
-const Citas = ({ isUserDashboard = false }: CitasProps) => {
-    const [citas, setCitas] = useState<CitaConEstado[]>(citasIniciales);
-
-    const cancelarCita = (index: number) => {
-        setCitas((prev) => prev.map((cita, idx) => (idx === index ? { ...cita, estado: 'cancelado' } : cita)));
-    };
+    console.log(citas)
 
     return (
         <div className="flex flex-col gap-3 px-8 py-8 h-fit">
@@ -56,9 +30,12 @@ const Citas = ({ isUserDashboard = false }: CitasProps) => {
                 <span className="text-black">Gestiona tus citas programadas y disponibilidad</span>
             </div>
             <div>
+                {citas ? JSON.stringify(citas) : "Cargando citas..."}
+            </div>
+            {/* <div>
                 {citas.map((cita, index) => (
                     <div key={index} className="relative items-center w-full px-5 py-3 my-4 bg-gray-200 border-2 border-gray-300 rounded-lg ">
-                        <div className="absolute top-3 right-4 flex flex-row gap-2 items-center z-10">
+                        <div className="absolute z-10 flex flex-row items-center gap-2 top-3 right-4">
                             <span
                                 className={`px-3 py-1 rounded-full text-xs font-bold ${
                                     cita.estado === 'aceptado'
@@ -72,7 +49,7 @@ const Citas = ({ isUserDashboard = false }: CitasProps) => {
                             </span>
                             {(cita.estado === 'aceptado' || cita.estado === 'pendiente') && (
                                 <button
-                                    className="ml-2 px-5 py-2 rounded font-bold bg-gradient-to-r from-red-500 to-red-700 text-white text-base shadow-lg border-2 border-red-700 hover:scale-105 transition-transform duration-150"
+                                    className="px-5 py-2 ml-2 text-base font-bold text-white transition-transform duration-150 border-2 border-red-700 rounded shadow-lg bg-gradient-to-r from-red-500 to-red-700 hover:scale-105"
                                     onClick={() => cancelarCita(index)}
                                     type="button"
                                 >
@@ -95,7 +72,7 @@ const Citas = ({ isUserDashboard = false }: CitasProps) => {
                                 </div>
                             </div>
                         </div>
-                        <p className="ml-2 mt-4 mb-0">
+                        <p className="mt-4 mb-0 ml-2">
                             <strong>Notas:</strong> {cita.Notas}
                         </p>
                         <div className="flex gap-4 mt-5">
@@ -109,7 +86,7 @@ const Citas = ({ isUserDashboard = false }: CitasProps) => {
                         </div>
                     </div>
                 ))}
-            </div>
+            </div> */}
         </div>
     );
 };
