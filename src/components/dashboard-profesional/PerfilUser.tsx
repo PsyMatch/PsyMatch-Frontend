@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Input from '../ui/input';
 import { Camera } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 type UserData = {
   fullName: string;
@@ -18,10 +19,6 @@ type UserData = {
   profileImage?: string;
 };
 
-interface PerfilUserProps {
-  id: string;
-}
-
 const fields: { label: string; field: keyof UserData; type?: string }[] = [
   { label: 'Nombre Completo', field: 'fullName' },
   { label: 'Alias', field: 'alias' },
@@ -34,7 +31,7 @@ const fields: { label: string; field: keyof UserData; type?: string }[] = [
   { label: 'Contacto de Emergencia', field: 'emergencyContact' },
 ];
 
-const PerfilUser = ({ id }: PerfilUserProps) => {
+const PerfilUser = () => {
   const [editable, setEditable] = useState(false);
   const [loading, setLoading] = useState(false);
   const [profileImage, setProfileImage] = useState('');
@@ -51,12 +48,26 @@ const PerfilUser = ({ id }: PerfilUserProps) => {
     emergencyContact: '',
   });
 
+  const router = useRouter();
+
+  // --- Cargar datos del usuario desde cookies ---
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch(`http://localhost:8080/api/users/${id}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
+          method: 'GET',
+          credentials: 'include', // <- manda la cookie
+        });
+
+        if (res.status === 401) {
+          router.push('/login');
+          return;
+        }
+
         if (!res.ok) throw new Error('Error al obtener usuario');
+
         const data: UserData = await res.json();
+
         setUser(data);
         setProfileImage(
           data.profileImage ||
@@ -66,15 +77,14 @@ const PerfilUser = ({ id }: PerfilUserProps) => {
         console.error('Error cargando usuario:', err);
       }
     };
-    fetchUser();
-  }, [id]);
 
+    fetchUser();
+  }, [router]);
+
+  // --- Manejadores ---
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setUser((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setUser((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,7 +100,6 @@ const PerfilUser = ({ id }: PerfilUserProps) => {
       setLoading(true);
 
       const formData = new FormData();
-
       formData.append('name', user.fullName);
       formData.append('alias', user.alias);
 
@@ -107,19 +116,23 @@ const PerfilUser = ({ id }: PerfilUserProps) => {
       if (user.socialWork) {
         formData.append('social_security_number', user.socialWork);
       }
-
       if (user.emergencyContact) {
         formData.append('emergency_contact', user.emergencyContact);
       }
-
       if (profileFile) {
         formData.append('profile_picture', profileFile);
       }
 
-      const res = await fetch(`http://localhost:8080/api/users/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
         method: 'PUT',
+        credentials: 'include', // <- manda la cookie
         body: formData,
       });
+
+      if (res.status === 401) {
+        router.push('/login');
+        return;
+      }
 
       if (!res.ok) throw new Error('Error al guardar');
 
@@ -139,7 +152,7 @@ const PerfilUser = ({ id }: PerfilUserProps) => {
         <div className="bg-white rounded-lg shadow p-8 flex flex-col items-center w-full">
           <div className="relative mb-4">
             <Image
-              src={profileImage}
+              src={profileImage || "/default-profile.png"}
               alt="profile"
               width={128}
               height={128}

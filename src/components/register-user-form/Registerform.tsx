@@ -109,7 +109,7 @@ export default function RegisterForm() {
         formData.append('profile_picture', profileImageFile);
       }
 
-      const response = await fetch('http://localhost:8080/auth/signup', {
+      const response = await fetch('http://localhost:3000/auth/signup', {
         method: 'POST',
         body: formData,
       });
@@ -184,8 +184,9 @@ export default function RegisterForm() {
             )}
 
             <div className="md:grid md:grid-cols-2 md:gap-4">
+              <div className="md:col-span-1">
               <CustomInput
-                label="Nombre Completo"
+                label="Nombre Completo *"
                 id="fullName"
                 name="fullName"
                 onChange={handleChange}
@@ -193,7 +194,10 @@ export default function RegisterForm() {
                 value={values.fullName}
                 error={errors.fullName && touched.fullName && errors.fullName}
               />
+              </div>
 
+
+              <div className="md:col-span-1">
               <CustomInput
                 label="Alias"
                 id="alias"
@@ -203,9 +207,11 @@ export default function RegisterForm() {
                 value={values.alias}
                 error={errors.alias && touched.alias && errors.alias}
               />
+              </div>
 
+              <div className="md:col-span-1">
               <CustomInput
-                label="Fecha de Nacimiento"
+                label="Fecha de Nacimiento *"
                 id="birthDate"
                 type="date"
                 name="birthDate"
@@ -214,9 +220,11 @@ export default function RegisterForm() {
                 value={values.birthDate}
                 error={errors.birthDate && touched.birthDate && errors.birthDate}
               />
+              </div>
 
+                <div className="md:col-span-1">
                 <CustomInput
-                label="Correo electrónico"
+                label="Correo electrónico *"
                 id="email"
                 type="email"
                 name="email"
@@ -225,9 +233,11 @@ export default function RegisterForm() {
                 value={values.email}
                 error={errors.email && touched.email && errors.email}
                 />
+                </div>
 
+              <div className="md:col-span-1">
               <CustomInput
-                label="DNI"
+                label="DNI *"
                 id="dni"
                 name="dni"
                 onChange={handleChange}
@@ -236,8 +246,11 @@ export default function RegisterForm() {
                 error={errors.dni && touched.dni && errors.dni}
                 placeholder="Ej: 12345678"
               />
+              </div>
+
+              <div className="md:col-span-1">
              <CustomInput
-                label="Número de teléfono"
+                label="Número de teléfono *"
                 id="phone"
                 type="tel"
                 name="phone"
@@ -246,10 +259,11 @@ export default function RegisterForm() {
                 value={values.phone}
                 error={errors.phone && touched.phone && errors.phone}
                 />
+              </div>
 
-
+              <div className="md:col-span-1">
               <CustomInput
-                label="Dirección"
+                label="Dirección *"
                 id="address"
                 name="address"
                 onChange={handleChange}
@@ -258,6 +272,7 @@ export default function RegisterForm() {
                 error={errors.address && touched.address && errors.address}
                 placeholder="Calle, número, ciudad"
               />
+              </div>
 
 
               <div className="space-y-1">
@@ -271,7 +286,6 @@ export default function RegisterForm() {
                   className="w-full rounded-md border border-gray-300 bg-white px-2 py-3 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
                   <option value="">Selecciona tu obra social (opcional)</option>
-                  <option value="Ninguna">Ninguna</option>
                   <option value="OSDE">OSDE</option>
                   <option value="Swiss Medical">Swiss Medical</option>
                   <option value="Galeno">Galeno</option>
@@ -292,6 +306,8 @@ export default function RegisterForm() {
                     <p className="mt-1 text-sm text-red-600">{errors.socialWork}</p>
                 )}
               </div>
+
+              <div className="md:col-span-1">
                 <CustomInput
                   label="Contraseña"
                   id="password"
@@ -302,7 +318,9 @@ export default function RegisterForm() {
                   value={values.password}
                   error={errors.password && touched.password && errors.password}
                 />
-  
+                </div>
+
+                <div className="md:col-span-1">
                 <CustomInput
                   label="Confirmar Contraseña"
                   id="confirmPassword"
@@ -317,6 +335,21 @@ export default function RegisterForm() {
                     errors.confirmPassword
                   }
                 />
+                </div>
+
+                <div className="md:col-span-1">
+                <CustomInput
+                  label="Contacto de Emergencia"
+                  id="emergencyContact"
+                  type="tel"
+                  name="emergencyContact"
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  value={values.emergencyContact}
+                  error={errors.emergencyContact && touched.emergencyContact && errors.emergencyContact}
+                />
+                <p className="text-xs text-grey-500 mt-1">¨* Este número no puede coincidir con el de teléfono principal.</p>
+              </div>
             </div>
 
             <div className="space-y-2">
