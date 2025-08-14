@@ -9,13 +9,11 @@ import { useAuthProfessionalContext } from '@/context/registerProfessional';
 import Cookies from 'js-cookie';
 
 
-
-
-
-    const cookies = Cookies.get("userDataCompleta");
+    const cookies = Cookies.get("responseData");
     const userData = cookies ? JSON.parse(cookies) : null;
 
     const role = userData?.data?.role || '';
+    console.log(userData?.data?.role || "")
 
 
     const botonesNavBarHomeLogeado = [
@@ -25,7 +23,7 @@ import Cookies from 'js-cookie';
         <a key={1} href="/como-funciona">
             Como Funciona
         </a>,
-        <a key={2} href={role === "psychologist" ? "/dashboard/professional": "/dashboard/user"} className="px-4 py-2 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">
+        <a key={2} href={role === "Psicólogo" ? "/dashboard/professional": "/dashboard/user"} className="px-4 py-2 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">
             Perfil
         </a>,
     ];

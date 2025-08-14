@@ -1,13 +1,36 @@
-import { dashboardProfesionalMock } from "@/helpers/dashboardProfesionalMock"
+"use client"
+import { useEffect, useState } from "react";
+
 
 const Pacientes = () => {
+    const [patients, setPatients] = useState(null);
+
+    useEffect(() => {
+        const token = localStorage.getItem("authToken");
+        if (!token) return;
+
+        fetch("http://localhost:8080/psychologist/patients", {
+            headers: { 
+                Authorization: `Bearer ${token}` 
+            },
+        })
+        .then(res => res.json())
+            .then(response => {
+            setPatients(response.message);
+        })
+        .catch(console.error);
+    }, []);
+
     return(
         <div className="flex flex-col gap-3 px-8 py-8 h-fit">
             <div>
                 <h1 className="text-xl font-semibold text-black">Lista de Pacientes</h1>
                 <span className="text-black">Gestiona tu lista de pacientes activos y completados</span>
             </div>
-            <div>
+             <div>
+      {patients ? JSON.stringify(patients) : "Cargando pacientes..."}
+    </div>
+            {/* <div>
                 {dashboardProfesionalMock.pacientes.map((pac, index) => (
                     <div key={index} className="grid bg-gray-200 border-2 border-gray-300 items-center py-3 px-5 rounded-lg w-full grid-cols-[0.2fr_2fr_0.2fr] my-4">
                         <div className="w-10 h-10 bg-white rounded-full"></div>
@@ -26,7 +49,7 @@ const Pacientes = () => {
                         </div>
                     </div>
                 ))}
-            </div>
+            </div> */}
         </div>
     )
 }

@@ -1,6 +1,26 @@
-import { dashboardProfesionalMock } from "@/helpers/dashboardProfesionalMock"
+"use client"
+import { useEffect, useState } from "react";
 
-const Reseñas = () => {
+    const Reseñas = () => {
+        const [reseñas, setReseñas] = useState(null);
+    
+        useEffect(() => {
+            const token = localStorage.getItem("authToken");
+            if (!token) return;
+    
+            fetch("http://localhost:8080/psychologist/reviews", {
+                headers: { 
+                    Authorization: `Bearer ${token}` 
+                },
+            })
+            .then(res => res.json())
+                .then(response => {
+                setReseñas(response.message);
+            })
+            .catch(console.error);
+        }, []);
+
+        console.log(reseñas)
     return(
         <div className="flex flex-col gap-3 px-8 py-8 h-fit">
             <div>
@@ -8,6 +28,9 @@ const Reseñas = () => {
                 <span className="text-black">Análisis de desempeño y temas de tus reseñas</span>
             </div>
             <div>
+                {reseñas ? JSON.stringify(reseñas) : "Cargando reseñas..."}
+            </div>
+            {/* <div>
                 {dashboardProfesionalMock.reseñas.map((res, index) => (
                     <div key={index} className="items-center w-full px-5 py-3 my-4 bg-gray-200 border-2 border-gray-300 rounded-lg ">
                         <div className="flex flex-row justify-between">
@@ -24,7 +47,7 @@ const Reseñas = () => {
                         </div>
                     </div>
                 ))}
-            </div>
+            </div> */}
         </div>
     )
 }

@@ -1,5 +1,4 @@
 "use client"
-
 import { useState } from "react"
 import Pacientes from "./Pacientes"
 import Citas from "./Citas"
@@ -20,6 +19,10 @@ const MenuNavegacion = () => {
 
     return (
     <>
+        <div>
+            <h1 className="text-[26px] font-semibold text-black">Perfil Profesional</h1>
+            <span className="text-black">Bienvenida/o de vuelta, Dr/a NOMBRE</span>
+        </div>
         <div className="grid items-center w-full h-10 grid-cols-5 gap-3 px-1 mt-6 bg-white rounded-md">
             {pestañas.map((pestaña) => (
                 <button key={pestaña.id} className={`h-[80%] rounded-md transition-colors ${
