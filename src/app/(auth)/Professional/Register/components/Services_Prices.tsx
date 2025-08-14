@@ -183,10 +183,11 @@ const Services_Prices = () => {
                     localStorage.setItem('authToken', data.token);
                 }
 
+                console.log(data)
                 saveUserData(data);
 
                 // Redirigir según el tipo de usuario
-                if (data.userType === 'professional') {
+                if (data.role === 'Psicólogo') {
                     router.push('/dashboard/professional');
                 } else {
                     router.push('/dashboard/user');
@@ -194,12 +195,12 @@ const Services_Prices = () => {
             }
 
             toast.update(toastId, {
-            render: "Registrado con éxito!",
-            type: "success",
-            isLoading: false,
-            autoClose: 3000,
-            closeOnClick: true,
-            draggable: true,
+                render: "Registrado con éxito!",
+                type: "success",
+                isLoading: false,
+                autoClose: 3000,
+                closeOnClick: true,
+                draggable: true,
             });
             Cookies.remove('userDataCompleta');
  
