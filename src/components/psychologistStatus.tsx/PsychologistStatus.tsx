@@ -33,7 +33,7 @@ export default function PsychologistStatus({ status, name }: PsychologistStatusP
       message: `Hola ${name}, lamentablemente tu cuenta fue rechazada. Contacta soporte para más información.`,
       buttonText: "Contactar Soporte",
       buttonDisabled: false,
-      link: "/support",
+      link: "https://mail.google.com/mail/?view=cm&fs=1&to=psymatch.contact@gmail.com",
       bg: "bg-red-50"
     }
   }[status];

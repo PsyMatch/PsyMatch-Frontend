@@ -2,7 +2,7 @@ import PsychologistStatus from "@/components/psychologistStatus.tsx/Psychologist
 
 export default function StatusPage() {
   // Esto tiene que venir de la API
-  const status: "pending" | "accepted" | "rejected" = "accepted";
+  const status: "pending" | "accepted" | "rejected" = "rejected";
 
   return <PsychologistStatus status={status} name="Dr. Federico Alvarez" />;
 }
