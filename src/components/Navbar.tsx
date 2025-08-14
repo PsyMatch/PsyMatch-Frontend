@@ -2,36 +2,33 @@
 import Image from 'next/image';
 import logoCabeza from '../assets/logoCabeza.svg';
 import { Menu } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuthProfessionalContext } from '@/context/registerProfessional';
+import Cookies from 'js-cookie';
 
-const botonesNavBarHome = [
-    <Link key={0} href="/search-professionals">
-        Buscar Terapeutas
-    </Link>,
-    <Link key={1} href="/como-funciona">
-        Como Funciona
-    </Link>,
-    <Link key={2} href="/login">
-        Iniciar Sesión
-    </Link>,
-    <Link key={3} href="/register-user" className="px-4 py-2 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">
-        Comenzar
-    </Link>,
-];
 
-const botonesNavBarHomeLogeado = [
-    <Link key={0} href="/search-professionals">
-        Buscar Terapeutas
-    </Link>,
-    <a key={1} href="#como-funciona">
-        Como Funciona
-    </a>,
-    <Link key={2} href="/dashboard/user" className="px-4 py-2 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">
-        Perfil
-    </Link>,
-];
+
+
+
+    const cookies = Cookies.get("userDataCompleta");
+    const userData = cookies ? JSON.parse(cookies) : null;
+
+    const role = userData?.data?.role || '';
+
+
+    const botonesNavBarHomeLogeado = [
+        <Link key={0} href="/search-professionals">
+            Buscar Terapeutas
+        </Link>,
+        <a key={1} href="/como-funciona">
+            Como Funciona
+        </a>,
+        <a key={2} href={role === "psychologist" ? "/dashboard/professional": "/dashboard/user"} className="px-4 py-2 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">
+            Perfil
+        </a>,
+    ];
 
 const botonesNavBarMatch = [
     <Link key={0} href="/como-funciona">
@@ -43,8 +40,25 @@ const botonesNavBarMatch = [
 ];
 
 const Navbar = () => {
-    const isAuth = false;
     const [menu, setMenu] = useState(false);
+    const {isAuth, resetUserData} = useAuthProfessionalContext();
+    console.log(isAuth);
+
+
+const botonesNavBarHome = [
+    <a href={isAuth ? "/search-professionals": "/register-user"} key={0}>
+        Buscar Terapeutas
+    </a>,
+    <Link key={1} href="/como-funciona">
+        Como Funciona
+    </Link>,
+    <Link key={2} href="/login">
+        Iniciar Sesión
+    </Link>,
+    <Link key={3} href="/register-user" className="px-4 py-2 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">
+        Comenzar
+    </Link>,
+];
 
     const pathname = usePathname();
     const id = pathname?.split('/')[2] || '';
@@ -102,7 +116,7 @@ const Navbar = () => {
 
             {pathname === '/' && (
                 <div className="hidden lg:block">
-                    {!isAuth ? (
+                    {isAuth === false ? (
                         <ul className="flex flex-row items-center gap-4 p-3 top-20 right-1">
                             {botonesNavBarHome.map((boton, index) => (
                                 <li key={index} className="text-sm list-none hover:text-gray-700">
@@ -137,7 +151,7 @@ const Navbar = () => {
             {(pathname === '/dashboard/professional' || pathname === `/professionalProfile/${id}` || pathname === '/dashboard/user') && (
                 <div className="hidden lg:block">
                     <Link href="/">
-                        <button className="px-4 py-1 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">Cerrar Sesión</button>
+                        <button onClick={resetUserData} className="px-4 py-1 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">Cerrar Sesión</button>
                     </Link>
                 </div>
             )}
