@@ -25,6 +25,17 @@ export function middleware(request: NextRequest) {
     }
 
 
-    // if(role)
+    if(pathname === "/dashboard/professional" && (request.cookies.get("role")?.value === "Paciente" || request.cookies.get("role")?.value === "Administrador")) {
+        const homeUrl = new URL('/', origin);
+        return NextResponse.redirect(homeUrl);
+    }
+    if(pathname === "/dashboard/user" && (request.cookies.get("role")?.value === "Psicologo" || request.cookies.get("role")?.value === "Administrador")) {
+        const homeUrl = new URL('/', origin);
+        return NextResponse.redirect(homeUrl);
+    }
+    if(pathname === "/dashboard/admin" && (request.cookies.get("role")?.value === "Psicologo" || request.cookies.get("role")?.value === "Paciente")) {
+        const homeUrl = new URL('/', origin);
+        return NextResponse.redirect(homeUrl);
+    }
 
 }
