@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from "react"
+import Image from "next/image"
 
 type Terapeuta = {
   id: number
@@ -13,6 +14,7 @@ type Terapeuta = {
 const Terapeutas = () => {
   const [terapeutas, setTerapeutas] = useState<Terapeuta[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
  useEffect(() => {
   const fetchTerapeutas = async () => {
@@ -20,22 +22,36 @@ const Terapeutas = () => {
       const res = await fetch("http://localhost:8080/patient/professionals", {
         credentials: "include",
       });
-      if (!res.ok) throw new Error("Error al obtener terapeutas")
-      const data = await res.json()
-      setTerapeutas(data)
+      if (!res.ok) {
+        throw new Error("Error al obtener terapeutas");
+      }
+      const result = await res.json();
+      setTerapeutas(result.data || []);
+      if (!result.data || result.data.length === 0) {
+        setError("No tienes terapeutas conectados todavía.");
+      } else {
+        setError(null);
+      }
     } catch (error) {
-      console.error(error)
+      setError("No se pudieron obtener los terapeutas.");
+      setTerapeutas([]);
+      console.error(error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  fetchTerapeutas()
+  fetchTerapeutas();
 }, [])
 
 
+
   if (loading) {
-    return <div className="px-8 py-8">Cargando terapeutas...</div>
+    return <div className="px-8 py-8">Cargando terapeutas...</div>;
+  }
+
+  if (error) {
+    return <div className="px-8 py-8 text-gray-600">{error}</div>;
   }
 
   return (
@@ -52,10 +68,13 @@ const Terapeutas = () => {
           >
             <div className="w-10 h-10 bg-white rounded-full overflow-hidden">
               {ter.foto && (
-                <image
+                <Image
                   src={ter.foto}
                   alt={ter.nombre}
+                  width={40}
+                  height={40}
                   className="w-full h-full object-cover"
+                  style={{ objectFit: "cover" }}
                 />
               )}
             </div>

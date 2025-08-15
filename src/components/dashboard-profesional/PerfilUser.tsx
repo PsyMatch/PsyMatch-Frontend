@@ -54,30 +54,49 @@ const PerfilUser = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+          router.push('/login');
+          return;
+        }
+        const res = await fetch(`http://localhost:8080/users/me`, {
           method: 'GET',
-          credentials: 'include', // <- manda la cookie
+          credentials: 'include',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
-
         if (res.status === 401) {
           router.push('/login');
           return;
         }
-
-        if (!res.ok) throw new Error('Error al obtener usuario');
-
-        const data: UserData = await res.json();
-
-        setUser(data);
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error('Error al obtener usuario:', res.status, errorText);
+          throw new Error('Error al obtener usuario');
+        }
+        const data = await res.json();
+        const userData = data.data;
+        setUser({
+          fullName: userData.fullName || userData.name || '',
+          alias: userData.alias || '',
+          birthDate: userData.birthDate || userData.birthdate || '',
+          phone: userData.phone || '',
+          dni: userData.dni || '',
+          address: userData.address || '',
+          email: userData.email || '',
+          socialWork: userData.socialWork || userData.social_security_number || '',
+          emergencyContact: userData.emergencyContact || userData.emergency_contact || '',
+          profileImage: userData.profileImage || userData.profile_picture || '',
+        });
         setProfileImage(
-          data.profileImage ||
-            `https://ui-avatars.com/api/?name=${encodeURIComponent(data.fullName)}`
+          userData.profileImage || userData.profile_picture ||
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.fullName || userData.name || 'Usuario')}`
         );
       } catch (err) {
         console.error('Error cargando usuario:', err);
       }
     };
-
     fetchUser();
   }, [router]);
 
@@ -98,21 +117,22 @@ const PerfilUser = () => {
   const handleSave = async () => {
     try {
       setLoading(true);
-
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        router.push('/login');
+        return;
+      }
       const formData = new FormData();
       formData.append('name', user.fullName);
       formData.append('alias', user.alias);
-
       if (user.birthDate) {
         const birthdateISO = new Date(user.birthDate).toISOString();
         formData.append('birthdate', birthdateISO);
       }
-
       formData.append('phone', user.phone);
       formData.append('email', user.email);
       formData.append('dni', user.dni);
       formData.append('address', user.address);
-
       if (user.socialWork) {
         formData.append('social_security_number', user.socialWork);
       }
@@ -122,20 +142,19 @@ const PerfilUser = () => {
       if (profileFile) {
         formData.append('profile_picture', profileFile);
       }
-
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
+      const res = await fetch(`http://localhost:8080/users/me`, {
         method: 'PUT',
-        credentials: 'include', // <- manda la cookie
+        credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: formData,
       });
-
       if (res.status === 401) {
         router.push('/login');
         return;
       }
-
       if (!res.ok) throw new Error('Error al guardar');
-
       setEditable(false);
       setProfileFile(null);
     } catch (error) {
