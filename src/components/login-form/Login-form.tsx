@@ -64,7 +64,7 @@ export default function LoginForm() {
           router.push('/dashboard/professional')
         } if(traerRole === 'Administrador') {
           router.push('/dashboard/admin')
-        } else {
+        } if(traerRole === 'Paciente') {
           router.push('/dashboard/user')
         }
         

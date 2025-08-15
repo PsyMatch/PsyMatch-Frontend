@@ -30,10 +30,7 @@ const Navbar = () => {
         setToken(localStorage.getItem("authToken"));
     }, []);
     
-    const [rolGuardado, setRolGuardado] = useState<string | null>(null);
-    useEffect(() => {
-        setRolGuardado(localStorage.getItem("role"));
-    }, []);
+    const rolGuardado = Cookies.get("role");
 
     const botonesNavBarHomeLogeado = [
         <Link key={0} href="/search-professionals">Buscar Terapeutas</Link>,
