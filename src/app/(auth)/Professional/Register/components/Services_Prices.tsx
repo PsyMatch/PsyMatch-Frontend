@@ -181,6 +181,7 @@ const Services_Prices = () => {
                 // Guardar token en localStorage si viene en la respuesta
                 if (data.token) {
                     localStorage.setItem('authToken', data.token);
+                    Cookies.set('authToken', data.token);
                 }
 
                 console.log(data)

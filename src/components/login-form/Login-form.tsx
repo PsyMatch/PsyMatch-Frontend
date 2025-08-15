@@ -7,7 +7,8 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-
+import { useAuthProfessionalContext } from '@/context/registerProfessional'
+import Cookies from 'js-cookie'
 
 
 const LoginSchema = Yup.object().shape({
@@ -23,13 +24,14 @@ export default function LoginForm() {
   const router = useRouter()
   const [loginError, setLoginError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const {setIsAuth} = useAuthProfessionalContext();
 
   const handleSubmit = async (values: { email: string; password: string }) => {
     setIsLoading(true)
     setLoginError('')
     
     try {
-      const response = await fetch('https://psymatch-backend-app.onrender.com/auth/signin', {
+      const response = await fetch('http://localhost:8080/auth/signin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -41,15 +43,24 @@ export default function LoginForm() {
       })
 
       const data = await response.json()
+      const role = data.data.role
+      console.log('Rol:', role)
 
       if (response.ok) {
         // Guardar token en localStorage si viene en la respuesta
         if (data.token) {
           localStorage.setItem('authToken', data.token)
+          Cookies.set('authToken', data.token)
         }
-        
+
+        if(data.data.role) {
+          localStorage.setItem("role", data.data.role)
+        }
+
+        const traerRole = localStorage.getItem("role");
+
         // Redirigir según el tipo de usuario
-        if (data.userType === 'professional') {
+        if (traerRole === 'Psicólogo') {
           router.push('/dashboard/professional')
         } else {
           router.push('/dashboard/user')

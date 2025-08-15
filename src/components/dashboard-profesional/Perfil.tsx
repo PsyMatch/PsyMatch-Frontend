@@ -13,12 +13,12 @@ interface ResponseDataProfile {
     professional_experience: number;
     office_address: string;
     therapy_approaches: string[]
-    availability: string[];
+    // availability: string[];
 }
 
 const Perfil = () => {
     const [perfil, setPerfil] = useState<ResponseDataProfile | null>(null);
-    // const [cambios, setCambios] = useState<Partial<ResponseDataProfile>>({});
+    const [cambios, setCambios] = useState<Partial<ResponseDataProfile>>({});
     
     useEffect(() => {
 
@@ -40,29 +40,44 @@ const Perfil = () => {
     console.log(perfil)
 
 
-    // const handleUpdateProfile = (cambios: Partial<ResponseDataProfile>) => {
-    //     const token = localStorage.getItem("authToken");
-    //     if(!token) return;
+    const handleUpdateProfile = (    cambios: Partial<ResponseDataProfile>,
+    original: ResponseDataProfile) => {
+        const token = localStorage.getItem("authToken");
+        if(!token) return;
 
-    //     fetch("http://localhost:8080/psychologist/me", {
-    //         method: "PUT",
-    //         headers: {
-    //             // "Content-Type": "application/json",
-    //             Authorization: `Bearer ${token}`
-    //         },
-    //         body: JSON.stringify(cambios)
-    //     })
-    //     .then(res => res.json())
-    //     .then(response => {
-    //         console.log("Perfil actualizado:", response);
+        const bodySend = Object.fromEntries(
+            Object.entries(cambios).filter(([key, value]) => value !== original[key as keyof ResponseDataProfile])
+        );
 
-    //         setPerfil(prev => ({ ...prev, ...response }));
-    //         setCambios({});
+        if (Object.keys(bodySend).length === 0) {
+            console.log("No hay cambios para enviar");
+            return;
+        }
 
-    //     })
-    //     .catch(console.error);
-    // }
-    // console.log("Enviando cambios:", cambios);
+        console.log("Cuerpo de la solicitud:", bodySend);
+
+        fetch("http://localhost:8080/psychologist/me", {
+            method: "PUT",
+            headers: {
+                // "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify(bodySend)
+        })
+        .then(res => res.json())
+        .then(response => {
+            console.log("Respuesta:", response);
+
+            setPerfil(prev => ({ ...prev, ...response }));
+            setCambios({});
+
+        })
+        .catch((error) => {
+            console.error("Error al actualizar el perfil:", error.message);
+        });
+    }
+    console.log("Enviando cambios:", cambios);
+
 
 
     // const [profileImage, setProfileImage] = useState<string>("https://ui-avatars.com/api/?name=Profesional&background=E0E7FF&color=3730A3");
@@ -99,11 +114,13 @@ const Perfil = () => {
                             name: perfil?.name || "",
                             professional_title: perfil?.professional_title || "",
                             personal_biography: perfil?.personal_biography || "",
-                            availability: perfil?.availability || [],
+                            // availability: perfil?.availability || [],
                             professional_experience: perfil?.professional_experience || 0,
+                            office_address: perfil?.office_address || "",
                         }}
                         onSubmit={(values) => {
-                            console.log("Solo cambios:");
+                            if (!perfil) return;
+                            handleUpdateProfile(values, perfil); 
                         }}
                     >
                         {({ values, handleChange }) => (
@@ -116,7 +133,6 @@ const Perfil = () => {
                                             name="name"
                                             className="w-full px-3 py-2 border rounded"
                                             disabled={!editable}
-
                                         />
                                     </div>
                                     <div>
@@ -126,6 +142,7 @@ const Perfil = () => {
                                             name="professional_title"
                                             className="w-full px-3 py-2 border rounded"
                                             disabled={!editable}
+                                            
                                         />
                                     </div>
                                     <div className="md:col-span-2">
@@ -137,10 +154,20 @@ const Perfil = () => {
                                             disabled={!editable}
                                         />
                                     </div>
-                                    <div>
+                                    <div className="md:col-span-2">
+                                        <label className="block mb-1 text-sm font-medium">Dirección del consultorio</label>
+                                        <Field
+                                            type="textarea"
+                                            name="office_address"
+                                            className="w-full px-3 py-2 border rounded resize-none"
+                                            disabled={!editable}
+                                            
+                                        />
+                                    </div>
+                                    {/* <div>
                                         <label className="block mb-1 text-sm font-medium">Especialidades</label>
                                         <ul>
-                                            {perfil?.therapy_approaches.map((serv: string, index: number) => (
+                                            {perfil?.therapy_approaches?.map((serv: string, index: number) => (
                                                 <li key={index} className="bg-white-400 px-4 py-[2px] text-sm font-bold rounded-xl">
                                                     {serv}
                                                 </li>
@@ -154,15 +181,16 @@ const Perfil = () => {
                                                 <span key={index} className="bg-white-400 px-4 py-[2px] text-sm font-bold rounded-xl">{idioma}</span>
                                             ))}
                                         </div>
-                                    </div>
+                                    </div> */}
                                     <div>
-                                        <label className="block mb-1 text-sm font-medium">Disponibilidad</label>
+                                        {/* <label className="block mb-1 text-sm font-medium">Disponibilidad</label>
                                         <Field
                                             type="textarea"
                                             name="availability"
                                             className="w-full h-20 px-3 py-2 border rounded resize-none"
                                             disabled={!editable}
-                                        />
+                                            
+                                        /> */}
 
                                         <label className="block mb-1 text-sm font-medium">Experiencia</label>
                                         <Field
@@ -170,6 +198,7 @@ const Perfil = () => {
                                             name="professional_experience"
                                             className="w-full px-3 py-2 border rounded"
                                             disabled={!editable}
+                                            
                                         />
                                     </div>
                                 </div>
