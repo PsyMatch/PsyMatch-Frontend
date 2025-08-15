@@ -27,8 +27,9 @@ export interface IUser {
     phone: string;
     address: string;
     photoUrl: string;
-    joinedDate: string;
+    created_at: string;
     role: string;
+    health_insurance: string;
 }
 
 export const getProfessionalById = async (id:string, token?:string ): Promise<IProfessional | IUser | null> => {

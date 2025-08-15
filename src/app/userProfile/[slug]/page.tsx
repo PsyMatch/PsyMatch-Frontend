@@ -2,18 +2,6 @@ import React from "react";
 import InfoRapidaUser from "@/components/perfil-usuario/InfoRapidaUser";
 import { IUser } from "@/services/prrofessionalProfile";
 
-// Simulación de datos de usuario. Reemplaza esto con tu lógica de obtención de datos.
-
-const userData = {
-  name: "Juan Pérez",
-  email: "juan.perez@email.com",
-  joinedDate: "Enero 2024",
-  phone: "555-123-4567",
-  about: "Soy un usuario entusiasta de la plataforma, me gusta aprender y conectar con profesionales.",
-  photoUrl: "/person-gray-photo-placeholder-woman.webp", // Usa una imagen de ejemplo de public/
-  ciudad: "Buenos Aires, Argentina",
-  intereses: ["Psicología", "Bienestar", "Mindfulness"]
-};
 
 const UserProfilePage = ({ data }: { data: IUser }) => {
   return ( 
@@ -24,10 +12,11 @@ const UserProfilePage = ({ data }: { data: IUser }) => {
             role={data.role}
             name={data.name}
             email={data.email}
-            joinedDate={userData.joinedDate}
-            photoUrl={userData.photoUrl}
+            created_at={data.created_at}
+            photoUrl="/person-gray-photo-placeholder-woman.webp"
             address={data.address}
             phone={data.phone}
+            health_insurance={data.health_insurance}
           />
         </div>
 
