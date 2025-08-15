@@ -45,6 +45,7 @@ type AuthContextType = {
     token: string | null
     saveUserData: (data:RegisterResponse) => void
     resetUserData: () => void
+    setIsAuth: (value: boolean) => void
 }
 
 export const AuthProfessionalContext = createContext<AuthContextType | undefined>(undefined)
@@ -96,12 +97,14 @@ export const AuthProfessionalProvider: FC<{children: ReactNode}> = ({children}) 
         setIsAuth(false)
 
         localStorage.removeItem("authToken")
+        localStorage.removeItem("role")
         Cookies.remove("userDataCompleta")
+        Cookies.remove("authToken")
     }
 
 
     return (
-        <AuthProfessionalContext.Provider value={{user, isAuth, saveUserData, token, resetUserData}}>
+        <AuthProfessionalContext.Provider value={{user, isAuth, saveUserData, token, resetUserData, setIsAuth}}>
             {children}
         </AuthProfessionalContext.Provider>
     )
