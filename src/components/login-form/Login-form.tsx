@@ -54,17 +54,20 @@ export default function LoginForm() {
         }
 
         if(data.data.role) {
-          localStorage.setItem("role", data.data.role)
+          Cookies.set("role", data.data.role)
         }
 
-        const traerRole = localStorage.getItem("role");
+        const traerRole = Cookies.get("role");
 
         // Redirigir según el tipo de usuario
         if (traerRole === 'Psicólogo') {
           router.push('/dashboard/professional')
-        } else {
+        } if(traerRole === 'Administrador') {
+          router.push('/dashboard/admin')
+        } if(traerRole === 'Paciente') {
           router.push('/dashboard/user')
         }
+        
       } else {
         // Mostrar error del servidor
         setLoginError(data.message || 'Error al iniciar sesión')

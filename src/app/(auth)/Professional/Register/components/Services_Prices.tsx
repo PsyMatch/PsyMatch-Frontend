@@ -184,14 +184,21 @@ const Services_Prices = () => {
                     Cookies.set('authToken', data.token);
                 }
 
-                console.log(data)
+                
                 saveUserData(data);
+                
+                if(data.role) {
+                    Cookies.set("role", data.role);
+                }
+                const traerRole = Cookies.get("role");
 
                 // Redirigir según el tipo de usuario
-                if (data.role === 'Psicólogo') {
-                    router.push('/dashboard/professional');
+                if (traerRole === 'Psicólogo') {
+                    router.push('/dashboard/professional')
+                } if(traerRole === 'Administrador') {
+                    router.push('/dashboard/admin')
                 } else {
-                    router.push('/dashboard/user');
+                    router.push('/dashboard/user')
                 }
             }
 
