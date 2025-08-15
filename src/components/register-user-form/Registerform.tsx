@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar';
 import Link from 'next/link';
+import Cookies from 'js-cookie';
 
 const RegisterSchema = Yup.object().shape({
   fullName: Yup.string()
@@ -116,12 +117,29 @@ export default function RegisterForm() {
 
       const data = await response.json();
 
-      if (response.ok) {
-        router.push('/login');
-        alert('Registro exitoso. Por favor inicia sesión.');
-      } else {
-        setRegisterError(data.message || 'Error al crear la cuenta');
-      }
+  
+        if (response.ok) {
+          router.push('/login');
+          alert('Registro exitoso. Por favor inicia sesión.');
+        } else {
+          setRegisterError(data.message || 'Error al crear la cuenta');
+        }
+      
+        if(data.data.role) {
+          Cookies.set("role", data.data.role)
+        }
+
+        const traerRole = Cookies.get("role");
+
+        // Redirigir según el tipo de usuario
+        if (traerRole === 'Psicólogo') {
+          router.push('/dashboard/professional')
+        } if(traerRole === 'Administrador') {
+          router.push('/dashboard/admin')
+        } else {
+          router.push('/dashboard/user')
+        }
+        
     } catch (error) {
       console.error('Error en registro:', error);
       setRegisterError('Error de conexión. Intenta nuevamente.');
@@ -268,7 +286,7 @@ export default function RegisterForm() {
                   value={values.socialWork}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  className="w-full rounded-md border border-gray-300 bg-white px-2 py-3 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full px-2 py-3 text-sm bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
                   <option value="">Selecciona tu obra social (opcional)</option>
                   <option value="Ninguna">Ninguna</option>
