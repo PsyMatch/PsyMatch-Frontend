@@ -21,7 +21,6 @@ const Perfil = () => {
     const [cambios, setCambios] = useState<Partial<ResponseDataProfile>>({});
     
     useEffect(() => {
-
         const token = localStorage.getItem("authToken");
         if (!token) return;
 
@@ -32,7 +31,7 @@ const Perfil = () => {
         })
         .then(res => res.json())
             .then(response => {
-                setPerfil(response);
+                setPerfil(response.data);
         })
         .catch(console.error);
     }, []);
@@ -40,7 +39,7 @@ const Perfil = () => {
     console.log(perfil)
 
 
-    const handleUpdateProfile = (    cambios: Partial<ResponseDataProfile>,
+    const handleUpdateProfile = (cambios: Partial<ResponseDataProfile>,
     original: ResponseDataProfile) => {
         const token = localStorage.getItem("authToken");
         if(!token) return;
@@ -59,7 +58,7 @@ const Perfil = () => {
         fetch("http://localhost:8080/psychologist/me", {
             method: "PUT",
             headers: {
-                // "Content-Type": "application/json",
+                "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`
             },
             body: JSON.stringify(bodySend)

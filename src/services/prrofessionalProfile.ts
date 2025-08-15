@@ -21,8 +21,17 @@ export interface IProfessional {
     profile_picture: null
 }
 
+export interface IUser {
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    photoUrl: string;
+    joinedDate: string;
+    role: string;
+}
 
-export const getProfessionalById = async (id:string, token?:string ): Promise<IProfessional | null> => {
+export const getProfessionalById = async (id:string, token?:string ): Promise<IProfessional | IUser | null> => {
   try{    
     const res = await fetch(`http://localhost:8080/users/${id}`,{
       method: "GET",
