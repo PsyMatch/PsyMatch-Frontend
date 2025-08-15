@@ -1,10 +1,19 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { Search, ChevronDown, Funnel } from 'lucide-react';
+import { psychologistsService, PsychologistResponse } from '@/services/psychologists';
+import Cookies from 'js-cookie';
+import { useRouter } from 'next/navigation';
+import { envs } from '@/config/envs.config';
 
 const Filter = () => {
+    const router = useRouter();
+
+    // Estados para psicólogos desde la base de datos
+    const [psychologists, setPsychologists] = useState<PsychologistResponse[]>([]);
+
     // Estados para todos los filtros
     const [precioMin, setPrecioMin] = useState('');
     const [precioMax, setPrecioMax] = useState('');
@@ -82,103 +91,43 @@ const Filter = () => {
         'OSPSIP',
     ];
 
-    const mockPsicologos = [
-        {
-            id: 1,
-            nombre: 'Dra. María González',
-            imagen: '/person-gray-photo-placeholder-woman.webp',
-            valoracion: 4.9,
-            numeroReseñas: 127,
-            ubicacion: 'Madrid, España',
-            precio: 25000,
-            disponibilidad: 'Disponible Hoy',
-            modalidades: ['in_person', 'online'],
-            especialidades: ['anxiety_disorder', 'depression'],
-            enfoquesTerapia: ['cognitive_behavioral_therapy'],
-            tiposTerapia: ['individual'],
-            idiomas: ['spanish', 'english'],
-            experiencia: '10+ años',
-            descripcion: 'Especialista en terapia cognitivo-conductual con más de 10 años de experiencia tratando ansiedad y depresión.',
-            obrasSociales: ['osde', 'swiss-medical'],
-            diasDisponibles: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
-        },
-        {
-            id: 2,
-            nombre: 'Dr. Carlos Ruiz',
-            imagen: '/person-gray-photo-placeholder-woman.webp',
-            valoracion: 4.8,
-            numeroReseñas: 89,
-            ubicacion: 'Barcelona, España',
-            precio: 20000,
-            disponibilidad: 'Disponible Mañana',
-            modalidades: ['online'],
-            especialidades: ['trauma_ptsd'],
-            enfoquesTerapia: ['eye_movement_desensitization_reprocessing'],
-            tiposTerapia: ['individual'],
-            idiomas: ['spanish'],
-            experiencia: '8+ años',
-            descripcion: 'Experto en terapia de trauma y EMDR con amplia experiencia ayudando a clientes a superar el TEPT.',
-            obrasSociales: ['ioma', 'pami'],
-            diasDisponibles: ['monday', 'wednesday', 'friday', 'saturday'],
-        },
-        {
-            id: 3,
-            nombre: 'Dra. Ana Martínez',
-            imagen: '/person-gray-photo-placeholder-woman.webp',
-            valoracion: 4.9,
-            numeroReseñas: 156,
-            ubicacion: 'Valencia, España',
-            precio: 35000,
-            disponibilidad: 'Disponible Esta Semana',
-            modalidades: ['in_person', 'online'],
-            especialidades: ['couples_therapy', 'family_therapy'],
-            enfoquesTerapia: ['family_systems_therapy'],
-            tiposTerapia: ['couple', 'family'],
-            idiomas: ['spanish', 'portuguese'],
-            experiencia: '12+ años',
-            descripcion: 'Especialista en relaciones ayudando a parejas y familias a mejorar la comunicación y resolver conflictos.',
-            obrasSociales: ['osde', 'unión-personal'],
-            diasDisponibles: ['tuesday', 'thursday', 'friday', 'saturday', 'sunday'],
-        },
-        {
-            id: 4,
-            nombre: 'Dr. Luis Fernández',
-            imagen: '/person-gray-photo-placeholder-woman.webp',
-            valoracion: 4.7,
-            numeroReseñas: 73,
-            ubicacion: 'Sevilla, España',
-            precio: 30000,
-            disponibilidad: 'Disponible Próxima Semana',
-            modalidades: ['in_person'],
-            especialidades: ['addiction_substance_abuse'],
-            enfoquesTerapia: ['group_therapy', 'cognitive_behavioral_therapy'],
-            tiposTerapia: ['individual', 'group'],
-            idiomas: ['spanish'],
-            experiencia: '15+ años',
-            descripcion: 'Especialista en adicciones con 15 años de experiencia en terapia individual y grupal.',
-            obrasSociales: ['apross', 'osprera'],
-            diasDisponibles: ['monday', 'tuesday', 'thursday'],
-        },
-        {
-            id: 5,
-            nombre: 'Dra. Elena Rodríguez',
-            imagen: '/person-gray-photo-placeholder-woman.webp',
-            valoracion: 4.8,
-            numeroReseñas: 94,
-            ubicacion: 'Bilbao, España',
-            precio: 29000,
-            disponibilidad: 'Disponible Hoy',
-            modalidades: ['in_person', 'online', 'hybrid'],
-            especialidades: ['child_adolescent_therapy', 'adhd', 'autism_spectrum_disorder'],
-            enfoquesTerapia: ['play_therapy', 'dialectical_behavioral_therapy'],
-            tiposTerapia: ['individual', 'family'],
-            idiomas: ['spanish', 'english'],
-            experiencia: '9+ años',
-            descripcion: 'Especialista en terapia infantil y adolescente con experiencia en TDAH y trastornos del espectro autista.',
-            obrasSociales: ['swiss-medical', 'sancor-salud'],
-            diasDisponibles: ['monday', 'wednesday', 'friday', 'saturday'],
-        },
-    ];
+    // Función para obtener el token de autenticación
+    const getAuthToken = () => {
+        // Solo ejecutar en el cliente
+        if (typeof window === 'undefined') return null;
+        return Cookies.get('auth-token') || Cookies.get('authToken');
+    };
+
+    // Función para redirigir a login
+    const redirectToLogin = useCallback(() => {
+        router.push('/login');
+    }, [router]);
+
+    // Cargar psicólogos desde la base de datos
+    useEffect(() => {
+        const loadPsychologists = async () => {
+            try {
+                const authToken = getAuthToken();
+                console.log('Auth token:', authToken);
+
+                if (!authToken) {
+                    console.log('No auth token found, redirecting to login');
+                    redirectToLogin();
+                    return;
+                }
+
+                console.log('Fetching psychologists from:', `${envs.next_public_api_url}/users/patient/professionals`);
+                const response = await psychologistsService.getPsychologistsForPatient(authToken);
+                console.log('Psychologists response:', response);
+                setPsychologists(response.data);
+            } catch (error) {
+                console.error('Error loading psychologists:', error);
+                redirectToLogin();
+            }
+        };
+
+        loadPsychologists();
+    }, [router, redirectToLogin]);
 
     // Estado para búsqueda
     const [busqueda, setBusqueda] = useState('');
@@ -247,53 +196,56 @@ const Filter = () => {
 
     // Función para filtrar y ordenar psicólogos
     const filtrarPsicologos = () => {
-        let resultado = mockPsicologos.filter((psicologo) => {
-            // Filtro por precio
+        let resultado = psychologists.filter((psicologo) => {
+            // Filtro por precio - usar precio por defecto ya que no viene del backend
+            const precioDefault = 25000; // Precio por defecto
             const precioMinNum = precioMin ? parseFloat(precioMin) : 0;
             const precioMaxNum = precioMax ? parseFloat(precioMax) : Infinity;
-            if (psicologo.precio < precioMinNum || psicologo.precio > precioMaxNum) {
+            if (precioDefault < precioMinNum || precioDefault > precioMaxNum) {
                 return false;
             }
 
-            // Filtro por modalidad
-            if (modalidadSeleccionada && !psicologo.modalidades.includes(modalidadSeleccionada)) {
+            // Filtro por modalidad - usar la modalidad del psicólogo
+            if (modalidadSeleccionada && psicologo.modality !== modalidadSeleccionada) {
                 return false;
             }
 
-            // Filtro por idioma
-            if (idiomaSeleccionado && !psicologo.idiomas.includes(idiomaSeleccionado)) {
+            // Filtro por idioma - usar languages del psicólogo
+            if (idiomaSeleccionado && psicologo.languages && !psicologo.languages.includes(idiomaSeleccionado)) {
                 return false;
             }
 
-            // Filtro por obra social
-            if (obraSocialSeleccionada && !psicologo.obrasSociales.includes(obraSocialSeleccionada)) {
+            // Filtro por obra social - usar insurance_accepted del psicólogo
+            if (obraSocialSeleccionada && psicologo.insurance_accepted && !psicologo.insurance_accepted.includes(obraSocialSeleccionada)) {
                 return false;
             }
 
-            // Filtro por tipo de terapia
-            if (tipoTerapiaSeleccionado && !psicologo.tiposTerapia.includes(tipoTerapiaSeleccionado)) {
+            // Filtro por tipo de terapia - usar session_types del psicólogo
+            if (tipoTerapiaSeleccionado && psicologo.session_types && !psicologo.session_types.includes(tipoTerapiaSeleccionado)) {
                 return false;
             }
 
-            // Filtro por disponibilidad (días)
+            // Filtro por disponibilidad (días) - usar availability del psicólogo
             if (disponibilidadSeleccionada.length > 0) {
-                const tieneDisponibilidad = disponibilidadSeleccionada.some((dia) => psicologo.diasDisponibles.includes(dia));
+                const tieneDisponibilidad = psicologo.availability && disponibilidadSeleccionada.some((dia) => psicologo.availability!.includes(dia));
                 if (!tieneDisponibilidad) {
                     return false;
                 }
             }
 
-            // Filtro por enfoques de terapia
+            // Filtro por enfoques de terapia - usar therapy_approaches del psicólogo
             if (enfoquesTerapiaSeleccionados.length > 0) {
-                const tieneEnfoque = enfoquesTerapiaSeleccionados.some((enfoque) => psicologo.enfoquesTerapia.includes(enfoque));
+                const tieneEnfoque =
+                    psicologo.therapy_approaches && enfoquesTerapiaSeleccionados.some((enfoque) => psicologo.therapy_approaches!.includes(enfoque));
                 if (!tieneEnfoque) {
                     return false;
                 }
             }
 
-            // Filtro por especialidades
+            // Filtro por especialidades - usar specialities del psicólogo
             if (especialidadesSeleccionadas.length > 0) {
-                const tieneEspecialidad = especialidadesSeleccionadas.some((especialidad) => psicologo.especialidades.includes(especialidad));
+                const tieneEspecialidad =
+                    psicologo.specialities && especialidadesSeleccionadas.some((especialidad) => psicologo.specialities!.includes(especialidad));
                 if (!tieneEspecialidad) {
                     return false;
                 }
@@ -302,9 +254,9 @@ const Filter = () => {
             // Filtro por búsqueda (nombre, especialidades, ubicación)
             if (busqueda) {
                 const busquedaLower = busqueda.toLowerCase();
-                const coincideNombre = psicologo.nombre.toLowerCase().includes(busquedaLower);
-                const coincideUbicacion = psicologo.ubicacion.toLowerCase().includes(busquedaLower);
-                const coincideDescripcion = psicologo.descripcion.toLowerCase().includes(busquedaLower);
+                const coincideNombre = psicologo.name.toLowerCase().includes(busquedaLower);
+                const coincideUbicacion = psicologo.office_address ? psicologo.office_address.toLowerCase().includes(busquedaLower) : false;
+                const coincideDescripcion = psicologo.personal_biography ? psicologo.personal_biography.toLowerCase().includes(busquedaLower) : false;
 
                 if (!coincideNombre && !coincideUbicacion && !coincideDescripcion) {
                     return false;
@@ -317,28 +269,28 @@ const Filter = () => {
         // Aplicar ordenamiento
         switch (ordenamientoSeleccionado) {
             case 'rating':
-                resultado = resultado.sort((a, b) => b.valoracion - a.valoracion);
+                // Como no tenemos rating en el backend, ordenar por nombre
+                resultado = resultado.sort((a, b) => a.name.localeCompare(b.name));
                 break;
             case 'price_asc':
-                resultado = resultado.sort((a, b) => a.precio - b.precio);
+                // Como no tenemos precio específico en el backend, ordenar por nombre
+                resultado = resultado.sort((a, b) => a.name.localeCompare(b.name));
                 break;
             case 'price_desc':
-                resultado = resultado.sort((a, b) => b.precio - a.precio);
+                // Como no tenemos precio específico en el backend, ordenar por nombre
+                resultado = resultado.sort((a, b) => a.name.localeCompare(b.name));
                 break;
             case 'experience':
                 resultado = resultado.sort((a, b) => {
-                    const getExperienceYears = (exp: string) => {
-                        const match = exp.match(/(\d+)/);
-                        return match ? parseInt(match[1]) : 0;
-                    };
-                    return getExperienceYears(b.experiencia) - getExperienceYears(a.experiencia);
+                    // Usar professional_experience del backend
+                    const expA = a.professional_experience || 0;
+                    const expB = b.professional_experience || 0;
+                    return expB - expA;
                 });
                 break;
             case 'availability':
-                resultado = resultado.sort((a, b) => {
-                    const availabilityOrder = ['Disponible Hoy', 'Disponible Mañana', 'Disponible Esta Semana', 'Disponible Próxima Semana'];
-                    return availabilityOrder.indexOf(a.disponibilidad) - availabilityOrder.indexOf(b.disponibilidad);
-                });
+                // Sin ordenamiento por disponibilidad específica por ahora
+                resultado = resultado.sort((a, b) => a.name.localeCompare(b.name));
                 break;
             default:
                 break;
@@ -809,15 +761,15 @@ const Filter = () => {
                                         <div className="flex items-start justify-between mb-4">
                                             <div className="flex items-start">
                                                 <Image
-                                                    alt={psicologo.nombre}
+                                                    alt={psicologo.name}
                                                     className="w-16 h-16 rounded-full mr-4"
-                                                    src={psicologo.imagen}
+                                                    src={psicologo.profile_picture || '/person-gray-photo-placeholder-woman.webp'}
                                                     width={80}
                                                     height={80}
                                                 />
                                                 <div>
                                                     <div className="flex items-center mb-2">
-                                                        <h3 className="text-lg font-semibold mr-2">{psicologo.nombre}</h3>
+                                                        <h3 className="text-lg font-semibold mr-2">{psicologo.name}</h3>
                                                     </div>
                                                     <div className="flex items-center mb-2">
                                                         <svg
@@ -834,9 +786,7 @@ const Filter = () => {
                                                         >
                                                             <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z" />
                                                         </svg>
-                                                        <span className="text-sm text-gray-600">
-                                                            {psicologo.valoracion} ({psicologo.numeroReseñas} reseñas)
-                                                        </span>
+                                                        <span className="text-sm text-gray-600">4.8 (12 reseñas)</span>
                                                     </div>
                                                     <div className="flex items-center text-sm text-gray-600 mb-2">
                                                         <svg
@@ -854,7 +804,7 @@ const Filter = () => {
                                                             <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
                                                             <circle cx="12" cy="10" r="3" />
                                                         </svg>
-                                                        {psicologo.ubicacion}
+                                                        {psicologo.office_address || 'Consulta disponible'}
                                                     </div>
                                                     <div className="flex items-center text-sm text-gray-600">
                                                         <svg
@@ -872,14 +822,14 @@ const Filter = () => {
                                                             <line x1="12" y1="1" x2="12" y2="23"></line>
                                                             <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                                                         </svg>
-                                                        ${psicologo.precio}/sesión
+                                                        $100/sesión
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <div className="text-sm text-green-600 font-medium mb-2">{psicologo.disponibilidad}</div>
+                                                <div className="text-sm text-green-600 font-medium mb-2">Disponible</div>
                                                 <div className="flex gap-1 flex-wrap">
-                                                    {psicologo.modalidades.map((modalidad) => (
+                                                    {(psicologo.session_types || ['in_person']).map((modalidad) => (
                                                         <div
                                                             key={modalidad}
                                                             className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-gray-900 text-xs"
@@ -927,10 +877,12 @@ const Filter = () => {
                                             </div>
                                         </div>
 
-                                        <p className="text-gray-600 mb-4 text-sm">{psicologo.descripcion}</p>
+                                        <p className="text-gray-600 mb-4 text-sm">
+                                            {psicologo.personal_biography || 'Psicólogo profesional con experiencia en terapia individual.'}
+                                        </p>
 
                                         <div className="flex flex-wrap gap-1 mb-4">
-                                            {obtenerEtiquetasEspecialidades(psicologo.especialidades)
+                                            {obtenerEtiquetasEspecialidades(psicologo.specialities || [])
                                                 .slice(0, 3)
                                                 .map((especialidad, index) => (
                                                     <div
@@ -945,10 +897,12 @@ const Filter = () => {
                                         <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
                                             <div>
                                                 <span className="font-medium">Idiomas:</span>{' '}
-                                                {psicologo.idiomas.map((idioma) => idiomas.find((i) => i === idioma) || idioma).join(', ')}
+                                                {(psicologo.languages || ['Español'])
+                                                    .map((idioma) => idiomas.find((i) => i === idioma) || idioma)
+                                                    .join(', ')}
                                             </div>
                                             <div>
-                                                <span className="font-medium">Experiencia:</span> {psicologo.experiencia}
+                                                <span className="font-medium">Experiencia:</span> {psicologo.professional_experience || 5} años
                                             </div>
                                         </div>
 

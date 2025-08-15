@@ -2,6 +2,7 @@
 
 import Calendario from '@/components/session/Calendar';
 import { envs } from '@/config/envs.config';
+import { psychologistsService, PsychologistResponse } from '@/services/psychologists';
 import { Calendar, Clock, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useEffect, useCallback } from 'react';
@@ -13,107 +14,8 @@ const SessionPage = () => {
     const router = useRouter();
     const psychologistId = (params?.slug as string) || '';
 
-    const mockPsicologos = [
-        {
-            id: 1,
-            nombre: 'Dra. María González',
-            imagen: '/person-gray-photo-placeholder-woman.webp',
-            valoracion: 4.9,
-            numeroReseñas: 127,
-            ubicacion: 'Madrid, España',
-            precio: 25000,
-            disponibilidad: 'Disponible Hoy',
-            modalidades: ['in_person', 'online'],
-            especialidades: ['anxiety_disorder', 'depression'],
-            enfoquesTerapia: ['cognitive_behavioral_therapy'],
-            tiposTerapia: ['individual'],
-            idiomas: ['spanish', 'english'],
-            experiencia: '10+ años',
-            descripcion: 'Especialista en terapia cognitivo-conductual con más de 10 años de experiencia tratando ansiedad y depresión.',
-            obrasSociales: ['osde', 'swiss-medical'],
-            diasDisponibles: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
-        },
-        {
-            id: 2,
-            nombre: 'Dr. Carlos Ruiz',
-            imagen: '/person-gray-photo-placeholder-woman.webp',
-            valoracion: 4.8,
-            numeroReseñas: 89,
-            ubicacion: 'Barcelona, España',
-            precio: 20000,
-            disponibilidad: 'Disponible Mañana',
-            modalidades: ['online'],
-            especialidades: ['trauma_ptsd'],
-            enfoquesTerapia: ['eye_movement_desensitization_reprocessing'],
-            tiposTerapia: ['individual'],
-            idiomas: ['spanish'],
-            experiencia: '8+ años',
-            descripcion: 'Experto en terapia de trauma y EMDR con amplia experiencia ayudando a clientes a superar el TEPT.',
-            obrasSociales: ['ioma', 'pami'],
-            diasDisponibles: ['monday', 'wednesday', 'friday', 'saturday'],
-        },
-        {
-            id: 3,
-            nombre: 'Dra. Ana Martínez',
-            imagen: '/person-gray-photo-placeholder-woman.webp',
-            valoracion: 4.9,
-            numeroReseñas: 156,
-            ubicacion: 'Valencia, España',
-            precio: 35000,
-            disponibilidad: 'Disponible Esta Semana',
-            modalidades: ['in_person', 'online'],
-            especialidades: ['couples_therapy', 'family_therapy'],
-            enfoquesTerapia: ['family_systems_therapy'],
-            tiposTerapia: ['couple', 'family'],
-            idiomas: ['spanish', 'portuguese'],
-            experiencia: '12+ años',
-            descripcion: 'Especialista en relaciones ayudando a parejas y familias a mejorar la comunicación y resolver conflictos.',
-            obrasSociales: ['osde', 'unión-personal'],
-            diasDisponibles: ['tuesday', 'thursday', 'friday', 'saturday', 'sunday'],
-        },
-        {
-            id: 4,
-            nombre: 'Dr. Luis Fernández',
-            imagen: '/person-gray-photo-placeholder-woman.webp',
-            valoracion: 4.7,
-            numeroReseñas: 73,
-            ubicacion: 'Sevilla, España',
-            precio: 30000,
-            disponibilidad: 'Disponible Próxima Semana',
-            modalidades: ['in_person'],
-            especialidades: ['addiction_substance_abuse'],
-            enfoquesTerapia: ['group_therapy', 'cognitive_behavioral_therapy'],
-            tiposTerapia: ['individual', 'group'],
-            idiomas: ['spanish'],
-            experiencia: '15+ años',
-            descripcion: 'Especialista en adicciones con 15 años de experiencia en terapia individual y grupal.',
-            obrasSociales: ['apross', 'osprera'],
-            diasDisponibles: ['monday', 'tuesday', 'thursday'],
-        },
-        {
-            id: 5,
-            nombre: 'Dra. Elena Rodríguez',
-            imagen: '/person-gray-photo-placeholder-woman.webp',
-            valoracion: 4.8,
-            numeroReseñas: 94,
-            ubicacion: 'Bilbao, España',
-            precio: 29000,
-            disponibilidad: 'Disponible Hoy',
-            modalidades: ['in_person', 'online', 'hybrid'],
-            especialidades: ['child_adolescent_therapy', 'adhd', 'autism_spectrum_disorder'],
-            enfoquesTerapia: ['play_therapy', 'dialectical_behavioral_therapy'],
-            tiposTerapia: ['individual', 'family'],
-            idiomas: ['spanish', 'english'],
-            experiencia: '9+ años',
-            descripcion: 'Especialista en terapia infantil y adolescente con experiencia en TDAH y trastornos del espectro autista.',
-            obrasSociales: ['swiss-medical', 'sancor-salud'],
-            diasDisponibles: ['monday', 'wednesday', 'friday', 'saturday'],
-        },
-    ];
-
-    // Buscar el psicólogo en los datos mock usando el ID del slug
-    const psychologist = mockPsicologos.find((p) => p.id.toString() === psychologistId);
-
+    const [psychologist, setPsychologist] = useState<PsychologistResponse | null>(null);
+    const [loading, setLoading] = useState(true);
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedTime, setSelectedTime] = useState('');
     const [sessionType, setSessionType] = useState('');
@@ -121,17 +23,20 @@ const SessionPage = () => {
     const [insurance, setInsurance] = useState('');
     const [modality, setModality] = useState('');
     const [userId, setUserId] = useState<string>('');
-    const [loading, setLoading] = useState(false);
+    const [isClient, setIsClient] = useState(false);
 
     // Obtener datos del psicólogo seleccionado
-    const duration = 60; // Por ahora fijo, debería venir del backend
-    const price = psychologist?.precio || 0;
+    const duration = 45; // Por ahora fijo, debería venir del backend
+    const price = 25000; // Precio por defecto, podría venir del backend o ser configurable
 
     // Función para obtener user_id del token en cookies
     const getUserIdFromToken = () => {
+        // Solo ejecutar en el cliente
+        if (typeof window === 'undefined') return '';
+
         try {
             // Obtener token de las cookies (nombre común: 'auth-token', 'token', 'access_token')
-            const token = Cookies.get('auth-token') || Cookies.get('token') || Cookies.get('access_token');
+            const token = Cookies.get('auth-token') || Cookies.get('authToken');
 
             if (token) {
                 // Decodificar JWT payload (parte central del token)
@@ -149,7 +54,9 @@ const SessionPage = () => {
 
     // Función para obtener el token completo de las cookies
     const getAuthToken = () => {
-        return Cookies.get('auth-token') || Cookies.get('token') || Cookies.get('access_token');
+        // Solo ejecutar en el cliente
+        if (typeof window === 'undefined') return null;
+        return Cookies.get('auth-token') || Cookies.get('authToken');
     };
 
     // Función para redirigir a login
@@ -158,6 +65,9 @@ const SessionPage = () => {
     }, [router]);
 
     useEffect(() => {
+        // Marcar que estamos en el cliente para evitar errores de hidratación
+        setIsClient(true);
+
         const id = getUserIdFromToken();
         setUserId(id);
 
@@ -169,19 +79,41 @@ const SessionPage = () => {
             return;
         }
 
-        // Establecer valores por defecto basados en el psicólogo
+        // Función para cargar psicólogos desde la base de datos
+        const loadPsychologists = async () => {
+            try {
+                if (authToken) {
+                    const response = await psychologistsService.getPsychologistsForPatient(authToken);
+
+                    // Buscar el psicólogo específico por ID
+                    const foundPsychologist = await psychologistsService.getPsychologistById(response.data, psychologistId);
+                    setPsychologist(foundPsychologist);
+                }
+            } catch (error) {
+                console.error('Error loading psychologists:', error);
+                // Si no podemos cargar psicólogos, redirigir a login o mostrar error
+                redirectToLogin();
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        // Cargar psicólogos desde la base de datos
+        loadPsychologists();
+    }, [psychologistId, router, redirectToLogin]);
+
+    // useEffect separado para manejar la configuración inicial cuando se carga el psicólogo
+    useEffect(() => {
         if (psychologist) {
-            if (psychologist.modalidades.length > 0) {
-                // Convertir modalidades del psicólogo a formato del backend
-                const modalityMap: { [key: string]: string } = {
-                    in_person: 'Presencial',
-                    online: 'En línea',
-                    hybrid: 'Híbrido',
-                };
-                setModality(modalityMap[psychologist.modalidades[0]] || 'En línea');
+            // Si el psicólogo tiene modalidades, establecer la primera como predeterminada
+            if (psychologist.modality) {
+                // Convertir modalidad del psicólogo a formato del formulario si es necesario
+                setModality(psychologist.modality);
+            } else {
+                setModality('En línea'); // Valor por defecto
             }
         }
-    }, [psychologist, router, redirectToLogin]);
+    }, [psychologist]);
 
     const handleDateChange = (date: string) => {
         setSelectedDate(date);
@@ -221,7 +153,7 @@ const SessionPage = () => {
             modality: modality, // Usar el valor del enum EModality
             // Campos requeridos por el backend
             user_id: userId, // Obtenido del token
-            psychologist_id: psychologist.id.toString(), // Obtenido del slug
+            psychologist_id: psychologist.id, // UUID del psicólogo obtenido del slug
             status: 'pending', // Estado inicial según AppointmentStatus enum
         };
 
@@ -303,21 +235,33 @@ const SessionPage = () => {
     const formatDisplayDate = (isoDate: string): string => {
         if (!isoDate) return '';
 
-        // Agregar T00:00:00 para evitar problemas de zona horaria
-        const date = new Date(isoDate + 'T00:00:00');
-        const options: Intl.DateTimeFormatOptions = {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-        };
+        try {
+            // Parsear la fecha sin agregar tiempo para evitar problemas de zona horaria
+            const [year, month, day] = isoDate.split('-').map(Number);
+            const date = new Date(year, month - 1, day); // month - 1 porque los meses van de 0-11
 
-        return date.toLocaleDateString('es-ES', options);
+            const options: Intl.DateTimeFormatOptions = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            };
+
+            return date.toLocaleDateString('es-ES', options);
+        } catch (error) {
+            console.error('Error formatting date:', error);
+            return isoDate; // Fallback
+        }
     };
 
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {!psychologist ? (
+            {!isClient ? (
+                // Mostrar loading hasta que la hidratación esté completa
+                <div className="text-center py-8">
+                    <p className="text-gray-500">Cargando...</p>
+                </div>
+            ) : !psychologist ? (
                 <div className="text-center py-8">
                     <p className="text-gray-500">Psicólogo no encontrado</p>
                 </div>
@@ -338,19 +282,23 @@ const SessionPage = () => {
                     <div className="rounded-lg border bg-white text-gray-900 shadow-sm mb-8">
                         <div className="p-6">
                             <div className="flex items-center">
-                                <Image alt={psychologist.nombre} className="rounded-full mr-4" width={64} height={64} src={psychologist.imagen} />
+                                <Image
+                                    alt={psychologist.name}
+                                    className="rounded-full mr-4"
+                                    width={64}
+                                    height={64}
+                                    src={psychologist.profile_picture || '/person-gray-photo-placeholder-woman.webp'}
+                                />
                                 <div>
-                                    <h2 className="text-xl font-semibold">{psychologist.nombre}</h2>
-                                    <p className="text-gray-600">{psychologist.descripcion}</p>
+                                    <h2 className="text-xl font-semibold">{psychologist.name}</h2>
+                                    <p className="text-gray-600">{psychologist.personal_biography || 'Psicólogo especializado'}</p>
                                     <div className="flex items-center mt-1">
                                         <MapPin className="h-4 w-4 text-gray-400 mr-1" />
-                                        <span className="text-sm text-gray-600">{psychologist.ubicacion}</span>
+                                        <span className="text-sm text-gray-600">{psychologist.office_address || 'Ubicación no especificada'}</span>
                                     </div>
                                     <div className="flex items-center mt-1">
-                                        <span className="text-sm text-gray-600">
-                                            ⭐ {psychologist.valoracion} ({psychologist.numeroReseñas} reseñas)
-                                        </span>
-                                        <span className="text-sm text-gray-600 ml-4">💰 ${psychologist.precio.toLocaleString()}</span>
+                                        <span className="text-sm text-gray-600">⭐ 4.8 (Reviews próximamente)</span>
+                                        <span className="text-sm text-gray-600 ml-4">💰 ${price.toLocaleString()}</span>
                                     </div>
                                 </div>
                             </div>
@@ -438,19 +386,27 @@ const SessionPage = () => {
                                             required
                                         >
                                             <option value="">Selecciona el tipo de sesión</option>
-                                            {psychologist?.tiposTerapia.map((tipo) => {
+                                            {psychologist?.session_types?.map((tipo: string) => {
                                                 const tipoMap: { [key: string]: string } = {
-                                                    individual: 'Individual',
-                                                    couple: 'Terapia de Parejas',
-                                                    family: 'Terapia Familiar',
-                                                    group: 'Terapia Grupal',
+                                                    INDIVIDUAL: 'Individual',
+                                                    COUPLES: 'Terapia de Parejas',
+                                                    FAMILY: 'Terapia Familiar',
+                                                    GROUP: 'Terapia Grupal',
                                                 };
                                                 return (
                                                     <option key={tipo} value={tipo}>
                                                         {tipoMap[tipo] || tipo}
                                                     </option>
                                                 );
-                                            })}
+                                            }) || (
+                                                // Opciones por defecto si no hay datos
+                                                <>
+                                                    <option value="INDIVIDUAL">Individual</option>
+                                                    <option value="COUPLES">Terapia de Parejas</option>
+                                                    <option value="FAMILY">Terapia Familiar</option>
+                                                    <option value="GROUP">Terapia Grupal</option>
+                                                </>
+                                            )}
                                         </select>
                                     </div>
 
@@ -467,25 +423,33 @@ const SessionPage = () => {
                                             required
                                         >
                                             <option value="">Selecciona el enfoque</option>
-                                            {psychologist?.enfoquesTerapia.map((enfoque) => {
+                                            {psychologist?.therapy_approaches?.map((enfoque: string) => {
                                                 const enfoqueMap: { [key: string]: string } = {
-                                                    cognitive_behavioral_therapy: 'Terapia Cognitivo-Conductual',
-                                                    psychodynamic_therapy: 'Terapia Psicodinámica',
-                                                    humanistic_person_centered_therapy: 'Terapia Humanista',
-                                                    family_systems_therapy: 'Terapia Sistémica',
-                                                    gestalt_therapy: 'Gestalt',
-                                                    mindfulness_based_therapy: 'Mindfulness',
-                                                    eye_movement_desensitization_reprocessing: 'EMDR',
-                                                    dialectical_behavioral_therapy: 'Terapia Dialéctico-Conductual',
-                                                    play_therapy: 'Terapia de Juego',
-                                                    group_therapy: 'Terapia de Grupo',
+                                                    COGNITIVE_BEHAVIORAL_THERAPY: 'Terapia Cognitivo-Conductual',
+                                                    PSYCHODYNAMIC_THERAPY: 'Terapia Psicodinámica',
+                                                    HUMANISTIC_PERSON_CENTERED_THERAPY: 'Terapia Humanista',
+                                                    FAMILY_SYSTEMS_THERAPY: 'Terapia Sistémica',
+                                                    GESTALT_THERAPY: 'Gestalt',
+                                                    MINDFULNESS_BASED_THERAPY: 'Mindfulness',
+                                                    EYE_MOVEMENT_DESENSITIZATION_REPROCESSING: 'EMDR',
+                                                    DIALECTICAL_BEHAVIORAL_THERAPY: 'Terapia Dialéctico-Conductual',
+                                                    PLAY_THERAPY: 'Terapia de Juego',
+                                                    GROUP_THERAPY: 'Terapia de Grupo',
                                                 };
                                                 return (
                                                     <option key={enfoque} value={enfoque}>
                                                         {enfoqueMap[enfoque] || enfoque}
                                                     </option>
                                                 );
-                                            })}
+                                            }) || (
+                                                // Opciones por defecto si no hay datos
+                                                <>
+                                                    <option value="COGNITIVE_BEHAVIORAL_THERAPY">Terapia Cognitivo-Conductual</option>
+                                                    <option value="PSYCHODYNAMIC_THERAPY">Terapia Psicodinámica</option>
+                                                    <option value="HUMANISTIC_PERSON_CENTERED_THERAPY">Terapia Humanista</option>
+                                                    <option value="FAMILY_SYSTEMS_THERAPY">Terapia Sistémica</option>
+                                                </>
+                                            )}
                                         </select>
                                     </div>
 
@@ -501,23 +465,31 @@ const SessionPage = () => {
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                                         >
                                             <option value="">Sin seguro médico</option>
-                                            {psychologist?.obrasSociales.map((obra) => {
+                                            {psychologist?.insurance_accepted?.map((obra: string) => {
                                                 const obraMap: { [key: string]: string } = {
-                                                    osde: 'OSDE',
-                                                    'swiss-medical': 'Swiss Medical',
-                                                    ioma: 'IOMA',
-                                                    pami: 'PAMI',
-                                                    'unión-personal': 'Unión Personal',
-                                                    'sancor-salud': 'Sancor Salud',
-                                                    apross: 'APROSS',
-                                                    osprera: 'OSPRERA',
+                                                    OSDE: 'OSDE',
+                                                    SWISS_MEDICAL: 'Swiss Medical',
+                                                    IOMA: 'IOMA',
+                                                    PAMI: 'PAMI',
+                                                    UNION_PERSONAL: 'Unión Personal',
+                                                    SANCOR_SALUD: 'Sancor Salud',
+                                                    APROSS: 'APROSS',
+                                                    OSPRERA: 'OSPRERA',
                                                 };
                                                 return (
                                                     <option key={obra} value={obra}>
                                                         {obraMap[obra] || obra}
                                                     </option>
                                                 );
-                                            })}
+                                            }) || (
+                                                // Opciones por defecto si no hay datos
+                                                <>
+                                                    <option value="OSDE">OSDE</option>
+                                                    <option value="SWISS_MEDICAL">Swiss Medical</option>
+                                                    <option value="IOMA">IOMA</option>
+                                                    <option value="PAMI">PAMI</option>
+                                                </>
+                                            )}
                                         </select>
                                     </div>
 
@@ -534,18 +506,17 @@ const SessionPage = () => {
                                             required
                                         >
                                             <option value="">Selecciona modalidad</option>
-                                            {psychologist?.modalidades.map((mod) => {
-                                                const modalityMap: { [key: string]: string } = {
-                                                    in_person: 'Presencial',
-                                                    online: 'En línea',
-                                                    hybrid: 'Híbrido',
-                                                };
-                                                return (
-                                                    <option key={mod} value={modalityMap[mod]}>
-                                                        {modalityMap[mod]}
-                                                    </option>
-                                                );
-                                            })}
+                                            {/* Usar modalidad única del psicólogo o opciones por defecto */}
+                                            {psychologist?.modality ? (
+                                                <option value={psychologist.modality}>{psychologist.modality}</option>
+                                            ) : (
+                                                // Opciones por defecto si no hay datos específicos
+                                                <>
+                                                    <option value="PRESENCIAL">Presencial</option>
+                                                    <option value="EN_LINEA">En línea</option>
+                                                    <option value="HIBRIDO">Híbrido</option>
+                                                </>
+                                            )}
                                         </select>
                                     </div>
 
