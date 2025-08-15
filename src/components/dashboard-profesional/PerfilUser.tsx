@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Input from '../ui/input';
 import { Camera } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 type UserData = {
   fullName: string;
@@ -18,10 +19,6 @@ type UserData = {
   profileImage?: string;
 };
 
-interface PerfilUserProps {
-  id: string;
-}
-
 const fields: { label: string; field: keyof UserData; type?: string }[] = [
   { label: 'Nombre Completo', field: 'fullName' },
   { label: 'Alias', field: 'alias' },
@@ -34,7 +31,7 @@ const fields: { label: string; field: keyof UserData; type?: string }[] = [
   { label: 'Contacto de Emergencia', field: 'emergencyContact' },
 ];
 
-const PerfilUser = ({ id }: PerfilUserProps) => {
+const PerfilUser = () => {
   const [editable, setEditable] = useState(false);
   const [loading, setLoading] = useState(false);
   const [profileImage, setProfileImage] = useState('');
@@ -51,30 +48,62 @@ const PerfilUser = ({ id }: PerfilUserProps) => {
     emergencyContact: '',
   });
 
+  const router = useRouter();
+
+  // --- Cargar datos del usuario desde cookies ---
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch(`http://localhost:8080/api/users/${id}`);
-        if (!res.ok) throw new Error('Error al obtener usuario');
-        const data: UserData = await res.json();
-        setUser(data);
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+          router.push('/login');
+          return;
+        }
+        const res = await fetch(`http://localhost:8080/users/me`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (res.status === 401) {
+          router.push('/login');
+          return;
+        }
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error('Error al obtener usuario:', res.status, errorText);
+          throw new Error('Error al obtener usuario');
+        }
+        const data = await res.json();
+        const userData = data.data;
+        setUser({
+          fullName: userData.fullName || userData.name || '',
+          alias: userData.alias || '',
+          birthDate: userData.birthDate || userData.birthdate || '',
+          phone: userData.phone || '',
+          dni: userData.dni || '',
+          address: userData.address || '',
+          email: userData.email || '',
+          socialWork: userData.socialWork || userData.social_security_number || '',
+          emergencyContact: userData.emergencyContact || userData.emergency_contact || '',
+          profileImage: userData.profileImage || userData.profile_picture || '',
+        });
         setProfileImage(
-          data.profileImage ||
-            `https://ui-avatars.com/api/?name=${encodeURIComponent(data.fullName)}`
+          userData.profileImage || userData.profile_picture ||
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.fullName || userData.name || 'Usuario')}`
         );
       } catch (err) {
         console.error('Error cargando usuario:', err);
       }
     };
     fetchUser();
-  }, [id]);
+  }, [router]);
 
+  // --- Manejadores ---
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setUser((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setUser((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,41 +117,44 @@ const PerfilUser = ({ id }: PerfilUserProps) => {
   const handleSave = async () => {
     try {
       setLoading(true);
-
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        router.push('/login');
+        return;
+      }
       const formData = new FormData();
-
       formData.append('name', user.fullName);
       formData.append('alias', user.alias);
-
       if (user.birthDate) {
         const birthdateISO = new Date(user.birthDate).toISOString();
         formData.append('birthdate', birthdateISO);
       }
-
       formData.append('phone', user.phone);
       formData.append('email', user.email);
       formData.append('dni', user.dni);
       formData.append('address', user.address);
-
       if (user.socialWork) {
         formData.append('social_security_number', user.socialWork);
       }
-
       if (user.emergencyContact) {
         formData.append('emergency_contact', user.emergencyContact);
       }
-
       if (profileFile) {
         formData.append('profile_picture', profileFile);
       }
-
-      const res = await fetch(`http://localhost:8080/api/users/${id}`, {
+      const res = await fetch(`http://localhost:8080/users/me`, {
         method: 'PUT',
+        credentials: 'include',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: formData,
       });
-
+      if (res.status === 401) {
+        router.push('/login');
+        return;
+      }
       if (!res.ok) throw new Error('Error al guardar');
-
       setEditable(false);
       setProfileFile(null);
     } catch (error) {
@@ -139,7 +171,7 @@ const PerfilUser = ({ id }: PerfilUserProps) => {
         <div className="bg-white rounded-lg shadow p-8 flex flex-col items-center w-full">
           <div className="relative mb-4">
             <Image
-              src={profileImage}
+              src={profileImage || "/default-profile.png"}
               alt="profile"
               width={128}
               height={128}
