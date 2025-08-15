@@ -46,12 +46,19 @@ const PersonalInformation = () => {
         }
     }, [initialValues.email, initialValues.name]);
 
+    const today = new Date();
+    const haceDieciochoAños = new Date(
+    today.getFullYear() - 18,
+    today.getMonth(),
+    today.getDate()
+    );
+
     const validationSchema = Yup.object({
         name: Yup.string().required('El nombre es obligatorio'),
         email: Yup.string().email('Correo inválido').required('El correo es obligatorio'),
         phone: Yup.string()
             .required('El número es obligatorio')
-            .matches(/^\d{2}\s?\d{4}\s?\d{4}$/, 'El número debe tener 10 dígitos, puede incluir espacios'),
+            .matches(/^\d{10}$/, 'El número debe tener exactamente 10 dígitos'),
         password: Yup.string()
             .min(8, 'La contraseña debe tener al menos 8 caracteres')
             .matches(/(?=.*[a-z])/, 'Debe contener al menos una letra minúscula')
@@ -63,7 +70,7 @@ const PersonalInformation = () => {
             .required('Confirmar contraseña es obligatorio'),
         birthdate: Yup.date()
             .required('La fecha de nacimiento es obligatoria')
-            .max(new Date(), 'La fecha de nacimiento no puede ser posterior a hoy')
+            .max(haceDieciochoAños, 'Debes ser mayor de 18 años')
             .typeError('Debe ser una fecha válida'),
         dni: Yup.string()
             .required('El DNI es obligatorio')
@@ -222,7 +229,7 @@ const PersonalInformation = () => {
                                                 alt="Preview"
                                                 width={80}
                                                 height={80}
-                                                className="rounded-full object-cover"
+                                                className="object-cover rounded-full"
                                             />
                                         )}
                                         <div>

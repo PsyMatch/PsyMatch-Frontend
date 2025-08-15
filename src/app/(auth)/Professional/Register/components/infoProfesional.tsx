@@ -6,10 +6,11 @@ import { useBotonesRegisterContext } from '@/context/botonesRegisterContext';
 import { AutoSaveCookies, dataToSave, getCookieObject, saveMerged } from '@/helpers/formRegister/helpers';
 
 const idiomas = [
-    { label: 'Español', value: 'spanish' },
-    { label: 'Ingles', value: 'english' },
-    { label: 'Portugues', value: 'portuguese' },
+    "Inglés",
+    "Español",
+    "Portugués"
 ];
+
 
 const InfoProfesional = () => {
     const { avanzarPaso } = useBotonesRegisterContext();
@@ -18,6 +19,7 @@ const InfoProfesional = () => {
         personal_biography: '',
         languages: [],
         license_number: '',
+        professional_title: "",
         professional_experience: '',
         office_address: '',
     });
@@ -31,7 +33,8 @@ const InfoProfesional = () => {
                         personal_biography: cookieData.personal_biography || '',
                         languages: cookieData.languages || [],
                         license_number: cookieData.license_number || '',
-                        professional_experience: cookieData.license_number || '',
+                        professional_title: cookieData.professional_title || '',
+                        professional_experience: cookieData.professional_experience || '',
                         office_address: cookieData.office_address || '',
                     });
                 } catch (error) {
@@ -42,6 +45,7 @@ const InfoProfesional = () => {
     }, [initialValues.languages.length, initialValues.license_number, initialValues.personal_biography]);
 
     const handleSubmit = (values: ValoresInfoProfesional) => {
+        console.log("Languages enviados:", values.languages);
         const toSave = dataToSave(values as unknown as Record<string, unknown>);
         console.log('Guardando en cookie (submit):', toSave);
         saveMerged(toSave);
@@ -76,26 +80,26 @@ const InfoProfesional = () => {
                         <ErrorMessage name="languages" component="div" className="mt-1 text-sm text-red-600" />
                         <div className="grid grid-cols-3 gap-5 mt-5">
                             {idiomas.map((idioma) => (
-                                <label key={idioma.value} className="text-[12px]">
+                                <label key={idioma} className="text-[12px]">
                                     <input
                                         type="checkbox"
                                         name="languages"
-                                        value={idioma.value}
-                                        checked={values.languages.includes(idioma.value)}
+                                        value={idioma}
+                                        checked={values.languages.includes(idioma)}
                                         onChange={() => {
-                                            if (values.languages.includes(idioma.value)) {
+                                            if (values.languages.includes(idioma)) {
                                                 // SACAR OPCION SI ESTA SELECCIONADA
                                                 setFieldValue(
                                                     'languages',
-                                                    values.languages.filter((item) => item !== idioma.value)
+                                                    values.languages.filter((item) => item !== idioma)
                                                 );
                                             } else {
                                                 // AGREGAR LA OPCION
-                                                setFieldValue('languages', [...values.languages, idioma.value]);
+                                                setFieldValue('languages', [...values.languages, idioma]);
                                             }
                                         }}
                                     />
-                                    {idioma.label}
+                                    {idioma}
                                 </label>
                             ))}
                         </div>
@@ -122,6 +126,19 @@ const InfoProfesional = () => {
                                 name="license_number"
                                 id="license_number"
                                 type="number"
+                                className="flex w-[90%] h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
+                            />
+                        </div>
+
+                        <div className="flex flex-col gap-2 mt-10">
+                            <label className="text-sm font-bold leading-none" htmlFor="professional_title">
+                                Titulo Profesional *
+                            </label>
+                            <ErrorMessage name="professional_title" component="div" className="mt-1 text-sm text-red-600" />
+                            <Field
+                                name="professional_title"
+                                id="professional_title"
+                                type="text"
                                 className="flex w-[90%] h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
                             />
                         </div>
