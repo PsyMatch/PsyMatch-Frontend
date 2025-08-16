@@ -179,25 +179,25 @@ const PerfilUser = () => {
         setErrorMsg(errorMsg);
         throw new Error(errorMsg);
       }
-      // Si el backend devuelve los datos actualizados, actualiza el estado local
+      // Ahora el backend retorna el usuario actualizado en data
       const data = await res.json();
       const userData = data.data || {};
-      setUser((prev) => ({
-        ...prev,
-        fullName: userData.fullName || userData.name || prev.fullName,
-        alias: userData.alias || prev.alias,
-        birthDate: userData.birthDate || userData.birthdate || prev.birthDate,
-        phone: userData.phone || prev.phone,
-        dni: userData.dni || prev.dni,
-        address: userData.address || prev.address,
-        email: userData.email || prev.email,
-        socialWork: userData.socialWork || userData.social_security_number || prev.socialWork,
-        emergencyContact: userData.emergencyContact || userData.emergency_contact || prev.emergencyContact,
-        profileImage: userData.profileImage || userData.profile_picture || prev.profileImage,
-      }));
+      setUser({
+        id: userData.id || '',
+        fullName: userData.fullName || userData.name || '',
+        alias: userData.alias || '',
+        birthDate: userData.birthDate || userData.birthdate || '',
+        phone: userData.phone || '',
+        dni: userData.dni || '',
+        address: userData.address || '',
+        email: userData.email || '',
+        socialWork: userData.socialWork || userData.social_security_number || '',
+        emergencyContact: userData.emergencyContact || userData.emergency_contact || '',
+        profileImage: userData.profileImage || userData.profile_picture || '',
+      });
       setProfileImage(
         userData.profileImage || userData.profile_picture ||
-        `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.fullName || userData.name || user.fullName)}`
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.fullName || userData.name || 'Usuario')}`
       );
       setEditable(false);
       setProfileFile(null);
