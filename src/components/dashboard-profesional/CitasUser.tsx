@@ -2,93 +2,127 @@
 import { useEffect, useState } from 'react';
 
 
-const Citas = () => {
-    const [citas, setCitas] = useState("");
+type Appointment = {
+    id: string;
+    date: string;
+    duration: number;
+    status: string;
+    modality: string;
+    notes?: string;
+    patient?: { id: string; name: string; email: string };
+    psychologist?: { id: string; name: string; email: string };
+};
+
+const CitasUser = () => {
+    const [citas, setCitas] = useState<Appointment[]>([]);
+    const [userId, setUserId] = useState<string | null>(null);
 
     useEffect(() => {
         const token = localStorage.getItem("authToken");
         if (!token) return;
 
-        fetch("http://localhost:8080/psychologist/appointments", {
-            headers: { 
-                Authorization: `Bearer ${token}` 
-            },
+        // 1. Obtener el usuario logeado
+        fetch("http://localhost:8080/users/me", {
+            headers: { Authorization: `Bearer ${token}` },
         })
-        .then(res => res.json())
-            .then(response => {
-            setCitas(response.message);
-        })
-        .catch(console.error);
-    }, []);
+            .then(res => res.json())
+            .then(userRes => {
+                const id = userRes.data.id;
+                setUserId(id);
 
-    console.log(citas)
+                // 2. Obtener todas las citas
+                return fetch("http://localhost:8080/appointments", {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+            })
+            .then(res => res.json())
+            .then(appointmentsRes => {
+                // 3. Filtrar solo las citas del usuario
+                const citasUsuario = appointmentsRes.filter(
+                    (cita: Appointment) => cita.patient && cita.patient.id === userId
+                );
+                setCitas(citasUsuario);
+            })
+            .catch(console.error);
+    }, [userId]);
+
+    console.log(citas);
+
+    // Función para cancelar cita
+    const cancelarCita = (id: string) => {
+        if (!window.confirm("¿Estás seguro que deseas cancelar esta cita? Esta acción no se puede deshacer.")) {
+            return;
+        }
+        const token = localStorage.getItem("authToken");
+        if (!token) return;
+        fetch(`http://localhost:8080/appointments/${id}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then(res => res.json())
+            .then(() => {
+                setCitas(prev => prev.filter(cita => cita.id !== id));
+                window.alert("Cita cancelada exitosamente.");
+            })
+            .catch(() => {
+                window.alert("Ocurrió un error al cancelar la cita. Intenta nuevamente.");
+            });
+    };
 
     return (
         <div className="flex flex-col gap-3 px-8 py-8 h-fit">
             <div>
-                <h1 className="text-xl font-semibold text-black">Gestion de Citas</h1>
-                <span className="text-black">Gestiona tus citas programadas y disponibilidad</span>
+                <h1 className="text-xl font-semibold text-black">Mis Citas</h1>
+                <span className="text-black">Aquí puedes ver y gestionar tus citas programadas</span>
             </div>
             <div>
-                {citas ? JSON.stringify(citas) : "Cargando citas..."}
-            </div>
-            {/* <div>
-                {citas.map((cita, index) => (
-                    <div key={index} className="relative items-center w-full px-5 py-3 my-4 bg-gray-200 border-2 border-gray-300 rounded-lg ">
-                        <div className="absolute z-10 flex flex-row items-center gap-2 top-3 right-4">
-                            <span
-                                className={`px-3 py-1 rounded-full text-xs font-bold ${
-                                    cita.estado === 'aceptado'
-                                        ? 'bg-green-200 text-green-800'
-                                        : cita.estado === 'pendiente'
-                                        ? 'bg-yellow-200 text-yellow-800'
-                                        : 'bg-red-200 text-red-800'
-                                }`}
-                            >
-                                {cita.estado.charAt(0).toUpperCase() + cita.estado.slice(1)}
-                            </span>
-                            {(cita.estado === 'aceptado' || cita.estado === 'pendiente') && (
-                                <button
-                                    className="px-5 py-2 ml-2 text-base font-bold text-white transition-transform duration-150 border-2 border-red-700 rounded shadow-lg bg-gradient-to-r from-red-500 to-red-700 hover:scale-105"
-                                    onClick={() => cancelarCita(index)}
-                                    type="button"
-                                >
-                                    Cancelar turno
-                                </button>
-                            )}
-                        </div>
-                        <div className="flex flex-row gap-4">
-                            <div className="w-10 font-bold text-center text-gray-500">
-                                <span>{cita.fecha}</span>
-                            </div>
-                            <div className="flex flex-col gap-1">
-                                <span className="font-bold">
-                                    {isUserDashboard ? `Con: ${cita.profesional || 'Profesional'}` : `Paciente: ${cita.paciente}`}
-                                </span>
-                                <div className="flex flex-row gap-2 text-sm">
-                                    <span>{cita.horario} -</span>
-                                    <span>{cita.duracion} -</span>
-                                    <span>{cita.tipoSesion}</span>
+                {citas.length > 0 ? (
+                    <ul className="space-y-4">
+                        {citas.map((cita, idx) => (
+                            <li key={cita.id || idx} className="border rounded p-4 flex flex-col gap-2 bg-gray-50">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <span className="font-bold">Fecha:</span> {new Date(cita.date).toLocaleString()}
+                                    </div>
+                                    <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                                        cita.status === 'confirmed' ? 'bg-green-200 text-green-800' :
+                                        cita.status === 'pending' ? 'bg-yellow-200 text-yellow-800' :
+                                        cita.status === 'cancelled' ? 'bg-red-200 text-red-800' :
+                                        'bg-gray-200 text-gray-800'
+                                    }`}>
+                                        {cita.status?.toUpperCase()}
+                                    </span>
                                 </div>
-                            </div>
-                        </div>
-                        <p className="mt-4 mb-0 ml-2">
-                            <strong>Notas:</strong> {cita.Notas}
-                        </p>
-                        <div className="flex gap-4 mt-5">
-                            <button className="flex flex-row gap-2 items-center px-10 py-2 text-white rounded-md bg-[#4138CA] hover:bg-[#4c42d4]">
-                                <MessageCircle />
-                                {isUserDashboard ? 'Contactar profesional' : 'Contactar usuario'}
-                            </button>
-                            <button className="flex flex-row gap-2 items-center px-10 py-2 text-white rounded-md bg-[#4138CA] hover:bg-[#4c42d4]">
-                                Unirse a la sesión
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div> */}
+                                <div>
+                                    <span className="font-bold">Modalidad:</span> {cita.modality}
+                                </div>
+                                <div>
+                                    <span className="font-bold">Duración:</span> {cita.duration} min
+                                </div>
+                                {cita.psychologist && (
+                                    <div>
+                                        <span className="font-bold">Profesional:</span> {cita.psychologist.name}
+                                    </div>
+                                )}
+                                {cita.notes && (
+                                    <div>
+                                        <span className="font-bold">Notas:</span> {cita.notes}
+                                    </div>
+                                )}
+                                <button
+                                    className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 w-fit"
+                                    onClick={() => cancelarCita(cita.id)}
+                                    disabled={cita.status === 'cancelled'}
+                                >
+                                    Cancelar cita
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                ) : "Cargando citas..."}
+            </div>
         </div>
     );
 };
 
-export default Citas;
+export default CitasUser;

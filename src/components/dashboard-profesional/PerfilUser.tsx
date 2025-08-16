@@ -7,9 +7,10 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 type UserData = {
+  id?: string;
   fullName: string;
   alias: string;
-  birthDate: string;
+  birthDate?: string;
   phone: string;
   dni: string;
   address: string;
@@ -22,10 +23,9 @@ type UserData = {
 const fields: { label: string; field: keyof UserData; type?: string }[] = [
   { label: 'Nombre Completo', field: 'fullName' },
   { label: 'Alias', field: 'alias' },
-  { label: 'Fecha de Nacimiento', field: 'birthDate', type: 'date' },
+
   { label: 'Número de teléfono', field: 'phone' },
   { label: 'Correo electrónico', field: 'email' },
-  { label: 'DNI', field: 'dni' },
   { label: 'Dirección', field: 'address' },
   { label: 'Obra Social', field: 'socialWork' },
   { label: 'Contacto de Emergencia', field: 'emergencyContact' },
@@ -37,9 +37,9 @@ const PerfilUser = () => {
   const [profileImage, setProfileImage] = useState('');
   const [profileFile, setProfileFile] = useState<File | null>(null);
   const [user, setUser] = useState<UserData>({
+    id: '',
     fullName: '',
     alias: '',
-    birthDate: '',
     phone: '',
     dni: '',
     address: '',
@@ -47,6 +47,8 @@ const PerfilUser = () => {
     socialWork: '',
     emergencyContact: '',
   });
+  const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const router = useRouter();
 
@@ -78,6 +80,7 @@ const PerfilUser = () => {
         const data = await res.json();
         const userData = data.data;
         setUser({
+          id: userData.id || '',
           fullName: userData.fullName || userData.name || '',
           alias: userData.alias || '',
           birthDate: userData.birthDate || userData.birthdate || '',
@@ -103,7 +106,7 @@ const PerfilUser = () => {
   // --- Manejadores ---
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setUser((prev) => ({ ...prev, [name]: value }));
+  setUser((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,24 +120,30 @@ const PerfilUser = () => {
   const handleSave = async () => {
     try {
       setLoading(true);
+      setSuccessMsg('');
+      setErrorMsg('');
       const token = localStorage.getItem('authToken');
       if (!token) {
         router.push('/login');
         return;
       }
+      // Usar el id del usuario del estado
+      if (!user.id) {
+        setErrorMsg('No se encontró el ID de usuario.');
+        setLoading(false);
+        return;
+      }
       const formData = new FormData();
       formData.append('name', user.fullName);
-      formData.append('alias', user.alias);
-      if (user.birthDate) {
-        const birthdateISO = new Date(user.birthDate).toISOString();
-        formData.append('birthdate', birthdateISO);
-      }
+      // Descomenta las siguientes líneas si el backend acepta estos campos:
+      // formData.append('alias', user.alias);
+  // No enviar nunca el campo birthdate, así el backend mantiene la fecha existente
+  // ...existing code...
       formData.append('phone', user.phone);
       formData.append('email', user.email);
-      formData.append('dni', user.dni);
       formData.append('address', user.address);
       if (user.socialWork) {
-        formData.append('social_security_number', user.socialWork);
+        formData.append('health_insurance', user.socialWork);
       }
       if (user.emergencyContact) {
         formData.append('emergency_contact', user.emergencyContact);
@@ -142,7 +151,7 @@ const PerfilUser = () => {
       if (profileFile) {
         formData.append('profile_picture', profileFile);
       }
-      const res = await fetch(`http://localhost:8080/users/me`, {
+      const res = await fetch(`http://localhost:8080/users/${user.id}`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
@@ -154,10 +163,49 @@ const PerfilUser = () => {
         router.push('/login');
         return;
       }
-      if (!res.ok) throw new Error('Error al guardar');
+      if (!res.ok) {
+        let errorMsg = 'Error al guardar los datos.';
+        try {
+          const errorJson = await res.json();
+          if (errorJson && (errorJson.message || errorJson.error)) {
+            errorMsg = Array.isArray(errorJson.message)
+              ? errorJson.message.join(' ')
+              : errorJson.message || errorJson.error;
+          }
+        } catch {
+          const errorText = await res.text();
+          if (errorText) errorMsg = errorText;
+        }
+        setErrorMsg(errorMsg);
+        throw new Error(errorMsg);
+      }
+      // Si el backend devuelve los datos actualizados, actualiza el estado local
+      const data = await res.json();
+      const userData = data.data || {};
+      setUser((prev) => ({
+        ...prev,
+        fullName: userData.fullName || userData.name || prev.fullName,
+        alias: userData.alias || prev.alias,
+        birthDate: userData.birthDate || userData.birthdate || prev.birthDate,
+        phone: userData.phone || prev.phone,
+        dni: userData.dni || prev.dni,
+        address: userData.address || prev.address,
+        email: userData.email || prev.email,
+        socialWork: userData.socialWork || userData.social_security_number || prev.socialWork,
+        emergencyContact: userData.emergencyContact || userData.emergency_contact || prev.emergencyContact,
+        profileImage: userData.profileImage || userData.profile_picture || prev.profileImage,
+      }));
+      setProfileImage(
+        userData.profileImage || userData.profile_picture ||
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.fullName || userData.name || user.fullName)}`
+      );
       setEditable(false);
       setProfileFile(null);
+      setSuccessMsg('¡Datos guardados correctamente!');
     } catch (error) {
+      if (typeof error === 'string') setErrorMsg(error);
+      else if (error instanceof Error) setErrorMsg(error.message);
+      else setErrorMsg('Error al guardar los datos.');
       console.error('Error al guardar:', error);
     } finally {
       setLoading(false);
@@ -171,11 +219,21 @@ const PerfilUser = () => {
         <div className="bg-white rounded-lg shadow p-8 flex flex-col items-center w-full">
           <div className="relative mb-4">
             <Image
-              src={profileImage || "/default-profile.png"}
+              src={
+                profileImage && typeof profileImage === 'string' && profileImage.trim() !== ''
+                  ? profileImage
+                  : "/person-gray-photo-placeholder-man.webp"
+              }
               alt="profile"
               width={128}
               height={128}
               className="w-32 h-32 rounded-full object-cover bg-gray-200"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                if (target.src !== window.location.origin + '/person-gray-photo-placeholder-man.webp') {
+                  target.src = '/person-gray-photo-placeholder-man.webp';
+                }
+              }}
             />
             {editable && (
               <>
@@ -221,6 +279,17 @@ const PerfilUser = () => {
               {editable ? 'Cancelar' : 'Editar'}
             </button>
           </div>
+          {/* Mensajes de éxito o error */}
+          {successMsg && (
+            <div className="mb-4 text-green-600 bg-green-100 px-4 py-2 rounded">
+              {successMsg}
+            </div>
+          )}
+          {errorMsg && (
+            <div className="mb-4 text-red-600 bg-red-100 px-4 py-2 rounded">
+              {errorMsg}
+            </div>
+          )}
           <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {fields.map(({ label, field, type }) => (
@@ -228,7 +297,7 @@ const PerfilUser = () => {
                   <label className="block text-sm font-medium mb-1">{label}</label>
                   <Input
                     name={field}
-                    type={type || 'text'}
+                    type={field === 'birthDate' ? 'date' : (type || 'text')}
                     className="border rounded px-3 py-2 w-full"
                     value={user[field] || ''}
                     disabled={!editable || loading}
@@ -258,6 +327,6 @@ const PerfilUser = () => {
       </div>
     </div>
   );
-};
 
+}
 export default PerfilUser;
