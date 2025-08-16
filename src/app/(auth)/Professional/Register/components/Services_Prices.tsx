@@ -187,15 +187,14 @@ const Services_Prices = () => {
                 
                 saveUserData(data);
                 
-                if(data.role) {
-                    Cookies.set("role", data.role);
+                if (data.role) {
+                    Cookies.set("role", data.role, { path: '/' });
                 }
-                const traerRole = Cookies.get("role");
 
                 // Redirigir según el tipo de usuario
-                if (traerRole === 'Psicólogo') {
+                if (data.rol === 'Psicólogo') {
                     router.push('/dashboard/professional')
-                } if(traerRole === 'Administrador') {
+                } if(data.rol === 'Administrador') {
                     router.push('/dashboard/admin')
                 } else {
                     router.push('/dashboard/user')
