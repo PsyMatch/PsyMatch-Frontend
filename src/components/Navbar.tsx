@@ -37,7 +37,7 @@ const Navbar = () => {
         <a key={1} href="/como-funciona">Como Funciona</a>,
         <a
             key={2}
-            href={rolGuardado === "Psicólogo" ? "/dashboard/professional" : "/dashboard/user"}
+            href={rolGuardado === "Psicólogo" ? "/dashboard/professional" : rolGuardado === "Paciente" ? "/dashboard/user" : rolGuardado === "Administrador" ? "/dashboard/admin" : "/"}
             className="px-4 py-2 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]"
         >
             Perfil
@@ -83,7 +83,7 @@ const Navbar = () => {
                     </ul>
                 )}
                 {menu &&
-                    (pathname === '/dashboard/professional' || pathname === `/professionalProfile/${id}` || pathname === '/dashboard/user') && (
+                    (pathname === '/dashboard/admin' || pathname === `/professionalProfile/${id}` || pathname === '/dashboard/user') && (
                         <ul className="absolute flex flex-col items-center gap-4 p-3 top-20 right-1 bg-[#CDCDCD]">
                             <li className="text-sm list-none hover:text-gray-700">
                                 <Link href="/">
@@ -123,7 +123,7 @@ const Navbar = () => {
                 </div>
             )}
 
-            {(pathname === '/dashboard/professional' || pathname === `/professionalProfile/${id}` || pathname === '/dashboard/user') && (
+            {(pathname === '/dashboard/admin' || pathname === `/professionalProfile/${id}` || pathname === '/dashboard/user') && (
                 <div className="hidden lg:block">
                     <Link href="/">
                         <button onClick={resetUserData} className="px-4 py-1 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">

@@ -100,6 +100,8 @@ export const AuthProfessionalProvider: FC<{children: ReactNode}> = ({children}) 
         localStorage.removeItem("role")
         Cookies.remove("userDataCompleta")
         Cookies.remove("authToken")
+        Cookies.remove("role")
+        window.location.reload()
     }
 
 
