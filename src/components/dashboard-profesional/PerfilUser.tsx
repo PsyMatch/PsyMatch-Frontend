@@ -46,7 +46,6 @@ const PerfilUser = () => {
     email: '',
     socialWork: '',
     emergencyContact: '',
-    // birthDate solo si viene del GET
   });
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -220,11 +219,21 @@ const PerfilUser = () => {
         <div className="bg-white rounded-lg shadow p-8 flex flex-col items-center w-full">
           <div className="relative mb-4">
             <Image
-              src={profileImage || "/person-gray-photo-placeholder-woman.webp"} 
+              src={
+                profileImage && typeof profileImage === 'string' && profileImage.trim() !== ''
+                  ? profileImage
+                  : "/person-gray-photo-placeholder-man.webp"
+              }
               alt="profile"
               width={128}
               height={128}
               className="w-32 h-32 rounded-full object-cover bg-gray-200"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                if (target.src !== window.location.origin + '/person-gray-photo-placeholder-man.webp') {
+                  target.src = '/person-gray-photo-placeholder-man.webp';
+                }
+              }}
             />
             {editable && (
               <>
