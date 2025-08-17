@@ -54,22 +54,24 @@ export default function LoginForm() {
                     Cookies.set('authToken', data.token);
                 }
 
-                if (data.data?.role) {
-                    localStorage.setItem('role', data.data.role);
-                    console.log('Rol:', data.data.role);
+                if (data.data.role) {
+                    Cookies.set('role', data.data.role);
                 }
 
-                const traerRole = localStorage.getItem('role');
+                const traerRole = Cookies.get('role');
 
                 // Redirigir según el tipo de usuario
                 if (traerRole === 'Psicólogo') {
                     router.push('/dashboard/professional');
-                } else {
+                }
+                if (traerRole === 'Administrador') {
+                    router.push('/dashboard/admin');
+                }
+                if (traerRole === 'Paciente') {
                     router.push('/dashboard/user');
                 }
             } else {
                 // Mostrar error del servidor
-                console.error('Error de login:', data);
                 setLoginError(data.message || 'Error al iniciar sesión');
             }
         } catch (error) {

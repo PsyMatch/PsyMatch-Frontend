@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar';
 import Link from 'next/link';
+import Cookies from 'js-cookie';
 
 const RegisterSchema = Yup.object().shape({
     fullName: Yup.string().min(2, 'El nombre debe tener al menos 2 caracteres').required('El nombre completo es requerido'),
@@ -106,7 +107,7 @@ export default function RegisterForm() {
                 );
             }
 
-            const response = await fetch('http://localhost:8080/auth/signup', {
+            const response = await fetch('http://localhost:3000/auth/signup', {
                 method: 'POST',
                 body: formData,
             });
@@ -118,6 +119,22 @@ export default function RegisterForm() {
                 alert('Registro exitoso. Por favor inicia sesión.');
             } else {
                 setRegisterError(data.message || 'Error al crear la cuenta');
+            }
+
+            if (data.data.role) {
+                Cookies.set('role', data.data.role);
+            }
+
+            const traerRole = Cookies.get('role');
+
+            // Redirigir según el tipo de usuario
+            if (traerRole === 'Psicólogo') {
+                router.push('/dashboard/professional');
+            }
+            if (traerRole === 'Administrador') {
+                router.push('/dashboard/admin');
+            } else {
+                router.push('/dashboard/user');
             }
         } catch (error) {
             console.error('Error en registro:', error);
@@ -170,79 +187,94 @@ export default function RegisterForm() {
                         )}
 
                         <div className="md:grid md:grid-cols-2 md:gap-4">
-                            <CustomInput
-                                label="Nombre Completo"
-                                id="fullName"
-                                name="fullName"
-                                onChange={handleChange}
-                                onBlur={handleBlur}
-                                value={values.fullName}
-                                error={errors.fullName && touched.fullName && errors.fullName}
-                            />
+                            <div className="md:col-span-1">
+                                <CustomInput
+                                    label="Nombre Completo *"
+                                    id="fullName"
+                                    name="fullName"
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    value={values.fullName}
+                                    error={errors.fullName && touched.fullName && errors.fullName}
+                                />
+                            </div>
 
-                            <CustomInput
-                                label="Alias"
-                                id="alias"
-                                name="alias"
-                                onChange={handleChange}
-                                onBlur={handleBlur}
-                                value={values.alias}
-                                error={errors.alias && touched.alias && errors.alias}
-                            />
+                            <div className="md:col-span-1">
+                                <CustomInput
+                                    label="Alias"
+                                    id="alias"
+                                    name="alias"
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    value={values.alias}
+                                    error={errors.alias && touched.alias && errors.alias}
+                                />
+                            </div>
 
-                            <CustomInput
-                                label="Fecha de Nacimiento"
-                                id="birthDate"
-                                type="date"
-                                name="birthDate"
-                                onChange={handleChange}
-                                onBlur={handleBlur}
-                                value={values.birthDate}
-                                error={errors.birthDate && touched.birthDate && errors.birthDate}
-                            />
+                            <div className="md:col-span-1">
+                                <CustomInput
+                                    label="Fecha de Nacimiento *"
+                                    id="birthDate"
+                                    type="date"
+                                    name="birthDate"
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    value={values.birthDate}
+                                    error={errors.birthDate && touched.birthDate && errors.birthDate}
+                                />
+                            </div>
 
-                            <CustomInput
-                                label="Correo electrónico"
-                                id="email"
-                                type="email"
-                                name="email"
-                                onChange={handleChange}
-                                onBlur={handleBlur}
-                                value={values.email}
-                                error={errors.email && touched.email && errors.email}
-                            />
+                            <div className="md:col-span-1">
+                                <CustomInput
+                                    label="Correo electrónico *"
+                                    id="email"
+                                    type="email"
+                                    name="email"
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    value={values.email}
+                                    error={errors.email && touched.email && errors.email}
+                                />
+                            </div>
 
-                            <CustomInput
-                                label="DNI"
-                                id="dni"
-                                name="dni"
-                                onChange={handleChange}
-                                onBlur={handleBlur}
-                                value={values.dni}
-                                error={errors.dni && touched.dni && errors.dni}
-                                placeholder="Ej: 12345678"
-                            />
-                            <CustomInput
-                                label="Número de teléfono"
-                                id="phone"
-                                type="tel"
-                                name="phone"
-                                onChange={handleChange}
-                                onBlur={handleBlur}
-                                value={values.phone}
-                                error={errors.phone && touched.phone && errors.phone}
-                            />
+                            <div className="md:col-span-1">
+                                <CustomInput
+                                    label="DNI *"
+                                    id="dni"
+                                    name="dni"
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    value={values.dni}
+                                    error={errors.dni && touched.dni && errors.dni}
+                                    placeholder="Ej: 12345678"
+                                />
+                            </div>
 
-                            <CustomInput
-                                label="Dirección"
-                                id="address"
-                                name="address"
-                                onChange={handleChange}
-                                onBlur={handleBlur}
-                                value={values.address}
-                                error={errors.address && touched.address && errors.address}
-                                placeholder="Calle, número, ciudad"
-                            />
+                            <div className="md:col-span-1">
+                                <CustomInput
+                                    label="Número de teléfono *"
+                                    id="phone"
+                                    type="tel"
+                                    name="phone"
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    value={values.phone}
+                                    error={errors.phone && touched.phone && errors.phone}
+                                />
+                            </div>
+
+                            <div className="md:col-span-1">
+                                <CustomInput
+                                    label="Dirección *"
+                                    id="address"
+                                    name="address"
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    value={values.address}
+                                    error={errors.address && touched.address && errors.address}
+                                    placeholder="Calle, número, ciudad"
+                                />
+                            </div>
 
                             <div className="space-y-1">
                                 <Label htmlFor="socialWork">Obra Social</Label>
@@ -252,61 +284,67 @@ export default function RegisterForm() {
                                     value={values.socialWork}
                                     onChange={handleChange}
                                     onBlur={handleBlur}
-                                    className="w-full rounded-md border border-gray-300 bg-white px-2 py-3 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    className="w-full px-2 py-3 text-sm bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                                 >
                                     <option value="">Selecciona tu obra social (opcional)</option>
                                     <option value="OSDE">OSDE</option>
                                     <option value="Swiss Medical">Swiss Medical</option>
-                                    <option value="IOMA">IOMA</option>
+                                    <option value="Galeno">Galeno</option>
+                                    <option value="Medicus">Medicus</option>
                                     <option value="PAMI">PAMI</option>
-                                    <option value="Unión Personal">Unión Personal</option>
-                                    <option value="OSDEPYM">OSDEPYM</option>
-                                    <option value="Luis Pasteur">Luis Pasteur</option>
-                                    <option value="Jerárquicos Salud">Jerárquicos Salud</option>
-                                    <option value="Sancor Salud">Sancor Salud</option>
-                                    <option value="OSECAC">OSECAC</option>
-                                    <option value="OSMECON Salud">OSMECON Salud</option>
+                                    <option value="Unión-personal">Unión-personal</option>
+                                    <option value="Osdepy">Osdepy</option>
+                                    <option value="Luis-pasteur">Luis-pasteur</option>
+                                    <option value="Jerarquicos-salud">Jerarquicos-salud</option>
+                                    <option value="Osecac">Osecac</option>
                                     <option value="Apross">Apross</option>
-                                    <option value="OSPRERA">OSPRERA</option>
-                                    <option value="OSPAT">OSPAT</option>
-                                    <option value="ASE Nacional">ASE Nacional</option>
-                                    <option value="OSPIP">OSPIP</option>
+                                    <option value="Osprera">Osprera</option>
+                                    <option value="Ospat">Ospat</option>
+                                    <option value="Ase-nacional">Ase-nacional</option>
+                                    <option value="Ospsip">Ospsip</option>
                                 </select>
                                 {errors.socialWork && touched.socialWork && <p className="mt-1 text-sm text-red-600">{errors.socialWork}</p>}
                             </div>
 
-                            <CustomInput
-                                label="Contacto de Emergencia (opcional)"
-                                id="emergencyContact"
-                                name="emergencyContact"
-                                onChange={handleChange}
-                                onBlur={handleBlur}
-                                value={values.emergencyContact}
-                                error={errors.emergencyContact && touched.emergencyContact && errors.emergencyContact}
-                                placeholder="Ej: +54911234567"
-                            />
+                            <div className="md:col-span-1">
+                                <CustomInput
+                                    label="Contraseña"
+                                    id="password"
+                                    type="password"
+                                    name="password"
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    value={values.password}
+                                    error={errors.password && touched.password && errors.password}
+                                />
+                            </div>
 
-                            <CustomInput
-                                label="Contraseña"
-                                id="password"
-                                type="password"
-                                name="password"
-                                onChange={handleChange}
-                                onBlur={handleBlur}
-                                value={values.password}
-                                error={errors.password && touched.password && errors.password}
-                            />
+                            <div className="md:col-span-1">
+                                <CustomInput
+                                    label="Confirmar Contraseña"
+                                    id="confirmPassword"
+                                    type="password"
+                                    name="confirmPassword"
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    value={values.confirmPassword}
+                                    error={errors.confirmPassword && touched.confirmPassword && errors.confirmPassword}
+                                />
+                            </div>
 
-                            <CustomInput
-                                label="Confirmar Contraseña"
-                                id="confirmPassword"
-                                type="password"
-                                name="confirmPassword"
-                                onChange={handleChange}
-                                onBlur={handleBlur}
-                                value={values.confirmPassword}
-                                error={errors.confirmPassword && touched.confirmPassword && errors.confirmPassword}
-                            />
+                            <div className="md:col-span-1">
+                                <CustomInput
+                                    label="Contacto de Emergencia"
+                                    id="emergencyContact"
+                                    type="tel"
+                                    name="emergencyContact"
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    value={values.emergencyContact}
+                                    error={errors.emergencyContact && touched.emergencyContact && errors.emergencyContact}
+                                />
+                                <p className="text-xs text-grey-500 mt-1">¨* Este número no puede coincidir con el de teléfono principal.</p>
+                            </div>
                         </div>
 
                         <div className="space-y-2">
