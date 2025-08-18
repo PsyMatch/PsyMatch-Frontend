@@ -135,8 +135,7 @@ const PerfilUser = () => {
       }
       const formData = new FormData();
       formData.append('name', user.fullName);
-      // Descomenta las siguientes líneas si el backend acepta estos campos:
-      // formData.append('alias', user.alias);
+      formData.append('alias', user.alias);
   // No enviar nunca el campo birthdate, así el backend mantiene la fecha existente
   // ...existing code...
       formData.append('phone', user.phone);
