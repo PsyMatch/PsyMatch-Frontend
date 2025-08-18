@@ -10,7 +10,7 @@ export function middleware(request: NextRequest) {
             pathname.startsWith('/professionalProfile') ||
             pathname === '/search-professionals' ||
             pathname.startsWith('/userProfile/') ||
-            pathname === '/session') &&
+            pathname.startsWith('/session/')) &&
         !request.cookies.get('authToken')
     ) {
         const homeUrl = new URL('/', origin);

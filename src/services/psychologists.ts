@@ -1,4 +1,5 @@
 import { envs } from '@/config/envs.config';
+import Cookies from 'js-cookie';
 
 export interface PsychologistResponse {
     id: string;
@@ -31,21 +32,51 @@ export interface PsychologistsApiResponse {
 const API_BASE_URL = envs.next_public_api_url;
 
 export const psychologistsService = {
-    // Obtener todos los psicólogos verificados para un paciente
-    getPsychologistsForPatient: async (token: string): Promise<PsychologistsApiResponse> => {
-        const response = await fetch(`${API_BASE_URL}/users/patient/professionals`, {
-            method: 'GET',
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-        });
+    // Obtener todos los psicólogos verificados
+    getPsychologistsForPatient: async (): Promise<PsychologistsApiResponse> => {
+        try {
+            const token = Cookies.get('authToken');
 
-        if (!response.ok) {
-            throw new Error(`Error fetching psychologists: ${response.statusText}`);
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            // Intentar obtener psicólogos del endpoint específico del usuario
+            let response = await fetch(`${API_BASE_URL}/users/me/psychologists`, {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            // Si no funciona, intentar obtener todos los psicólogos verificados
+            if (!response.ok) {
+                response = await fetch(`${API_BASE_URL}/psychologist`, {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+            }
+
+            if (!response.ok) {
+                throw new Error(`Error fetching psychologists: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+
+            // Filtrar solo psicólogos verificados
+            if (result.data) {
+                result.data = result.data.filter((psychologist: PsychologistResponse) => psychologist.verified === 'VALIDATED');
+            }
+
+            return result;
+        } catch (error) {
+            console.error('Error fetching psychologists:', error);
+            throw error;
         }
-
-        return response.json();
     },
 
     // Función auxiliar para obtener un psicólogo por ID
