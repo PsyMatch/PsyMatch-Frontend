@@ -6,13 +6,12 @@ import { Camera } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
-type UserData = {
+type UserProfile = {
   id?: string;
   fullName: string;
   alias: string;
   birthDate?: string;
   phone: string;
-  dni: string;
   address: string;
   email: string;
   socialWork: string;
@@ -20,15 +19,15 @@ type UserData = {
   profileImage?: string;
 };
 
-const fields: { label: string; field: keyof UserData; type?: string }[] = [
+const fields: { label: string; field: keyof UserProfile; type?: string }[] = [
   { label: 'Nombre Completo', field: 'fullName' },
   { label: 'Alias', field: 'alias' },
-
+  { label: 'Fecha de nacimiento', field: 'birthDate', type: 'date' },
   { label: 'Número de teléfono', field: 'phone' },
-  { label: 'Correo electrónico', field: 'email' },
   { label: 'Dirección', field: 'address' },
+  { label: 'Correo electrónico', field: 'email' },
   { label: 'Obra Social', field: 'socialWork' },
-  { label: 'Contacto de Emergencia', field: 'emergencyContact' },
+  { label: 'Contacto de emergencia', field: 'emergencyContact' },
 ];
 
 const PerfilUser = () => {
@@ -36,16 +35,17 @@ const PerfilUser = () => {
   const [loading, setLoading] = useState(false);
   const [profileImage, setProfileImage] = useState('');
   const [profileFile, setProfileFile] = useState<File | null>(null);
-  const [user, setUser] = useState<UserData>({
+  const [user, setUser] = useState<UserProfile>({
     id: '',
     fullName: '',
     alias: '',
+    birthDate: '',
     phone: '',
-    dni: '',
     address: '',
     email: '',
     socialWork: '',
     emergencyContact: '',
+    profileImage: '',
   });
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -61,9 +61,8 @@ const PerfilUser = () => {
           router.push('/login');
           return;
         }
-        const res = await fetch(`http://localhost:8080/users/me`, {
+        const res = await fetch('http://localhost:8080/users/me', {
           method: 'GET',
-          credentials: 'include',
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -73,9 +72,9 @@ const PerfilUser = () => {
           return;
         }
         if (!res.ok) {
-          const errorText = await res.text();
-          console.error('Error al obtener usuario:', res.status, errorText);
-          throw new Error('Error al obtener usuario');
+          setErrorMsg('Error al obtener usuario');
+          setLoading(false);
+          return;
         }
         const data = await res.json();
         const userData = data.data;
@@ -85,7 +84,6 @@ const PerfilUser = () => {
           alias: userData.alias || '',
           birthDate: userData.birthDate || userData.birthdate || '',
           phone: userData.phone || '',
-          dni: userData.dni || '',
           address: userData.address || '',
           email: userData.email || '',
           socialWork: userData.socialWork || userData.social_security_number || '',
@@ -97,7 +95,8 @@ const PerfilUser = () => {
             `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.fullName || userData.name || 'Usuario')}`
         );
       } catch (err) {
-        console.error('Error cargando usuario:', err);
+        setErrorMsg('Error al obtener usuario');
+        setLoading(false);
       }
     };
     fetchUser();
@@ -106,7 +105,7 @@ const PerfilUser = () => {
   // --- Manejadores ---
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-  setUser((prev) => ({ ...prev, [name]: value }));
+    setUser((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,7 +126,6 @@ const PerfilUser = () => {
         router.push('/login');
         return;
       }
-      // Usar el id del usuario del estado
       if (!user.id) {
         setErrorMsg('No se encontró el ID de usuario.');
         setLoading(false);
@@ -136,8 +134,6 @@ const PerfilUser = () => {
       const formData = new FormData();
       formData.append('name', user.fullName);
       formData.append('alias', user.alias);
-  // No enviar nunca el campo birthdate, así el backend mantiene la fecha existente
-  // ...existing code...
       formData.append('phone', user.phone);
       formData.append('email', user.email);
       formData.append('address', user.address);
@@ -150,9 +146,8 @@ const PerfilUser = () => {
       if (profileFile) {
         formData.append('profile_picture', profileFile);
       }
-      const res = await fetch(`http://localhost:8080/users/${user.id}`, {
+      const res = await fetch('http://localhost:8080/users/me', {
         method: 'PUT',
-        credentials: 'include',
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -160,6 +155,7 @@ const PerfilUser = () => {
       });
       if (res.status === 401) {
         router.push('/login');
+        setLoading(false);
         return;
       }
       if (!res.ok) {
@@ -176,35 +172,33 @@ const PerfilUser = () => {
           if (errorText) errorMsg = errorText;
         }
         setErrorMsg(errorMsg);
-        throw new Error(errorMsg);
+        setLoading(false);
+        return;
       }
-      // Ahora el backend retorna el usuario actualizado en data
       const data = await res.json();
       const userData = data.data || {};
-      setUser({
-        id: userData.id || '',
-        fullName: userData.fullName || userData.name || '',
-        alias: userData.alias || '',
-        birthDate: userData.birthDate || userData.birthdate || '',
-        phone: userData.phone || '',
-        dni: userData.dni || '',
-        address: userData.address || '',
-        email: userData.email || '',
-        socialWork: userData.socialWork || userData.social_security_number || '',
-        emergencyContact: userData.emergencyContact || userData.emergency_contact || '',
-        profileImage: userData.profileImage || userData.profile_picture || '',
-      });
+      setUser((prev) => ({
+        ...prev,
+        id: userData.id ?? prev.id,
+        fullName: userData.fullName ?? userData.name ?? prev.fullName,
+        alias: userData.alias ?? prev.alias,
+        birthDate: userData.birthDate ?? userData.birthdate ?? prev.birthDate,
+        phone: userData.phone ?? prev.phone,
+        address: userData.address ?? prev.address,
+        email: userData.email ?? prev.email,
+        socialWork: userData.socialWork ?? userData.social_security_number ?? prev.socialWork,
+        emergencyContact: userData.emergencyContact ?? userData.emergency_contact ?? prev.emergencyContact,
+        profileImage: userData.profileImage ?? userData.profile_picture ?? prev.profileImage,
+      }));
       setProfileImage(
         userData.profileImage || userData.profile_picture ||
-        `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.fullName || userData.name || 'Usuario')}`
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.fullName || userData.name || user.fullName || 'Usuario')}`
       );
       setEditable(false);
       setProfileFile(null);
       setSuccessMsg('¡Datos guardados correctamente!');
     } catch (error) {
-      if (typeof error === 'string') setErrorMsg(error);
-      else if (error instanceof Error) setErrorMsg(error.message);
-      else setErrorMsg('Error al guardar los datos.');
+      setErrorMsg('Error al guardar los datos.');
       console.error('Error al guardar:', error);
     } finally {
       setLoading(false);
@@ -221,7 +215,7 @@ const PerfilUser = () => {
               src={
                 profileImage && typeof profileImage === 'string' && profileImage.trim() !== ''
                   ? profileImage
-                  : "/person-gray-photo-placeholder-man.webp"
+                  : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || 'Usuario')}`
               }
               alt="profile"
               width={128}
@@ -229,8 +223,8 @@ const PerfilUser = () => {
               className="w-32 h-32 rounded-full object-cover bg-gray-200"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                if (target.src !== window.location.origin + '/person-gray-photo-placeholder-man.webp') {
-                  target.src = '/person-gray-photo-placeholder-man.webp';
+                if (!target.src.includes('ui-avatars.com')) {
+                  target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || 'Usuario')}`;
                 }
               }}
             />

@@ -106,7 +106,7 @@ export default function RegisterForm() {
                 // Si no hay archivo, enviamos una URL por defecto como string
                 formData.append(
                     'profile_picture',
-                    'https://res.cloudinary.com/dibnkd72j/image/upload/v1755031810/default-profile-picture_lzshvt.webp'
+                    'https://res.cloudinary.com/dibnkd72j/image/upload/v1755495603/default-pacient-profile-picture_kqpobf.webp'
                 );
             }
 
@@ -291,19 +291,20 @@ export default function RegisterForm() {
                                     <option value="">Selecciona tu obra social (opcional)</option>
                                     <option value="OSDE">OSDE</option>
                                     <option value="Swiss Medical">Swiss Medical</option>
-                                    <option value="Galeno">Galeno</option>
-                                    <option value="Medicus">Medicus</option>
+                                    <option value="IOMA">IOMA</option>
+                                    <option value="Unión Personal">Union Personal</option>
                                     <option value="PAMI">PAMI</option>
-                                    <option value="Unión-personal">Unión-personal</option>
-                                    <option value="Osdepy">Osdepy</option>
-                                    <option value="Luis-pasteur">Luis-pasteur</option>
-                                    <option value="Jerarquicos-salud">Jerarquicos-salud</option>
-                                    <option value="Osecac">Osecac</option>
+                                    <option value="OSDEPYM">OSDEPYM</option>
+                                    <option value="Luis Pasteur">Luis Pasteur</option>
+                                    <option value="Jerárquicos Salud">Jerarquicos Salud</option>
+                                    <option value="Sancor Salud">Sancor Salud</option>
+                                    <option value="OSECAC">Osecac</option>
+                                    <option value="OSMECON Salud">OSMECON Salud</option>
                                     <option value="Apross">Apross</option>
-                                    <option value="Osprera">Osprera</option>
-                                    <option value="Ospat">Ospat</option>
-                                    <option value="Ase-nacional">Ase-nacional</option>
-                                    <option value="Ospsip">Ospsip</option>
+                                    <option value="OSPRERA">OSPRERA</option>
+                                    <option value="OSPAT">OSPAT</option>
+                                    <option value="ASE Nacional">ASE nacional</option>
+                                    <option value="OSPIP">OSPIP</option>
                                 </select>
                                 {errors.socialWork && touched.socialWork && <p className="mt-1 text-sm text-red-600">{errors.socialWork}</p>}
                             </div>
