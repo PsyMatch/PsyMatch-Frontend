@@ -107,7 +107,7 @@ export default function RegisterForm() {
                 );
             }
 
-            const response = await fetch('http://localhost:3000/auth/signup', {
+            const response = await fetch('http://localhost:8080/auth/signup', {
                 method: 'POST',
                 body: formData,
             });
