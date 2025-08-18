@@ -2,19 +2,26 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { Search, ChevronDown, Funnel } from 'lucide-react';
+import { Search, ChevronDown, Funnel, Star, MapPin, Users, Video, Calendar } from 'lucide-react';
 import { psychologistsService, PsychologistResponse } from '@/services/psychologists';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
-import { envs } from '@/config/envs.config';
+import {
+    idiomas,
+    modalidades,
+    especialidades,
+    enfoquesTerapia,
+    tiposTerapia,
+    disponibilidad,
+    obrasSociales,
+    opcionesOrdenamiento,
+} from '@/constants/filters';
 
 const Filter = () => {
     const router = useRouter();
 
-    // Estados para psicólogos desde la base de datos
     const [psychologists, setPsychologists] = useState<PsychologistResponse[]>([]);
 
-    // Estados para todos los filtros
     const [precioMin, setPrecioMin] = useState('');
     const [precioMax, setPrecioMax] = useState('');
     const [modalidadSeleccionada, setModalidadSeleccionada] = useState('');
@@ -25,90 +32,52 @@ const Filter = () => {
     const [enfoquesTerapiaSeleccionados, setEnfoquesTerapiaSeleccionados] = useState<string[]>([]);
     const [especialidadesSeleccionadas, setEspecialidadesSeleccionadas] = useState<string[]>([]);
 
-    const idiomas = ['Español', 'Ingles', 'Portugues'];
-
-    const modalidades = ['Presencial', 'Online', 'Hibrido'];
-
-    const especialidades = [
-        'Trastornos de Ansiedad',
-        'Terapia de Pareja',
-        'Trastornos de la Conducta Alimentaria',
-        'Trastorno Bipolar',
-        'Transiciones de Vida',
-        'Terapia Infantil y Adolescente',
-        'Trastornos del Sueño',
-        'Depresión',
-        'Terapia Familiar',
-        'TDAH',
-        'TOC',
-        'Asesoramiento Laboral',
-        'Psicología Geriátrica',
-        'Manejo de la Ira',
-        'Trauma y TEPT',
-        'Adicciones y Abuso de Sustancias',
-        'Trastornos del Espectro Autista',
-        'Duelo y Pérdida',
-        'Temas LGBTQ+',
-        'Manejo del Dolor Crónico',
-    ];
-
-    const enfoquesTerapia = [
-        'Terapia Cognitivo-Conductual (TCC)',
-        'Terapia de Aceptación y Compromiso (ACT)',
-        'Terapia Psicodinámica',
-        'Terapia de Sistemas Familiares',
-        'Terapia Breve Centrada en Soluciones',
-        'Terapia de Juego',
-        'Terapia Dialéctico-Conductual (TDC)',
-        'Desensibilización y Reprocesamiento por Movimiento Ocular (EMDR)',
-        'Terapia Humanista/Centrada en la Persona',
-        'Terapia Basada en Mindfulness',
-        'Terapia Gestalt',
-        'Terapia de Arte',
-        'Terapia de Grupo',
-    ];
-
-    const tiposTerapia = ['Individual', 'Pareja', 'Familiar', 'Grupo'];
-
-    const disponibilidad = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-
-    const obrasSociales = [
-        'OSDE',
-        'Swiss Medical',
-        'IOMA',
-        'PAMI',
-        'Unión Personal',
-        'OSDEPYM',
-        'Luis Pasteur',
-        'Jerárquicos Salud',
-        'Sancor Salud',
-        'OSECAC',
-        'Osmecón Salud',
-        'APROSS',
-        'OSPRERA',
-        'OSPAT',
-        'ASE Nacional',
-        'OSPSIP',
-    ];
-
-    // Función para obtener el token de autenticación
     const getAuthToken = () => {
-        // Solo ejecutar en el cliente
         if (typeof window === 'undefined') return null;
-        return Cookies.get('auth-token') || Cookies.get('authToken');
+
+        const authToken = Cookies.get('auth-token');
+        const authTokenAlt = Cookies.get('authToken');
+
+        console.log('Available cookies:');
+        console.log('auth-token:', authToken);
+        console.log('authToken:', authTokenAlt);
+        console.log('All cookies:', document.cookie);
+
+        return authToken || authTokenAlt;
     };
 
-    // Función para redirigir a login
     const redirectToLogin = useCallback(() => {
         router.push('/login');
     }, [router]);
 
-    // Cargar psicólogos desde la base de datos
+    const calcularPrecio = useCallback((psicologo: PsychologistResponse): number => {
+        const experiencia = psicologo.professional_experience || 0;
+        const precioBase = 35000;
+
+        let precio = precioBase;
+        if (experiencia >= 20) {
+            precio = 60000;
+        } else if (experiencia >= 15) {
+            precio = 55000;
+        } else if (experiencia >= 10) {
+            precio = 50000;
+        } else if (experiencia >= 5) {
+            precio = 45000;
+        } else {
+            precio = 40000;
+        }
+
+        if (psicologo.modality === 'En línea') {
+            precio *= 0.85;
+        }
+
+        return Math.round(precio);
+    }, []);
+
     useEffect(() => {
         const loadPsychologists = async () => {
             try {
                 const authToken = getAuthToken();
-                console.log('Auth token:', authToken);
 
                 if (!authToken) {
                     console.log('No auth token found, redirecting to login');
@@ -116,12 +85,24 @@ const Filter = () => {
                     return;
                 }
 
-                console.log('Fetching psychologists from:', `${envs.next_public_api_url}/users/patient/professionals`);
-                const response = await psychologistsService.getPsychologistsForPatient(authToken);
-                console.log('Psychologists response:', response);
+                const response = await psychologistsService.getPsychologistsForPatient();
                 setPsychologists(response.data);
             } catch (error) {
                 console.error('Error loading psychologists:', error);
+
+                if (error instanceof Error) {
+                    if (
+                        error.message.includes('Authentication failed') ||
+                        error.message.includes('Token expired') ||
+                        error.message.includes('Invalid token') ||
+                        error.message.includes('No authentication token found')
+                    ) {
+                        console.log('Authentication error, redirecting to login');
+                        redirectToLogin();
+                        return;
+                    }
+                }
+
                 redirectToLogin();
             }
         };
@@ -129,34 +110,20 @@ const Filter = () => {
         loadPsychologists();
     }, [router, redirectToLogin]);
 
-    // Estado para búsqueda
     const [busqueda, setBusqueda] = useState('');
 
-    // Estados para controlar la apertura de dropdowns
     const [modalidadAbierta, setModalidadAbierta] = useState(false);
     const [idiomaAbierto, setIdiomaAbierto] = useState(false);
     const [obraSocialAbierta, setObraSocialAbierta] = useState(false);
     const [tipoTerapiaAbierto, setTipoTerapiaAbierto] = useState(false);
     const [ordenamientoAbierto, setOrdenamientoAbierto] = useState(false);
 
-    // Estado para ordenamiento
     const [ordenamientoSeleccionado, setOrdenamientoSeleccionado] = useState('rating');
 
-    // Opciones de ordenamiento
-    const opcionesOrdenamiento = [
-        { label: 'Mejor Valorados', value: 'rating' },
-        { label: 'Precio: Menor a Mayor', value: 'price_asc' },
-        { label: 'Precio: Mayor a Menor', value: 'price_desc' },
-        { label: 'Más Experiencia', value: 'experience' },
-        { label: 'Disponibilidad', value: 'availability' },
-    ];
-
-    // Efecto para cerrar dropdowns al hacer clic fuera
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             const target = event.target as HTMLElement;
 
-            // No cerrar si el clic fue en un dropdown o sus botones
             if (target.closest('[data-dropdown]')) {
                 return;
             }
@@ -172,7 +139,6 @@ const Filter = () => {
         return () => document.removeEventListener('click', handleClickOutside);
     }, []);
 
-    // Función para limpiar todos los filtros
     const limpiarFiltros = () => {
         setPrecioMin('');
         setPrecioMax('');
@@ -185,7 +151,6 @@ const Filter = () => {
         setEspecialidadesSeleccionadas([]);
     };
 
-    // Función para manejar checkboxes
     const toggleCheckbox = (value: string, selectedItems: string[], setSelectedItems: (items: string[]) => void) => {
         if (selectedItems.includes(value)) {
             setSelectedItems(selectedItems.filter((item) => item !== value));
@@ -194,64 +159,103 @@ const Filter = () => {
         }
     };
 
-    // Función para filtrar y ordenar psicólogos
     const filtrarPsicologos = () => {
+        if (psychologists.length > 0) {
+            console.log('Ejemplo de psicólogo del backend:', psychologists[0]);
+            console.log('Modalidades disponibles:', [...new Set(psychologists.map((p) => p.modality).filter(Boolean))]);
+            console.log('Idiomas disponibles:', [...new Set(psychologists.flatMap((p) => p.languages || []))]);
+            console.log('Especialidades disponibles:', [...new Set(psychologists.flatMap((p) => p.specialities || []))]);
+        }
+
         let resultado = psychologists.filter((psicologo) => {
-            // Filtro por precio - usar precio por defecto ya que no viene del backend
-            const precioDefault = 25000; // Precio por defecto
+            const precioPsicologo = calcularPrecio(psicologo);
             const precioMinNum = precioMin ? parseFloat(precioMin) : 0;
             const precioMaxNum = precioMax ? parseFloat(precioMax) : Infinity;
-            if (precioDefault < precioMinNum || precioDefault > precioMaxNum) {
+
+            if (precioPsicologo < precioMinNum || precioPsicologo > precioMaxNum) {
                 return false;
             }
 
-            // Filtro por modalidad - usar la modalidad del psicólogo
-            if (modalidadSeleccionada && psicologo.modality !== modalidadSeleccionada) {
-                return false;
+            if (modalidadSeleccionada) {
+                const modalidadPsicologo = psicologo.modality;
+
+                if (modalidadPsicologo === modalidadSeleccionada) {
+                } else if (modalidadPsicologo === 'Híbrido' && (modalidadSeleccionada === 'Presencial' || modalidadSeleccionada === 'En línea')) {
+                } else {
+                    return false;
+                }
             }
 
-            // Filtro por idioma - usar languages del psicólogo
-            if (idiomaSeleccionado && psicologo.languages && !psicologo.languages.includes(idiomaSeleccionado)) {
-                return false;
+            if (idiomaSeleccionado && psicologo.languages) {
+                const tieneIdioma = psicologo.languages.some(
+                    (lang) =>
+                        lang.toLowerCase().includes(idiomaSeleccionado.toLowerCase()) || idiomaSeleccionado.toLowerCase().includes(lang.toLowerCase())
+                );
+                if (!tieneIdioma) {
+                    return false;
+                }
             }
 
-            // Filtro por obra social - usar insurance_accepted del psicólogo
-            if (obraSocialSeleccionada && psicologo.insurance_accepted && !psicologo.insurance_accepted.includes(obraSocialSeleccionada)) {
-                return false;
+            if (obraSocialSeleccionada && psicologo.insurance_accepted) {
+                const tieneObraSocial = psicologo.insurance_accepted.some(
+                    (insurance) =>
+                        insurance.toLowerCase().includes(obraSocialSeleccionada.toLowerCase()) ||
+                        obraSocialSeleccionada.toLowerCase().includes(insurance.toLowerCase())
+                );
+                if (!tieneObraSocial) {
+                    return false;
+                }
             }
 
-            // Filtro por tipo de terapia - usar session_types del psicólogo
-            if (tipoTerapiaSeleccionado && psicologo.session_types && !psicologo.session_types.includes(tipoTerapiaSeleccionado)) {
-                return false;
+            if (tipoTerapiaSeleccionado && psicologo.session_types) {
+                const tieneTipoTerapia = psicologo.session_types.some(
+                    (sessionType) =>
+                        sessionType.toLowerCase().includes(tipoTerapiaSeleccionado.toLowerCase()) ||
+                        tipoTerapiaSeleccionado.toLowerCase().includes(sessionType.toLowerCase())
+                );
+                if (!tieneTipoTerapia) {
+                    return false;
+                }
             }
 
-            // Filtro por disponibilidad (días) - usar availability del psicólogo
-            if (disponibilidadSeleccionada.length > 0) {
-                const tieneDisponibilidad = psicologo.availability && disponibilidadSeleccionada.some((dia) => psicologo.availability!.includes(dia));
+            if (disponibilidadSeleccionada.length > 0 && psicologo.availability) {
+                const tieneDisponibilidad = disponibilidadSeleccionada.some((diaSeleccionado) =>
+                    psicologo.availability!.some(
+                        (diaDisponible) =>
+                            diaDisponible.toLowerCase().includes(diaSeleccionado.toLowerCase()) ||
+                            diaSeleccionado.toLowerCase().includes(diaDisponible.toLowerCase())
+                    )
+                );
                 if (!tieneDisponibilidad) {
                     return false;
                 }
             }
 
-            // Filtro por enfoques de terapia - usar therapy_approaches del psicólogo
-            if (enfoquesTerapiaSeleccionados.length > 0) {
-                const tieneEnfoque =
-                    psicologo.therapy_approaches && enfoquesTerapiaSeleccionados.some((enfoque) => psicologo.therapy_approaches!.includes(enfoque));
+            if (enfoquesTerapiaSeleccionados.length > 0 && psicologo.therapy_approaches) {
+                const tieneEnfoque = enfoquesTerapiaSeleccionados.some((enfoqueSeleccionado) =>
+                    psicologo.therapy_approaches!.some(
+                        (enfoqueDisponible) =>
+                            enfoqueDisponible.toLowerCase().includes(enfoqueSeleccionado.toLowerCase()) ||
+                            enfoqueSeleccionado.toLowerCase().includes(enfoqueDisponible.toLowerCase())
+                    )
+                );
                 if (!tieneEnfoque) {
                     return false;
                 }
             }
-
-            // Filtro por especialidades - usar specialities del psicólogo
-            if (especialidadesSeleccionadas.length > 0) {
-                const tieneEspecialidad =
-                    psicologo.specialities && especialidadesSeleccionadas.some((especialidad) => psicologo.specialities!.includes(especialidad));
+            if (especialidadesSeleccionadas.length > 0 && psicologo.specialities) {
+                const tieneEspecialidad = especialidadesSeleccionadas.some((especialidadSeleccionada) =>
+                    psicologo.specialities!.some(
+                        (especialidadDisponible) =>
+                            especialidadDisponible.toLowerCase().includes(especialidadSeleccionada.toLowerCase()) ||
+                            especialidadSeleccionada.toLowerCase().includes(especialidadDisponible.toLowerCase())
+                    )
+                );
                 if (!tieneEspecialidad) {
                     return false;
                 }
             }
 
-            // Filtro por búsqueda (nombre, especialidades, ubicación)
             if (busqueda) {
                 const busquedaLower = busqueda.toLowerCase();
                 const coincideNombre = psicologo.name.toLowerCase().includes(busquedaLower);
@@ -266,30 +270,32 @@ const Filter = () => {
             return true;
         });
 
-        // Aplicar ordenamiento
         switch (ordenamientoSeleccionado) {
             case 'rating':
-                // Como no tenemos rating en el backend, ordenar por nombre
                 resultado = resultado.sort((a, b) => a.name.localeCompare(b.name));
                 break;
             case 'price_asc':
-                // Como no tenemos precio específico en el backend, ordenar por nombre
-                resultado = resultado.sort((a, b) => a.name.localeCompare(b.name));
+                resultado = resultado.sort((a, b) => {
+                    const precioA = calcularPrecio(a);
+                    const precioB = calcularPrecio(b);
+                    return precioA - precioB;
+                });
                 break;
             case 'price_desc':
-                // Como no tenemos precio específico en el backend, ordenar por nombre
-                resultado = resultado.sort((a, b) => a.name.localeCompare(b.name));
+                resultado = resultado.sort((a, b) => {
+                    const precioA = calcularPrecio(a);
+                    const precioB = calcularPrecio(b);
+                    return precioB - precioA;
+                });
                 break;
             case 'experience':
                 resultado = resultado.sort((a, b) => {
-                    // Usar professional_experience del backend
                     const expA = a.professional_experience || 0;
                     const expB = b.professional_experience || 0;
                     return expB - expA;
                 });
                 break;
             case 'availability':
-                // Sin ordenamiento por disponibilidad específica por ahora
                 resultado = resultado.sort((a, b) => a.name.localeCompare(b.name));
                 break;
             default:
@@ -301,18 +307,9 @@ const Filter = () => {
 
     const psicologosFiltrados = filtrarPsicologos();
 
-    // Función auxiliar para obtener el nombre de la modalidad
     const obtenerNombreModalidad = (value: string) => {
         const modalidad = modalidades.find((m) => m === value);
         return modalidad ? modalidad : value;
-    };
-
-    // Función auxiliar para obtener las especialidades como etiquetas
-    const obtenerEtiquetasEspecialidades = (especialidadesPsicologo: string[]) => {
-        return especialidadesPsicologo.map((esp) => {
-            const especialidad = especialidades.find((e) => e === esp);
-            return especialidad ? especialidad : esp;
-        });
     };
 
     return (
@@ -429,11 +426,9 @@ const Filter = () => {
                                         type="button"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            // Cerrar todos los demás dropdowns antes de abrir este
                                             setIdiomaAbierto(false);
                                             setObraSocialAbierta(false);
                                             setTipoTerapiaAbierto(false);
-                                            // Alternar el estado del dropdown actual
                                             setModalidadAbierta(!modalidadAbierta);
                                         }}
                                         className="flex h-10 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -483,11 +478,9 @@ const Filter = () => {
                                         type="button"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            // Cerrar todos los demás dropdowns antes de abrir este
                                             setModalidadAbierta(false);
                                             setObraSocialAbierta(false);
                                             setTipoTerapiaAbierto(false);
-                                            // Alternar el estado del dropdown actual
                                             setIdiomaAbierto(!idiomaAbierto);
                                         }}
                                         className="flex h-10 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -539,11 +532,9 @@ const Filter = () => {
                                         type="button"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            // Cerrar todos los demás dropdowns antes de abrir este
                                             setModalidadAbierta(false);
                                             setIdiomaAbierto(false);
                                             setTipoTerapiaAbierto(false);
-                                            // Alternar el estado del dropdown actual
                                             setObraSocialAbierta(!obraSocialAbierta);
                                         }}
                                         className="flex h-10 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -595,11 +586,9 @@ const Filter = () => {
                                         type="button"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            // Cerrar todos los demás dropdowns antes de abrir este
                                             setModalidadAbierta(false);
                                             setIdiomaAbierto(false);
                                             setObraSocialAbierta(false);
-                                            // Alternar el estado del dropdown actual
                                             setTipoTerapiaAbierto(!tipoTerapiaAbierto);
                                         }}
                                         className="flex h-10 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -771,104 +760,33 @@ const Filter = () => {
                                                     <div className="flex items-center mb-2">
                                                         <h3 className="text-lg font-semibold mr-2">{psicologo.name}</h3>
                                                     </div>
-                                                    <div className="flex items-center mb-2">
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            width="24"
-                                                            height="24"
-                                                            viewBox="0 0 24 24"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            strokeWidth="2"
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            className="lucide lucide-star h-4 w-4 text-yellow-400 fill-current mr-1"
-                                                        >
-                                                            <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z" />
-                                                        </svg>
+                                                    <div className="flex items-center text-sm text-gray-600 mb-2">
+                                                        <Star className="h-4 w-4 mr-1" strokeWidth={2} />
                                                         <span className="text-sm text-gray-600">4.8 (12 reseñas)</span>
                                                     </div>
                                                     <div className="flex items-center text-sm text-gray-600 mb-2">
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            width="24"
-                                                            height="24"
-                                                            viewBox="0 0 24 24"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            strokeWidth="2"
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            className="lucide lucide-map-pin h-4 w-4 mr-1"
-                                                        >
-                                                            <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
-                                                            <circle cx="12" cy="10" r="3" />
-                                                        </svg>
+                                                        <MapPin className="h-4 w-4 mr-1" strokeWidth={2} />
                                                         {psicologo.office_address || 'Consulta disponible'}
-                                                    </div>
-                                                    <div className="flex items-center text-sm text-gray-600">
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            width="24"
-                                                            height="24"
-                                                            viewBox="0 0 24 24"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            strokeWidth="2"
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            className="lucide lucide-dollar-sign h-4 w-4 mr-1"
-                                                        >
-                                                            <line x1="12" y1="1" x2="12" y2="23"></line>
-                                                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                                                        </svg>
-                                                        $100/sesión
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <div className="text-sm text-green-600 font-medium mb-2">Disponible</div>
                                                 <div className="flex gap-1 flex-wrap">
-                                                    {(psicologo.session_types || ['in_person']).map((modalidad) => (
+                                                    {(Array.isArray(psicologo.modality)
+                                                        ? psicologo.modality
+                                                        : [psicologo.modality || 'Presencial']
+                                                    ).map((modalidad) => (
                                                         <div
                                                             key={modalidad}
                                                             className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-gray-900 text-xs"
                                                         >
-                                                            {modalidad === 'in_person' && (
-                                                                <svg
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                    width="24"
-                                                                    height="24"
-                                                                    viewBox="0 0 24 24"
-                                                                    fill="none"
-                                                                    stroke="currentColor"
-                                                                    strokeWidth="2"
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                    className="lucide lucide-users h-3 w-3 mr-1"
-                                                                >
-                                                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                                                                    <circle cx="9" cy="7" r="4"></circle>
-                                                                    <path d="m22 21-2-2"></path>
-                                                                    <path d="m16 16 2 2"></path>
-                                                                </svg>
-                                                            )}
-                                                            {modalidad === 'online' && (
-                                                                <svg
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                    width="24"
-                                                                    height="24"
-                                                                    viewBox="0 0 24 24"
-                                                                    fill="none"
-                                                                    stroke="currentColor"
-                                                                    strokeWidth="2"
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                    className="lucide lucide-video h-3 w-3 mr-1"
-                                                                >
-                                                                    <path d="m22 8-6 4 6 4V8Z"></path>
-                                                                    <rect width="14" height="12" x="2" y="2" rx="2" ry="2"></rect>
-                                                                </svg>
+                                                            {modalidad === 'Presencial' && <Users className="h-3 w-3 mr-1" strokeWidth={2} />}
+                                                            {modalidad === 'En línea' && <Video className="h-3 w-3 mr-1" strokeWidth={2} />}
+                                                            {modalidad === 'Híbrido' && (
+                                                                <>
+                                                                    <Users className="h-3 w-3 mr-1" strokeWidth={2} />
+                                                                    <Video className="h-3 w-3 mr-1" strokeWidth={2} />
+                                                                </>
                                                             )}
                                                             {obtenerNombreModalidad(modalidad)}
                                                         </div>
@@ -881,20 +799,107 @@ const Filter = () => {
                                             {psicologo.personal_biography || 'Psicólogo profesional con experiencia en terapia individual.'}
                                         </p>
 
-                                        <div className="flex flex-wrap gap-1 mb-4">
-                                            {obtenerEtiquetasEspecialidades(psicologo.specialities || [])
-                                                .slice(0, 3)
-                                                .map((especialidad, index) => (
-                                                    <div
-                                                        key={index}
-                                                        className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 border-transparent bg-gray-200 text-gray-800 hover:bg-gray-300 text-xs"
-                                                    >
-                                                        {especialidad}
-                                                    </div>
-                                                ))}
-                                        </div>
+                                        {/* Obras Sociales */}
+                                        {psicologo.insurance_accepted && psicologo.insurance_accepted.length > 0 && (
+                                            <div className="mb-3">
+                                                <span className="text-xs font-medium text-gray-700 mb-1 block">Obras Sociales Aceptadas:</span>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {psicologo.insurance_accepted.slice(0, 3).map((seguro, index) => (
+                                                        <span
+                                                            key={index}
+                                                            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800"
+                                                        >
+                                                            {seguro}
+                                                        </span>
+                                                    ))}
+                                                    {psicologo.insurance_accepted.length > 3 && (
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
+                                                            +{psicologo.insurance_accepted.length - 3} más
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
 
-                                        <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
+                                        {/* Tipos de Sesión */}
+                                        {psicologo.session_types && psicologo.session_types.length > 0 && (
+                                            <div className="mb-3">
+                                                <span className="text-xs font-medium text-gray-700 mb-1 block">Tipos de Sesión:</span>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {psicologo.session_types.map((tipo, index) => (
+                                                        <span
+                                                            key={index}
+                                                            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-purple-100 text-purple-800"
+                                                        >
+                                                            {tipo}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Enfoques Terapéuticos */}
+                                        {psicologo.therapy_approaches && psicologo.therapy_approaches.length > 0 && (
+                                            <div className="mb-3">
+                                                <span className="text-xs font-medium text-gray-700 mb-1 block">Enfoques Terapéuticos:</span>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {psicologo.therapy_approaches.slice(0, 2).map((enfoque, index) => (
+                                                        <span
+                                                            key={index}
+                                                            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-indigo-100 text-indigo-800"
+                                                        >
+                                                            {enfoque}
+                                                        </span>
+                                                    ))}
+                                                    {psicologo.therapy_approaches.length > 2 && (
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
+                                                            +{psicologo.therapy_approaches.length - 2} más
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Especialidades */}
+                                        {psicologo.specialities && psicologo.specialities.length > 0 && (
+                                            <div className="mb-3">
+                                                <span className="text-xs font-medium text-gray-700 mb-1 block">Especialidades:</span>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {psicologo.specialities.map((especialidad, index) => (
+                                                        <span
+                                                            key={index}
+                                                            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-purple-100 text-purple-800"
+                                                        >
+                                                            {especialidad}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Disponibilidad */}
+                                        {psicologo.availability && psicologo.availability.length > 0 && (
+                                            <div className="mb-3">
+                                                <span className="text-xs font-medium text-gray-700 mb-1 block">Disponibilidad:</span>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {psicologo.availability.slice(0, 4).map((horario, index) => (
+                                                        <span
+                                                            key={index}
+                                                            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800"
+                                                        >
+                                                            {horario}
+                                                        </span>
+                                                    ))}
+                                                    {psicologo.availability.length > 4 && (
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
+                                                            +{psicologo.availability.length - 4} más
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
                                             <div>
                                                 <span className="font-medium">Idiomas:</span>{' '}
                                                 {(psicologo.languages || ['Español'])
@@ -906,32 +911,25 @@ const Filter = () => {
                                             </div>
                                         </div>
 
+                                        <div className="flex items-center justify-end text-sm mb-4">
+                                            <div className="text-right">
+                                                <div className="text-2xl font-bold text-green-600">
+                                                    ${calcularPrecio(psicologo).toLocaleString('es-AR')}
+                                                </div>
+                                                <div className="text-xs text-gray-500">por sesión</div>
+                                            </div>
+                                        </div>
+
                                         <div className="flex gap-2">
-                                            <a className="flex-1" href={`/psychologist/${psicologo.id}`}>
+                                            <a className="flex-1" href={`/professionalProfile/${psicologo.id}`}>
                                                 <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-gray-300 hover:bg-gray-100 hover:text-gray-900 h-9 rounded-md px-3 w-full bg-transparent">
                                                     Ver Perfil Completo
                                                 </button>
                                             </a>
 
-                                            <a className="flex-1" href={`/booking/${psicologo.id}`}>
+                                            <a className="flex-1" href={`/session/${psicologo.id}`}>
                                                 <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 h-9 rounded-md px-3 w-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        width="24"
-                                                        height="24"
-                                                        viewBox="0 0 24 24"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        strokeWidth="2"
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        className="lucide lucide-calendar h-4 w-4 mr-1"
-                                                    >
-                                                        <path d="M8 2v4"></path>
-                                                        <path d="M16 2v4"></path>
-                                                        <rect width="18" height="18" x="3" y="4" rx="2"></rect>
-                                                        <path d="M3 10h18"></path>
-                                                    </svg>
+                                                    <Calendar className="h-4 w-4 mr-1" strokeWidth={2} />
                                                     Reservar Cita
                                                 </button>
                                             </a>

@@ -9,6 +9,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 
+// Horarios disponibles (constante fuera del componente)
+const AVAILABLE_TIMES = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM'];
+
 const SessionPage = () => {
     const params = useParams();
     const router = useRouter();
@@ -25,30 +28,34 @@ const SessionPage = () => {
     const [userId, setUserId] = useState<string>('');
     const [isClient, setIsClient] = useState(false);
 
-    // Obtener datos del psicólogo seleccionado
-    const duration = 45; // Por ahora fijo, debería venir del backend
-    const price = 25000; // Precio por defecto, podría venir del backend o ser configurable
-
     // Función para obtener user_id del token en cookies
     const getUserIdFromToken = () => {
         // Solo ejecutar en el cliente
         if (typeof window === 'undefined') return '';
 
         try {
-            // Obtener token de las cookies (nombre común: 'auth-token', 'token', 'access_token')
-            const token = Cookies.get('auth-token') || Cookies.get('authToken');
+            // Obtener token de las cookies
+            const token = Cookies.get('authToken');
 
             if (token) {
                 // Decodificar JWT payload (parte central del token)
                 const payload = JSON.parse(atob(token.split('.')[1]));
+
+                // Verificar si el token ha expirado
+                if (payload.exp && payload.exp * 1000 < Date.now()) {
+                    console.log('Token ha expirado');
+                    // Limpiar cookie expirada
+                    Cookies.remove('authToken');
+                    return '';
+                }
+
                 return payload.sub || payload.userId || payload.id;
             }
 
-            // Fallback para desarrollo
-            return 'user-uuid-from-token'; // Placeholder
+            return '';
         } catch (error) {
             console.error('Error extracting user ID from token:', error);
-            return 'user-uuid-from-token'; // Placeholder para desarrollo
+            return '';
         }
     };
 
@@ -56,7 +63,29 @@ const SessionPage = () => {
     const getAuthToken = () => {
         // Solo ejecutar en el cliente
         if (typeof window === 'undefined') return null;
-        return Cookies.get('auth-token') || Cookies.get('authToken');
+
+        const token = Cookies.get('authToken');
+
+        if (token) {
+            try {
+                // Verificar si el token ha expirado
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.exp && payload.exp * 1000 < Date.now()) {
+                    console.log('Token ha expirado al obtenerlo');
+                    // Limpiar cookie expirada
+                    Cookies.remove('authToken');
+                    return null;
+                }
+                return token;
+            } catch (error) {
+                console.error('Error verificando token:', error);
+                // Si hay error decodificando, limpiar cookie
+                Cookies.remove('authToken');
+                return null;
+            }
+        }
+
+        return null;
     };
 
     // Función para redirigir a login
@@ -68,27 +97,31 @@ const SessionPage = () => {
         // Marcar que estamos en el cliente para evitar errores de hidratación
         setIsClient(true);
 
-        const id = getUserIdFromToken();
-        setUserId(id);
-
         // Verificar autenticación al cargar el componente
         const authToken = getAuthToken();
         if (!authToken) {
-            // Redirigir automáticamente si no está autenticado
+            // Redirigir automáticamente si no está autenticado o token expirado
+            console.log('No hay token válido, redirigiendo a login');
             redirectToLogin();
             return;
         }
 
+        const id = getUserIdFromToken();
+        if (!id) {
+            console.log('No se pudo obtener userId del token, redirigiendo a login');
+            redirectToLogin();
+            return;
+        }
+        setUserId(id);
+
         // Función para cargar psicólogos desde la base de datos
         const loadPsychologists = async () => {
             try {
-                if (authToken) {
-                    const response = await psychologistsService.getPsychologistsForPatient(authToken);
+                const response = await psychologistsService.getPsychologistsForPatient();
 
-                    // Buscar el psicólogo específico por ID
-                    const foundPsychologist = await psychologistsService.getPsychologistById(response.data, psychologistId);
-                    setPsychologist(foundPsychologist);
-                }
+                // Buscar el psicólogo específico por ID
+                const foundPsychologist = await psychologistsService.getPsychologistById(response.data, psychologistId);
+                setPsychologist(foundPsychologist);
             } catch (error) {
                 console.error('Error loading psychologists:', error);
                 // Si no podemos cargar psicólogos, redirigir a login o mostrar error
@@ -107,13 +140,62 @@ const SessionPage = () => {
         if (psychologist) {
             // Si el psicólogo tiene modalidades, establecer la primera como predeterminada
             if (psychologist.modality) {
-                // Convertir modalidad del psicólogo a formato del formulario si es necesario
+                // Usar directamente la modalidad del psicólogo
                 setModality(psychologist.modality);
             } else {
                 setModality('En línea'); // Valor por defecto
             }
         }
     }, [psychologist]);
+
+    // Función para verificar si un horario está disponible
+    const isTimeAvailable = useCallback(
+        (time: string): boolean => {
+            if (!selectedDate) return false;
+
+            const today = new Date();
+            const selectedDateObj = new Date(selectedDate + 'T00:00:00');
+
+            // Si la fecha seleccionada no es hoy, todos los horarios están disponibles
+            if (selectedDateObj.toDateString() !== today.toDateString()) {
+                return true;
+            }
+
+            // Si es hoy, verificar que la hora sea posterior a la actual
+            const [timeStr, modifier] = time.split(' ');
+            const [hours, minutes] = timeStr.split(':').map(Number);
+
+            let hour24 = hours;
+            if (modifier === 'PM' && hours !== 12) {
+                hour24 = hours + 12;
+            } else if (modifier === 'AM' && hours === 12) {
+                hour24 = 0;
+            }
+
+            const timeDate = new Date();
+            timeDate.setHours(hour24, minutes, 0, 0);
+
+            // Agregar un buffer de 1 hora para permitir tiempo de preparación
+            const currentTimePlusBuffer = new Date(today.getTime() + 60 * 60 * 1000);
+
+            return timeDate > currentTimePlusBuffer;
+        },
+        [selectedDate]
+    );
+
+    // useEffect para verificar periódicamente si la hora seleccionada sigue siendo válida
+    useEffect(() => {
+        if (selectedTime && selectedDate) {
+            const interval = setInterval(() => {
+                if (!isTimeAvailable(selectedTime)) {
+                    setSelectedTime('');
+                    alert('El horario seleccionado ya no está disponible. Por favor, selecciona otro horario.');
+                }
+            }, 60000); // Verificar cada minuto
+
+            return () => clearInterval(interval);
+        }
+    }, [selectedTime, selectedDate, isTimeAvailable]);
 
     const handleDateChange = (date: string) => {
         setSelectedDate(date);
@@ -122,9 +204,14 @@ const SessionPage = () => {
     };
 
     const handleTimeSelect = (time: string) => {
-        setSelectedTime(time);
-        console.log('Hora seleccionada:', time);
-        console.log('Cita completa:', selectedDate, time);
+        // Verificar que el horario aún esté disponible antes de seleccionarlo
+        if (isTimeAvailable(time)) {
+            setSelectedTime(time);
+            console.log('Hora seleccionada:', time);
+            console.log('Cita completa:', selectedDate, time);
+        } else {
+            alert('Este horario ya no está disponible. Por favor, selecciona otro horario.');
+        }
     };
 
     const handleSubmitAppointment = async () => {
@@ -134,10 +221,13 @@ const SessionPage = () => {
             return;
         }
 
-        // Verificar autenticación
+        setLoading(true);
+
+        // Verificar autenticación justo antes de enviar
         const authToken = getAuthToken();
         if (!authToken) {
             alert('No estás autenticado. Por favor, inicia sesión para continuar.');
+            setLoading(false);
             redirectToLogin();
             return;
         }
@@ -145,12 +235,12 @@ const SessionPage = () => {
         const appointmentData = {
             date: selectedDate, // Ya está en formato ISO-8601 (YYYY-MM-DD)
             hour: convertTo24Hour(selectedTime), // Formato HH:mm requerido por backend
-            duration: duration, // Duración del psicólogo
+            duration: 60, // Duración estándar (debe agregarse al backend)
             session_type: sessionType,
             therapy_approach: therapyApproach,
             insurance: insurance || undefined,
-            price: price, // Precio del psicólogo
-            modality: modality, // Usar el valor del enum EModality
+            price: 50000, // Precio estándar (debe agregarse al backend)
+            modality: convertModalityToEnum(modality), // Convertir a enum del backend
             // Campos requeridos por el backend
             user_id: userId, // Obtenido del token
             psychologist_id: psychologist.id, // UUID del psicólogo obtenido del slug
@@ -228,8 +318,20 @@ const SessionPage = () => {
         return `${hours.padStart(2, '0')}:${minutes}`;
     };
 
-    // Horarios disponibles
-    const availableTimes = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM'];
+    // Función para convertir modalidad del frontend al enum del backend
+    const convertModalityToEnum = (modalityValue: string): string => {
+        const modalityMap: { [key: string]: string } = {
+            Presencial: 'IN_PERSON',
+            'En línea': 'ONLINE',
+            Híbrido: 'HYBRID',
+        };
+        return modalityMap[modalityValue] || modalityValue;
+    };
+
+    // Función para obtener horarios filtrados
+    const getFilteredTimes = useCallback((): string[] => {
+        return AVAILABLE_TIMES.filter((time) => isTimeAvailable(time));
+    }, [isTimeAvailable]);
 
     // Función para formatear la fecha ISO a formato legible
     const formatDisplayDate = (isoDate: string): string => {
@@ -290,20 +392,165 @@ const SessionPage = () => {
                                     src={psychologist.profile_picture || '/person-gray-photo-placeholder-woman.webp'}
                                 />
                                 <div>
-                                    <h2 className="text-xl font-semibold">{psychologist.name}</h2>
-                                    <p className="text-gray-600">{psychologist.personal_biography || 'Psicólogo especializado'}</p>
-                                    <div className="flex items-center mt-1">
-                                        <MapPin className="h-4 w-4 text-gray-400 mr-1" />
-                                        <span className="text-sm text-gray-600">{psychologist.office_address || 'Ubicación no especificada'}</span>
+                                    <h2 className="text-2xl font-bold text-gray-900">{psychologist.name}</h2>
+                                    <p className="text-lg text-gray-600">{psychologist.professional_title || 'Psicólogo/a'}</p>
+                                    <p className="text-sm text-gray-500 mt-1">{psychologist.personal_biography}</p>
+
+                                    <div className="flex items-center gap-4 mt-3">
+                                        <div className="flex items-center">
+                                            <MapPin className="h-4 w-4 text-gray-400 mr-1" />
+                                            <span className="text-sm text-gray-600">
+                                                {psychologist.office_address || 'Ubicación no especificada'}
+                                            </span>
+                                        </div>
+                                        {psychologist.professional_experience && (
+                                            <div className="flex items-center">
+                                                <span className="text-sm text-gray-600">
+                                                    📅 {psychologist.professional_experience} años de experiencia
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className="flex items-center mt-1">
+
+                                    <div className="flex items-center gap-4 mt-2">
                                         <span className="text-sm text-gray-600">⭐ 4.8 (Reviews próximamente)</span>
-                                        <span className="text-sm text-gray-600 ml-4">💰 ${price.toLocaleString()}</span>
+                                        <span className="text-sm font-semibold text-green-600">💰 $50.000</span>
+                                        {psychologist.verified && (
+                                            <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                                                ✓ Verificado
+                                            </span>
+                                        )}
                                     </div>
+
+                                    {psychologist.languages && psychologist.languages.length > 0 && (
+                                        <div className="mt-2">
+                                            <span className="text-sm text-gray-600">🗣️ Idiomas: {psychologist.languages.join(', ')}</span>
+                                        </div>
+                                    )}
+
+                                    {psychologist.specialities && psychologist.specialities.length > 0 && (
+                                        <div className="mt-2">
+                                            <span className="text-sm text-gray-600">🎯 Especialidades: </span>
+                                            <div className="flex flex-wrap gap-1 mt-1">
+                                                {psychologist.specialities.slice(0, 3).map((specialty, index) => (
+                                                    <span
+                                                        key={index}
+                                                        className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full"
+                                                    >
+                                                        {specialty}
+                                                    </span>
+                                                ))}
+                                                {psychologist.specialities.length > 3 && (
+                                                    <span className="text-xs text-gray-500">+{psychologist.specialities.length - 3} más</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    {/* Información adicional del psicólogo */}
+                    <div className="rounded-lg border bg-white text-gray-900 shadow-sm mb-8">
+                        <div className="p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Información del Profesional</h3>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {/* Modalidad */}
+                                <div>
+                                    <h4 className="text-sm font-medium text-gray-700 mb-2">Modalidad de Atención</h4>
+                                    <p className="text-sm text-gray-600">{psychologist.modality || 'No especificado'}</p>
+                                </div>
+
+                                {/* Tipos de sesión */}
+                                {psychologist.session_types && psychologist.session_types.length > 0 && (
+                                    <div>
+                                        <h4 className="text-sm font-medium text-gray-700 mb-2">Tipos de Sesión</h4>
+                                        <div className="flex flex-wrap gap-1">
+                                            {psychologist.session_types.map((type, index) => (
+                                                <span
+                                                    key={index}
+                                                    className="inline-flex items-center px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full"
+                                                >
+                                                    {type}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Enfoques terapéuticos */}
+                                {psychologist.therapy_approaches && psychologist.therapy_approaches.length > 0 && (
+                                    <div>
+                                        <h4 className="text-sm font-medium text-gray-700 mb-2">Enfoques Terapéuticos</h4>
+                                        <div className="flex flex-wrap gap-1">
+                                            {psychologist.therapy_approaches.slice(0, 2).map((approach, index) => (
+                                                <span
+                                                    key={index}
+                                                    className="inline-flex items-center px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded-full"
+                                                >
+                                                    {approach}
+                                                </span>
+                                            ))}
+                                            {psychologist.therapy_approaches.length > 2 && (
+                                                <span className="text-xs text-gray-500">+{psychologist.therapy_approaches.length - 2} más</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Seguros aceptados */}
+                                {psychologist.insurance_accepted && psychologist.insurance_accepted.length > 0 && (
+                                    <div>
+                                        <h4 className="text-sm font-medium text-gray-700 mb-2">Obras Sociales Aceptadas</h4>
+                                        <div className="flex flex-wrap gap-1">
+                                            {psychologist.insurance_accepted.slice(0, 3).map((insurance, index) => (
+                                                <span
+                                                    key={index}
+                                                    className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full"
+                                                >
+                                                    {insurance}
+                                                </span>
+                                            ))}
+                                            {psychologist.insurance_accepted.length > 3 && (
+                                                <span className="text-xs text-gray-500">+{psychologist.insurance_accepted.length - 3} más</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Número de licencia */}
+                                {psychologist.license_number && (
+                                    <div>
+                                        <h4 className="text-sm font-medium text-gray-700 mb-2">Número de Licencia</h4>
+                                        <p className="text-sm text-gray-600">#{psychologist.license_number}</p>
+                                    </div>
+                                )}
+
+                                {/* Disponibilidad */}
+                                {psychologist.availability && psychologist.availability.length > 0 && (
+                                    <div>
+                                        <h4 className="text-sm font-medium text-gray-700 mb-2">Disponibilidad</h4>
+                                        <div className="flex flex-wrap gap-1">
+                                            {psychologist.availability.slice(0, 4).map((day, index) => (
+                                                <span
+                                                    key={index}
+                                                    className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full"
+                                                >
+                                                    {day}
+                                                </span>
+                                            ))}
+                                            {psychologist.availability.length > 4 && (
+                                                <span className="text-xs text-gray-500">+{psychologist.availability.length - 4} más</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div className="rounded-lg border bg-white text-gray-900 shadow-sm">
                             <div className="flex flex-col space-y-1.5 p-6">
@@ -337,7 +584,7 @@ const SessionPage = () => {
                             <div className="p-6 pt-0">
                                 <div className="grid grid-cols-2 gap-3">
                                     {selectedDate &&
-                                        availableTimes.map((time) => (
+                                        getFilteredTimes().map((time) => (
                                             <button
                                                 key={time}
                                                 onClick={() => handleTimeSelect(time)}
@@ -356,6 +603,14 @@ const SessionPage = () => {
                                 </div>
                                 {!selectedDate && (
                                     <p className="text-center text-gray-500 py-8">Selecciona una fecha para ver los horarios disponibles</p>
+                                )}
+                                {selectedDate && getFilteredTimes().length === 0 && (
+                                    <p className="text-center text-gray-500 py-8">
+                                        No hay horarios disponibles para esta fecha.
+                                        {new Date(selectedDate + 'T00:00:00').toDateString() === new Date().toDateString()
+                                            ? ' Los horarios deben ser al menos 1 hora después de la hora actual.'
+                                            : ''}
+                                    </p>
                                 )}
                             </div>
                         </div>
@@ -386,25 +641,17 @@ const SessionPage = () => {
                                             required
                                         >
                                             <option value="">Selecciona el tipo de sesión</option>
-                                            {psychologist?.session_types?.map((tipo: string) => {
-                                                const tipoMap: { [key: string]: string } = {
-                                                    INDIVIDUAL: 'Individual',
-                                                    COUPLES: 'Terapia de Parejas',
-                                                    FAMILY: 'Terapia Familiar',
-                                                    GROUP: 'Terapia Grupal',
-                                                };
-                                                return (
-                                                    <option key={tipo} value={tipo}>
-                                                        {tipoMap[tipo] || tipo}
-                                                    </option>
-                                                );
-                                            }) || (
+                                            {psychologist?.session_types?.map((tipo: string) => (
+                                                <option key={tipo} value={tipo}>
+                                                    {tipo}
+                                                </option>
+                                            )) || (
                                                 // Opciones por defecto si no hay datos
                                                 <>
-                                                    <option value="INDIVIDUAL">Individual</option>
-                                                    <option value="COUPLES">Terapia de Parejas</option>
-                                                    <option value="FAMILY">Terapia Familiar</option>
-                                                    <option value="GROUP">Terapia Grupal</option>
+                                                    <option value="Individual">Individual</option>
+                                                    <option value="Pareja">Pareja</option>
+                                                    <option value="Familiar">Familiar</option>
+                                                    <option value="Grupo">Grupo</option>
                                                 </>
                                             )}
                                         </select>
@@ -423,31 +670,17 @@ const SessionPage = () => {
                                             required
                                         >
                                             <option value="">Selecciona el enfoque</option>
-                                            {psychologist?.therapy_approaches?.map((enfoque: string) => {
-                                                const enfoqueMap: { [key: string]: string } = {
-                                                    COGNITIVE_BEHAVIORAL_THERAPY: 'Terapia Cognitivo-Conductual',
-                                                    PSYCHODYNAMIC_THERAPY: 'Terapia Psicodinámica',
-                                                    HUMANISTIC_PERSON_CENTERED_THERAPY: 'Terapia Humanista',
-                                                    FAMILY_SYSTEMS_THERAPY: 'Terapia Sistémica',
-                                                    GESTALT_THERAPY: 'Gestalt',
-                                                    MINDFULNESS_BASED_THERAPY: 'Mindfulness',
-                                                    EYE_MOVEMENT_DESENSITIZATION_REPROCESSING: 'EMDR',
-                                                    DIALECTICAL_BEHAVIORAL_THERAPY: 'Terapia Dialéctico-Conductual',
-                                                    PLAY_THERAPY: 'Terapia de Juego',
-                                                    GROUP_THERAPY: 'Terapia de Grupo',
-                                                };
-                                                return (
-                                                    <option key={enfoque} value={enfoque}>
-                                                        {enfoqueMap[enfoque] || enfoque}
-                                                    </option>
-                                                );
-                                            }) || (
+                                            {psychologist?.therapy_approaches?.map((enfoque: string) => (
+                                                <option key={enfoque} value={enfoque}>
+                                                    {enfoque}
+                                                </option>
+                                            )) || (
                                                 // Opciones por defecto si no hay datos
                                                 <>
-                                                    <option value="COGNITIVE_BEHAVIORAL_THERAPY">Terapia Cognitivo-Conductual</option>
-                                                    <option value="PSYCHODYNAMIC_THERAPY">Terapia Psicodinámica</option>
-                                                    <option value="HUMANISTIC_PERSON_CENTERED_THERAPY">Terapia Humanista</option>
-                                                    <option value="FAMILY_SYSTEMS_THERAPY">Terapia Sistémica</option>
+                                                    <option value="Terapia cognitivo-conductual">Terapia cognitivo-conductual</option>
+                                                    <option value="Terapia psicodinámica">Terapia psicodinámica</option>
+                                                    <option value="Terapia centrada en la persona">Terapia centrada en la persona</option>
+                                                    <option value="Terapia de sistemas familiares">Terapia de sistemas familiares</option>
                                                 </>
                                             )}
                                         </select>
@@ -465,27 +698,15 @@ const SessionPage = () => {
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                                         >
                                             <option value="">Sin seguro médico</option>
-                                            {psychologist?.insurance_accepted?.map((obra: string) => {
-                                                const obraMap: { [key: string]: string } = {
-                                                    OSDE: 'OSDE',
-                                                    SWISS_MEDICAL: 'Swiss Medical',
-                                                    IOMA: 'IOMA',
-                                                    PAMI: 'PAMI',
-                                                    UNION_PERSONAL: 'Unión Personal',
-                                                    SANCOR_SALUD: 'Sancor Salud',
-                                                    APROSS: 'APROSS',
-                                                    OSPRERA: 'OSPRERA',
-                                                };
-                                                return (
-                                                    <option key={obra} value={obra}>
-                                                        {obraMap[obra] || obra}
-                                                    </option>
-                                                );
-                                            }) || (
+                                            {psychologist?.insurance_accepted?.map((obra: string) => (
+                                                <option key={obra} value={obra}>
+                                                    {obra}
+                                                </option>
+                                            )) || (
                                                 // Opciones por defecto si no hay datos
                                                 <>
                                                     <option value="OSDE">OSDE</option>
-                                                    <option value="SWISS_MEDICAL">Swiss Medical</option>
+                                                    <option value="Swiss Medical">Swiss Medical</option>
                                                     <option value="IOMA">IOMA</option>
                                                     <option value="PAMI">PAMI</option>
                                                 </>
@@ -512,9 +733,9 @@ const SessionPage = () => {
                                             ) : (
                                                 // Opciones por defecto si no hay datos específicos
                                                 <>
-                                                    <option value="PRESENCIAL">Presencial</option>
-                                                    <option value="EN_LINEA">En línea</option>
-                                                    <option value="HIBRIDO">Híbrido</option>
+                                                    <option value="Presencial">Presencial</option>
+                                                    <option value="En línea">En línea</option>
+                                                    <option value="Híbrido">Híbrido</option>
                                                 </>
                                             )}
                                         </select>
@@ -525,14 +746,12 @@ const SessionPage = () => {
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Duración de la Sesión</label>
                                             <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600">
-                                                {duration} minutos
+                                                60 minutos
                                             </div>
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Precio de la Sesión</label>
-                                            <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600">
-                                                ${price.toLocaleString()}
-                                            </div>
+                                            <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600">$50.000</div>
                                         </div>
                                     </div>
                                 </div>
@@ -563,7 +782,7 @@ const SessionPage = () => {
                                             <strong>Modalidad:</strong> {modality}
                                         </p>
                                         <p className="text-sm text-gray-600">
-                                            <strong>Duración:</strong> {duration} minutos
+                                            <strong>Duración:</strong> 60 minutos
                                         </p>
                                         {insurance && (
                                             <p className="text-sm text-gray-600">
@@ -571,7 +790,7 @@ const SessionPage = () => {
                                             </p>
                                         )}
                                         <p className="text-sm text-gray-600">
-                                            <strong>Precio:</strong> ${price.toLocaleString()}
+                                            <strong>Precio:</strong> $50.000
                                         </p>
                                     </div>
                                     <button
