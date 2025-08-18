@@ -17,6 +17,7 @@ const CitasUser = () => {
     const [citas, setCitas] = useState<Appointment[]>([]);
     const [userId, setUserId] = useState<string | null>(null);
 
+
     useEffect(() => {
         const token = localStorage.getItem("authToken");
         if (!token) return;
@@ -27,24 +28,32 @@ const CitasUser = () => {
         })
             .then(res => res.json())
             .then(userRes => {
+                if (!userRes || !userRes.data || !userRes.data.id) {
+                    window.alert("No se pudo obtener el usuario. Por favor, vuelve a iniciar sesión.");
+                    // window.location.href = "/login"; // Descomenta si quieres redirigir
+                    return;
+                }
                 const id = userRes.data.id;
                 setUserId(id);
 
                 // 2. Obtener todas las citas
                 return fetch("http://localhost:8080/appointments", {
                     headers: { Authorization: `Bearer ${token}` },
-                });
+                })
+                    .then(res => res.json())
+                    .then(appointmentsRes => {
+                        // 3. Filtrar solo las citas del usuario
+                        const citasUsuario = Array.isArray(appointmentsRes)
+                            ? appointmentsRes.filter((cita: Appointment) => cita.patient && cita.patient.id === id)
+                            : [];
+                        setCitas(citasUsuario);
+                    });
             })
-            .then(res => res.json())
-            .then(appointmentsRes => {
-                // 3. Filtrar solo las citas del usuario
-                const citasUsuario = appointmentsRes.filter(
-                    (cita: Appointment) => cita.patient && cita.patient.id === userId
-                );
-                setCitas(citasUsuario);
-            })
-            .catch(console.error);
-    }, [userId]);
+            .catch((err) => {
+                console.error(err);
+                window.alert("Ocurrió un error al cargar los datos del usuario.");
+            });
+    }, []);
 
     console.log(citas);
 

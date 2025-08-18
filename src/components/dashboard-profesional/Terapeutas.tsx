@@ -32,10 +32,17 @@ const Terapeutas = () => {
         },
         credentials: "include",
       });
-      if (!res.ok) {
-        throw new Error("Error al obtener terapeutas");
-      }
       const result = await res.json();
+      if (!res.ok) {
+        if (res.status === 404) {
+          setError('No se encontraron profesionales para este usuario.');
+        } else {
+          const backendMsg = result?.message || result?.error || JSON.stringify(result);
+          setError(`Error (${res.status}): ${backendMsg}`);
+        }
+        setTerapeutas([]);
+        return;
+      }
       setTerapeutas(result.data || []);
       if (!result.data || result.data.length === 0) {
         setError("No tienes terapeutas conectados todavía.");
