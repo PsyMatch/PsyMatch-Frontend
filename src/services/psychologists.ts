@@ -35,14 +35,38 @@ export const psychologistsService = {
     // Obtener todos los psicólogos verificados
     getPsychologistsForPatient: async (): Promise<PsychologistsApiResponse> => {
         try {
-            const token = Cookies.get('authToken');
+            const token = Cookies.get('authToken') || Cookies.get('auth-token');
+
+            console.log('Service - Checking for tokens:');
+            console.log('authToken:', Cookies.get('authToken'));
+            console.log('auth-token:', Cookies.get('auth-token'));
+            console.log('Selected token:', token);
 
             if (!token) {
                 throw new Error('No authentication token found');
             }
 
-            // Intentar obtener psicólogos del endpoint específico del usuario
-            let response = await fetch(`${API_BASE_URL}/users/me/psychologists`, {
+            // Verificar si el token ha expirado antes de hacer la petición
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                console.log('Token payload:', payload);
+                if (payload.exp && payload.exp * 1000 < Date.now()) {
+                    console.log('Token ha expirado');
+                    Cookies.remove('authToken');
+                    Cookies.remove('auth-token');
+                    throw new Error('Token expired');
+                }
+            } catch (tokenError) {
+                console.error('Error verificando token:', tokenError);
+                Cookies.remove('authToken');
+                Cookies.remove('auth-token');
+                throw new Error('Invalid token');
+            }
+
+            console.log('Making request to:', `${API_BASE_URL}/psychologist/verification/verified`);
+
+            // Usar la ruta correcta para obtener psicólogos verificados
+            const response = await fetch(`${API_BASE_URL}/psychologist/verification/verified`, {
                 method: 'GET',
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -50,27 +74,21 @@ export const psychologistsService = {
                 },
             });
 
-            // Si no funciona, intentar obtener todos los psicólogos verificados
-            if (!response.ok) {
-                response = await fetch(`${API_BASE_URL}/psychologist`, {
-                    method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-            }
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
 
             if (!response.ok) {
+                if (response.status === 401) {
+                    // Token inválido o expirado
+                    Cookies.remove('authToken');
+                    Cookies.remove('auth-token');
+                    throw new Error('Authentication failed - please login again');
+                }
                 throw new Error(`Error fetching psychologists: ${response.statusText}`);
             }
 
             const result = await response.json();
-
-            // Filtrar solo psicólogos verificados
-            if (result.data) {
-                result.data = result.data.filter((psychologist: PsychologistResponse) => psychologist.verified === 'VALIDATED');
-            }
+            console.log('Psychologists result:', result);
 
             return result;
         } catch (error) {
