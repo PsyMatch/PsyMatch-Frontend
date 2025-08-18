@@ -343,7 +343,7 @@ export default function RegisterForm() {
                                     value={values.emergencyContact}
                                     error={errors.emergencyContact && touched.emergencyContact && errors.emergencyContact}
                                 />
-                                <p className="text-xs text-grey-500 mt-1">¨* Este número no puede coincidir con el de teléfono principal.</p>
+                                <p className="mt-1 text-xs text-grey-500">¨* Este número no puede coincidir con el de teléfono principal.</p>
                             </div>
                         </div>
 
