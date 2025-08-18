@@ -1,121 +1,149 @@
-"use client"
-import { createContext, FC, ReactNode, useContext, useEffect, useState } from "react";
-import Cookies from "js-cookie";
+'use client';
+import { createContext, FC, ReactNode, useContext, useEffect, useState } from 'react';
+import Cookies from 'js-cookie';
 
 interface IUser {
-        name: string,
-        email: string,
-        birthdate: Date,
-        dni: number,
-        profile_picture: string | null
-        license_number: number, 
-        office_address: string,
-        specialities: string[], 
-        insurance_accepted: string[], 
+    name: string;
+    email: string;
+    birthdate: Date;
+    dni: number;
+    profile_picture: string | null;
+    license_number: number;
+    office_address: string;
+    specialities: string[];
+    insurance_accepted: string[];
 }
 
 interface RegisterResponse {
-    message: string,
+    message: string;
     data: {
-        id: string,
-        name: string,
-        profile_picture: string | null,
-        phone: number,
-        birthdate: Date,
-        dni: number,
-        health_insurance: null,
-        address: null,
-        emergency_contact: null,
-        latitude: number,
-        longitude: number,
-        email: string,
-        role: string,
-        office_address: string,
-        verified: string,
-        license_number: number,
-        specialities: string[]
-        insurance_accepted: string[]
-    },
-    token: string
+        id: string;
+        name: string;
+        profile_picture: string | null;
+        phone: number;
+        birthdate: Date;
+        dni: number;
+        health_insurance: null;
+        address: null;
+        emergency_contact: null;
+        latitude: number;
+        longitude: number;
+        email: string;
+        role: string;
+        office_address: string;
+        verified: string;
+        license_number: number;
+        specialities: string[];
+        insurance_accepted: string[];
+    };
+    token: string;
 }
 
 type AuthContextType = {
-    isAuth: boolean | null
-    user: IUser | null,
-    token: string | null
-    saveUserData: (data:RegisterResponse) => void
-    resetUserData: () => void
-    setIsAuth: (value: boolean) => void
-}
+    isAuth: boolean | null;
+    user: IUser | null;
+    token: string | null;
+    saveUserData: (data: RegisterResponse) => void;
+    resetUserData: () => void;
+    setIsAuth: (value: boolean) => void;
+};
 
-export const AuthProfessionalContext = createContext<AuthContextType | undefined>(undefined)
+export const AuthProfessionalContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProfessionalProvider: FC<{children: ReactNode}> = ({children}) => {
-    const [isAuth, setIsAuth] = useState<boolean | null>(false)
-    const [user, setUser] = useState<IUser | null>(null)
-    const [token, setToken] = useState<string | null>(null)
-
+export const AuthProfessionalProvider: FC<{ children: ReactNode }> = ({ children }) => {
+    const [isAuth, setIsAuth] = useState<boolean | null>(false);
+    const [user, setUser] = useState<IUser | null>(null);
+    const [token, setToken] = useState<string | null>(null);
 
     useEffect(() => {
         // Al montar, chequea si hay cookie o token guardado
-        const cookieStr = Cookies.get("responseData");
-        const localToken = localStorage.getItem("authToken");
+        const cookieStr = Cookies.get('responseData');
+        const cookieToken = Cookies.get('authToken');
+        const localToken = localStorage.getItem('authToken');
 
-        if (cookieStr && localToken) {
-            const data = JSON.parse(cookieStr);
-            setUser({
-                name: data.data.name,
-                email: data.data.email,
-                birthdate: new Date(data.data.birthdate),
-                dni: data.data.dni,
-                profile_picture: data.data.profile_picture,
-                license_number: data.data.license_number,
-                office_address: data.data.office_address,
-                specialities: data.data.specialities,
-                insurance_accepted: data.data.insurance_accepted
-            });
-            setToken(localToken);
-            setIsAuth(true);
+        // Usar el token que esté disponible (prioridad a cookie)
+        const availableToken = cookieToken || localToken;
+
+        if (cookieStr && availableToken) {
+            try {
+                const data = JSON.parse(cookieStr);
+                setUser({
+                    name: data.data.name,
+                    email: data.data.email,
+                    birthdate: new Date(data.data.birthdate),
+                    dni: data.data.dni,
+                    profile_picture: data.data.profile_picture,
+                    license_number: data.data.license_number,
+                    office_address: data.data.office_address,
+                    specialities: data.data.specialities,
+                    insurance_accepted: data.data.insurance_accepted,
+                });
+                setToken(availableToken);
+                setIsAuth(true);
+
+                // Sincronizar token en ambos lugares si falta
+                if (!cookieToken && localToken) {
+                    Cookies.set('authToken', localToken);
+                }
+                if (!localToken && cookieToken) {
+                    localStorage.setItem('authToken', cookieToken);
+                }
+            } catch (error) {
+                console.error('Error parsing user data:', error);
+                setIsAuth(false);
+            }
         } else {
-            console.log("No hay cookie o token guardado");
+            console.log('No hay cookie o token guardado');
+            setIsAuth(false);
         }
     }, []);
 
+    const saveUserData = (data: RegisterResponse) => {
+        setToken(data.token);
+        setIsAuth(true);
 
- 
-    const saveUserData = (data:RegisterResponse) => {
-        setToken(data.token)
-        setIsAuth(true)
+        // Guardar en ambos lugares para mayor consistencia
+        Cookies.set('responseData', JSON.stringify(data));
+        Cookies.set('authToken', data.token);
+        localStorage.setItem('authToken', data.token);
 
-        Cookies.set("responseData", JSON.stringify(data));
-    }
-
+        // Guardar rol si está disponible
+        if (data.data.role) {
+            Cookies.set('role', data.data.role);
+            localStorage.setItem('role', data.data.role);
+        }
+    };
 
     const resetUserData = () => {
-        setUser(null)
-        setToken(null)
-        setIsAuth(false)
+        setUser(null);
+        setToken(null);
+        setIsAuth(false);
 
-        localStorage.removeItem("authToken")
-        localStorage.removeItem("role")
-        Cookies.remove("userDataCompleta")
-        Cookies.remove("authToken")
-        Cookies.remove("role")
-        window.location.reload()
-    }
+        // Limpiar todo de localStorage
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('role');
 
+        // Limpiar todas las cookies
+        Cookies.remove('responseData');
+        Cookies.remove('authToken');
+        Cookies.remove('role');
+        Cookies.remove('userDataCompleta');
+
+        // Recargar para asegurar el estado limpio
+        window.location.reload();
+    };
 
     return (
-        <AuthProfessionalContext.Provider value={{user, isAuth, saveUserData, token, resetUserData, setIsAuth}}>
+        <AuthProfessionalContext.Provider value={{ user, isAuth, saveUserData, token, resetUserData, setIsAuth }}>
             {children}
         </AuthProfessionalContext.Provider>
-    )
-}
+    );
+};
 
 export const useAuthProfessionalContext = () => {
-  const context = useContext(AuthProfessionalContext)
-  if (!context) {
-    throw new Error("useAuthProfessionalContext debe usarse dentro de un AuthProvider")
-  }
-  return context
-}
+    const context = useContext(AuthProfessionalContext);
+    if (!context) {
+        throw new Error('useAuthProfessionalContext debe usarse dentro de un AuthProvider');
+    }
+    return context;
+};
