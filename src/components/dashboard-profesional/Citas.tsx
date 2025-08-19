@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { appointmentsService, AppointmentResponse } from '@/services/appointments';
+import { appointmentsService, AppointmentResponse, UpdateAppointmentRequest } from '@/services/appointments';
 
 const Citas = () => {
     const [citas, setCitas] = useState<AppointmentResponse[]>([]);
@@ -38,7 +38,8 @@ const Citas = () => {
     // Función para actualizar estado de cita
     const updateAppointmentStatus = async (id: string, newStatus: 'confirmed' | 'cancelled') => {
         try {
-            await appointmentsService.updateAppointment(id, { status: newStatus });
+            const updateData: UpdateAppointmentRequest = { status: newStatus };
+            await appointmentsService.updateAppointment(id, updateData);
 
             // Actualizar la lista local
             setCitas((prev) => prev.map((cita) => (cita.id === id ? { ...cita, status: newStatus } : cita)));

@@ -28,12 +28,24 @@ export interface AppointmentResponse {
 export interface CreateAppointmentRequest {
     date: string; // YYYY-MM-DD
     hour: string; // HH:mm
-    duration?: number;
     notes?: string;
     user_id: string;
     psychologist_id: string;
-    status?: 'pending' | 'confirmed' | 'cancelled' | 'completed';
     modality: 'Presencial' | 'En línea' | 'Híbrido';
+    session_type?: string;
+    therapy_approach?: string;
+    insurance?: string;
+    price?: number;
+}
+
+export interface UpdateAppointmentRequest {
+    date?: string; // YYYY-MM-DD
+    hour?: string; // HH:mm
+    notes?: string;
+    user_id?: string;
+    psychologist_id?: string;
+    status?: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+    modality?: 'Presencial' | 'En línea' | 'Híbrido';
     session_type?: string;
     therapy_approach?: string;
     insurance?: string;
@@ -233,7 +245,7 @@ export const appointmentsService = {
     },
 
     // Actualizar una cita
-    updateAppointment: async (appointmentId: string, updateData: Partial<CreateAppointmentRequest>): Promise<AppointmentResponse> => {
+    updateAppointment: async (appointmentId: string, updateData: UpdateAppointmentRequest): Promise<AppointmentResponse> => {
         try {
             const token = Cookies.get('authToken') || Cookies.get('auth-token');
 

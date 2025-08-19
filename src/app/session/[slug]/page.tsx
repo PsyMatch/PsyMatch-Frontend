@@ -248,7 +248,6 @@ const SessionPage = () => {
         const appointmentData: CreateAppointmentRequest = {
             date: selectedDate, // Ya está en formato ISO-8601 (YYYY-MM-DD)
             hour: convertTo24Hour(selectedTime), // Formato HH:mm requerido por backend
-            duration: 45, // Duración estándar
             session_type: sessionType,
             therapy_approach: therapyApproach,
             insurance: insurance || undefined,
@@ -257,7 +256,6 @@ const SessionPage = () => {
             // Campos requeridos por el backend
             user_id: userId, // Obtenido del token
             psychologist_id: psychologist.id, // UUID del psicólogo obtenido del slug
-            status: 'pending', // Estado inicial (backend espera minúsculas)
         };
 
         console.log('=== DEBUGGING APPOINTMENT DATA ===');
@@ -341,7 +339,6 @@ const SessionPage = () => {
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {!isClient ? (
-                // Mostrar loading hasta que la hidratación esté completa
                 <div className="text-center py-8">
                     <p className="text-gray-500">Cargando...</p>
                 </div>
@@ -374,7 +371,7 @@ const SessionPage = () => {
                                     src={psychologist.profile_picture || '/person-gray-photo-placeholder-woman.webp'}
                                 />
                                 <div>
-                                    <h2 className="text-2xl font-bold text-gray-900">{psychologist.name}</h2>
+                                    <h2 className="text-2xl font-bold text-gray-900">Dr/a {psychologist.name}</h2>
                                     <p className="text-lg text-gray-600">{psychologist.professional_title || 'Psicólogo/a'}</p>
                                     <p className="text-sm text-gray-500 mt-1">{psychologist.personal_biography}</p>
 
