@@ -1,6 +1,6 @@
 'use client';
 import { initialValuesTipos, validationSchema, Valores } from '@/helpers/formRegister/register-profesional';
-import { Formik, Form, ErrorMessage } from 'formik';
+import { Formik, Form, ErrorMessage, Field } from 'formik';
 import React, { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
@@ -103,6 +103,7 @@ const Services_Prices = () => {
         modality: '',
         insurance_accepted: [],
         availability: [],
+        consultation_fee: 0,
     });
 
     useEffect(() => {
@@ -116,6 +117,7 @@ const Services_Prices = () => {
                     modality: cookieData.modality || '',
                     insurance_accepted: cookieData.insurance_accepted || [],
                     availability: cookieData.availability || [],
+                    consultation_fee: cookieData.consultation_fee || 0,
                 });
             } catch (error) {
                 console.error(error);
@@ -183,21 +185,11 @@ const Services_Prices = () => {
                     localStorage.setItem('authToken', data.token);
                     Cookies.set('authToken', data.token);
                 }
-
-                
+       
                 saveUserData(data);
                 
-                if (data.role) {
-                    Cookies.set("role", data.role, { path: '/' });
-                }
-
-                // Redirigir según el tipo de usuario
-                if (data.rol === 'Psicólogo') {
-                    router.push('/dashboard/professional')
-                } if(data.rol === 'Administrador') {
-                    router.push('/dashboard/admin')
-                } else {
-                    router.push('/dashboard/user')
+                if (data.data.role) {
+                    Cookies.set("role", data.data.role, { path: '/' });
                 }
             }
 
@@ -210,8 +202,18 @@ const Services_Prices = () => {
                 draggable: true,
             });
             Cookies.remove('userDataCompleta');
- 
-            router.push('/');
+
+            const rol = Cookies.get("role");
+
+            // Redirigir según el tipo de usuario
+            if (rol === 'Psicólogo') {
+                router.push('/dashboard/professional')
+            } if(rol === 'Administrador') {
+                router.push('/dashboard/admin')
+            } else {
+                router.push('/dashboard/user')
+            }
+
         } catch (error:any) {
             console.error('Error:', error);
             toast.update(toastId, {
@@ -318,6 +320,20 @@ const Services_Prices = () => {
                                     {tipo}
                                 </label>
                             ))}
+                        </div>
+
+
+                        <div className='mt-10'>
+                            <label className="text-sm font-medium leading-none" htmlFor="consultation_fee">
+                                Precio de tus Sesiones *
+                            </label>
+                            <Field
+                                name="consultation_fee"
+                                type="number"
+                                id="consultation_fee"
+                                className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
+                            />
+                            <ErrorMessage name="consultation_fee" component="div" className="mt-1 text-sm text-red-500" />
                         </div>
 
                         <div className="mt-10 font-bold">Modalidad del Servicio *</div>
