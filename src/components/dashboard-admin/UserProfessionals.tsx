@@ -49,7 +49,7 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                         <div className="flex flex-col items-start justify-center w-full h-full gap-8 p-4 bg-gray-100 border-2 border-gray-200 rounded-md text-start">
                             <div className="grid grid-cols-[1fr,2fr,1fr] w-full">
                                 <div className="w-24 h-24 bg-gray-200 rounded-full">
-                                    <Image src={psicologo.profile_picture} alt="error" className="object-cover w-full h-full rounded-full" />
+                                    <Image src={psicologo.profile_picture} alt="error" className="object-cover rounded-full" width={96} height={96} />
                                 </div>
                                 <div>
                                     <li className="font-bold text-violet-800">{psicologo.name}</li>

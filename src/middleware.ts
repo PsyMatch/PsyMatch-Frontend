@@ -17,7 +17,7 @@ export function middleware(request: NextRequest) {
         return NextResponse.redirect(homeUrl);
     }
 
-    if ((pathname === '/login' || pathname === '/register-user' || pathname === '/professional/register') && request.cookies.get('authToken')) {
+    if ((pathname === '/login' || pathname === '/register-user' || pathname === '/register-professional') && request.cookies.get('authToken')) {
         const dashboardUrl = new URL('/', origin);
         return NextResponse.redirect(dashboardUrl);
     }

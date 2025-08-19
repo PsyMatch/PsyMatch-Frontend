@@ -17,7 +17,7 @@ const UserPacientes = ({ data }: UserPacientesProps) => {
                         <div className="flex flex-col items-start justify-center w-full h-full gap-2 p-4 bg-gray-100 border-2 border-gray-200 rounded-md text-start">
                             <div className="flex flex-row gap-5">
                                 <div className="w-24 h-24 bg-gray-200 rounded-full">
-                                    <Image src={paciente.profile_picture} alt="error" className="object-cover w-full h-full rounded-full" />
+                                    <Image src={paciente.profile_picture} alt="error" className="object-cover rounded-full" width={96} height={96} />
                                 </div>
                                 <div>
                                     <li className="font-bold text-violet-800">{paciente.name}</li>
