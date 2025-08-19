@@ -7,7 +7,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     children?: React.ReactNode;
 }
 
-const Input = ({ id, label, className, name, error, value, children, ...rest }: InputProps) => {
+const Input = ({ id, label, name, error, value, children, ...rest }: InputProps) => {
     return (
         <div className="flex flex-col mb-3">
             <label

@@ -1,12 +1,34 @@
-import profesionales from '@/constants/profesionales';
+"use client"
 import { Calendar } from 'lucide-react';
-import { Star } from 'lucide-react';
 import { Clock } from 'lucide-react';
 import { MapPin } from 'lucide-react';
-import { DollarSign } from 'lucide-react';
+
 import Link from 'next/link';
 
+import { PsychologistResponse, PsychologistsApiResponse, psychologistsService } from '@/services/psychologists';
+import { useEffect, useState } from 'react';
+
+
+
 const Cards = () => {
+    const [profesionales, setProfesionales] = useState<PsychologistResponse[]>([]);
+
+    useEffect(() => {
+        const loadPsychologists = async () => {
+            try {
+                const response: PsychologistsApiResponse = await psychologistsService.getPsychologistsForPatient();
+                console.log("Response final: ",response)
+                const soloTres = response.data.slice(3, 6);
+                setProfesionales(soloTres);
+            } catch (error) {
+                console.error('Error loading psychologists:', error);
+
+            }
+        };
+
+        loadPsychologists();
+    }, []);
+
     return (
         <>
             {profesionales.map((profesional) => (
@@ -15,15 +37,11 @@ const Cards = () => {
                         <div className="bg-[#DFDFDF] rounded-full w-14 h-14"></div>
                         <div className="flex flex-col">
                             <span className="font-bold">{profesional.name}</span>
-                            <div className="flex flex-row items-center">
-                                <Star height={15} className="text-yellow-400" />
-                                <span className="text-[#3C3C3C] text-sm">{profesional.reseñas}</span>
-                            </div>
                         </div>
                     </div>
 
                     <ul className="flex flex-row flex-wrap gap-3 mt-5">
-                        {profesional.especialidades.map((especialidad, index) => (
+                        {profesional?.specialities?.map((especialidad, index) => (
                             <li key={index} className="py-1 text-[12px] px-2 w-fit text-black bg-[#DFDFDF] rounded-[50px]">
                                 {especialidad}
                             </li>
@@ -33,15 +51,15 @@ const Cards = () => {
                     <div className="flex flex-col items-start text-[#3C3C3C] gap-1 text-sm mt-5 pl-3">
                         <div className="flex flex-row items-center gap-1">
                             <MapPin height={15} />
-                            <span>{profesional.ubicacion}</span>
+                            <span>{profesional.office_address}</span>
                         </div>
-                        <div className="flex flex-row items-center gap-1">
+                        {/* <div className="flex flex-row items-center gap-1">
                             <DollarSign height={15} />
                             <span>$ {profesional.precio}/sesión</span>
-                        </div>
+                        </div> */}
                         <div className="flex flex-row items-center gap-1">
                             <Clock height={15} className="text-green-700" />
-                            <span className="text-green-700">{profesional.disponibilidad}</span>
+                            <span className="text-green-700 ">{profesional.availability}</span>
                         </div>
                     </div>
 

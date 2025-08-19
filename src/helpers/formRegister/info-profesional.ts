@@ -2,14 +2,16 @@ export interface ValoresInfoProfesional {
     personal_biography: string;
     languages: string[];
     license_number: string | null;
-    professional_experience: string | null
-    office_address: string | null
+    professional_title: string | null;
+    professional_experience: string | null;
+    office_address: string | null;
 }
 
 export const initialValuesInfoProfesional: ValoresInfoProfesional = {
     personal_biography: "",
     languages: [],
     license_number: "",
+    professional_title: "",
     professional_experience: "",
     office_address: ""
 }
@@ -23,6 +25,8 @@ export const validationSchemaInfoProfesional = Yup.object().shape({
         .of(Yup.string().required())
         .required("Debes poner al menos un idioma"),
     license_number: Yup.mixed().required('La matricula es obligatoria'),
+    professional_title: Yup.mixed().required('El titulo profesional es obligatorio'),
+    professional_experience: Yup.mixed().required('La experiencia profesional es obligatoria, si no tienes pone 0'),
 })
 
 

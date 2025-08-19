@@ -1,63 +1,64 @@
 'use client';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import * as Yup from 'yup';
-import { User, Mail, Phone, Camera, Upload } from 'lucide-react';
+import { User, Mail, Phone, Upload } from 'lucide-react';
 import { useBotonesRegisterContext } from '@/context/botonesRegisterContext';
 import { useEffect, useState } from 'react';
 import { AutoSaveCookies, dataToSave, getCookieObject, saveMerged } from '@/helpers/formRegister/helpers';
 import { useFotoDePerfil } from '@/context/fotoDePerfil';
-
-
-
+import Image from 'next/image';
 
 const PersonalInformation = () => {
-    const {avanzarPaso} = useBotonesRegisterContext()
-    
-     const { profileImagePreview, handleImageUpload } = useFotoDePerfil();
+    const { avanzarPaso } = useBotonesRegisterContext();
 
-    
+    const { profileImagePreview, handleImageUpload } = useFotoDePerfil();
 
     const [initialValues, setInitialValues] = useState({
-        name: "",
+        name: '',
         email: '',
         phone: '',
-        password: "",
-        confirmPassword: "",
+        password: '',
+        confirmPassword: '',
         birthdate: '',
-        dni: "",
-        profile_picture: null
+        dni: '',
+        profile_picture: null,
     });
-    
 
-useEffect(() => {
-  if (initialValues.name === "" && initialValues.email === "") {
-    const cookieData = getCookieObject();
-    if (cookieData) {
-      try {
-        setInitialValues({
-          name: cookieData.name || "",
-          email: cookieData.email || "",
-          phone: cookieData.phone || "",
-          password: cookieData.password || "",
-          confirmPassword: cookieData.confirmPassword || "",
-          birthdate: cookieData.birthdate || "",
-          dni: cookieData.dni || "",
-          profile_picture: null
-        });
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  }
-}, []);
+    useEffect(() => {
+        if (initialValues.name === '' && initialValues.email === '') {
+            const cookieData = getCookieObject();
+            if (cookieData) {
+                try {
+                    setInitialValues({
+                        name: cookieData.name || '',
+                        email: cookieData.email || '',
+                        phone: cookieData.phone || '',
+                        password: cookieData.password || '',
+                        confirmPassword: cookieData.confirmPassword || '',
+                        birthdate: cookieData.birthdate || '',
+                        dni: cookieData.dni || '',
+                        profile_picture: null,
+                    });
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+        }
+    }, [initialValues.email, initialValues.name]);
 
+    const today = new Date();
+    const haceDieciochoAños = new Date(
+    today.getFullYear() - 18,
+    today.getMonth(),
+    today.getDate()
+    );
 
     const validationSchema = Yup.object({
         name: Yup.string().required('El nombre es obligatorio'),
         email: Yup.string().email('Correo inválido').required('El correo es obligatorio'),
         phone: Yup.string()
             .required('El número es obligatorio')
-            .matches(/^\d{2}\s?\d{4}\s?\d{4}$/, 'El número debe tener 10 dígitos, puede incluir espacios'),
+            .matches(/^\d{10}$/, 'El número debe tener exactamente 10 dígitos'),
         password: Yup.string()
             .min(8, 'La contraseña debe tener al menos 8 caracteres')
             .matches(/(?=.*[a-z])/, 'Debe contener al menos una letra minúscula')
@@ -69,7 +70,7 @@ useEffect(() => {
             .required('Confirmar contraseña es obligatorio'),
         birthdate: Yup.date()
             .required('La fecha de nacimiento es obligatoria')
-            .max(new Date(), 'La fecha de nacimiento no puede ser posterior a hoy')
+            .max(haceDieciochoAños, 'Debes ser mayor de 18 años')
             .typeError('Debe ser una fecha válida'),
         dni: Yup.string()
             .required('El DNI es obligatorio')
@@ -88,15 +89,14 @@ useEffect(() => {
     }
 
     const handleSubmit = (values: PersonalInformationFormValues) => {
-        const toSave = dataToSave(values)
-        console.log("Guardando en cookie (submit):", toSave);
-        saveMerged(toSave)
+        const toSave = dataToSave(values as unknown as Record<string, unknown>);
+        console.log('Guardando en cookie (submit):', toSave);
+        saveMerged(toSave);
 
         //API
 
         avanzarPaso();
     };
-
 
     return (
         <div className="text-gray-900 bg-white shadow-sm ">
@@ -109,8 +109,8 @@ useEffect(() => {
             </div>
 
             <div className="pb-6 space-y-6">
-                <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit} enableReinitialize >
-                    {({ setFieldValue, values }) => (
+                <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit} enableReinitialize>
+                    {() => (
                         <Form className="space-y-6">
                             <AutoSaveCookies />
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -217,17 +217,22 @@ useEffect(() => {
                                 </div>
                             </div>
 
-
-
                             {/* Subidas de imágenes */}
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
-                                    <label className="text-sm font-medium leading-none" htmlFor='profile_picture'>
+                                    <label className="text-sm font-medium leading-none" htmlFor="profile_picture">
                                         Foto de perfil profesional *
                                     </label>
                                     <div className="flex items-center mt-2 space-x-4">
-                                           
-                                            {profileImagePreview && <img src={profileImagePreview} alt="Preview" />}
+                                        {profileImagePreview && (
+                                            <Image
+                                                src={profileImagePreview}
+                                                alt="Preview"
+                                                width={80}
+                                                height={80}
+                                                className="object-cover rounded-full"
+                                            />
+                                        )}
                                         <div>
                                             <input
                                                 type="file"
@@ -237,19 +242,21 @@ useEffect(() => {
                                                 id="profile_picture"
                                             />
                                             <label
-                                                htmlFor='profile_picture'
+                                                htmlFor="profile_picture"
                                                 className="inline-flex items-center h-10 gap-2 px-4 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                                             >
                                                 <Upload className="h-4 min-w-4 w-fit" />
                                                 Subir Foto
                                             </label>
                                             <p className="mt-1 text-sm text-gray-500">JPG, PNG hasta 5MB</p>
-                                            <ErrorMessage name='profile_picture' component="div" className="mt-1 text-sm text-red-500" />
+                                            <ErrorMessage name="profile_picture" component="div" className="mt-1 text-sm text-red-500" />
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <button type="submit" className="px-4 py-1 mt-10 rounded-xl bg-violet-600">Continuar</button>
+                            <button type="submit" className="px-4 py-1 mt-10 rounded-xl bg-violet-600">
+                                Continuar
+                            </button>
                         </Form>
                     )}
                 </Formik>
