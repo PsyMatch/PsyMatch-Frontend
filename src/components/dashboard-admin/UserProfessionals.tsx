@@ -1,6 +1,8 @@
 "use client"
 import { Paciente } from "@/app/dashboard/admin/page";
-import { useEffect, useState } from "react";
+import { envs } from "@/config/envs.config";
+import Image from "next/image";
+import { useState } from "react";
 
 interface UserProfessionalsProps {
   data: Paciente[];
@@ -9,7 +11,7 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
 
     const handleAccept = async (id: string) => {
         const token = localStorage.getItem("authToken");
-        const response = await fetch(`http://localhost:8080/psychologist/verification/${id}/verify `, {
+        const response = await fetch(`${envs.next_public_api_url}/psychologist/verification/${id}/verify`, {
             method: "PUT",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -53,7 +55,7 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                             <div className="flex flex-col items-start justify-center w-full h-full gap-8 p-4 bg-gray-100 border-2 border-gray-200 rounded-md text-start">
                                 <div className="grid grid-cols-[1fr,2fr,1fr] w-full">
                                     <div className="w-24 h-24 bg-gray-200 rounded-full">
-                                        <img src={psicologo.profile_picture} alt="error" className="object-cover w-full h-full rounded-full" />
+                                        <Image src={psicologo.profile_picture} alt="error" className="object-cover w-full h-full rounded-full" />
                                     </div>
                                     <div>
                                         <li className="font-bold text-violet-800">{psicologo.name}</li>
