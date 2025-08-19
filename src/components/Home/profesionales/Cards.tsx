@@ -1,16 +1,12 @@
-"use client"
+'use client';
 import { Calendar } from 'lucide-react';
-import { Star } from 'lucide-react';
 import { Clock } from 'lucide-react';
 import { MapPin } from 'lucide-react';
-import { DollarSign } from 'lucide-react';
 
 import Link from 'next/link';
 
 import { PsychologistResponse, PsychologistsApiResponse, psychologistsService } from '@/services/psychologists';
 import { useEffect, useState } from 'react';
-
-
 
 const Cards = () => {
     const [profesionales, setProfesionales] = useState<PsychologistResponse[]>([]);
@@ -19,12 +15,11 @@ const Cards = () => {
         const loadPsychologists = async () => {
             try {
                 const response: PsychologistsApiResponse = await psychologistsService.getPsychologistsForPatient();
-                console.log("Response final: ",response)
+                console.log('Response final: ', response);
                 const soloTres = response.data.slice(3, 6);
                 setProfesionales(soloTres);
             } catch (error) {
                 console.error('Error loading psychologists:', error);
-
             }
         };
 
@@ -66,8 +61,16 @@ const Cards = () => {
                     </div>
 
                     <div className="flex flex-row gap-5 mt-5 ">
-                        <Link href={`professionalProfile/${profesional.id}`} className="text-center hover:bg-gray-200 px-3 w-[45%] py-1 border-2 border-gray-400 rounded-md text-md">Ver Perfil</Link>
-                        <Link href={"#"} className="hover:bg-gray-900 flex flex-row gap-2 px-3 w-[45%] py-1 bg-black text-white items-center justify-center rounded-md text-md">
+                        <Link
+                            href={`professionalProfile/${profesional.id}`}
+                            className="text-center hover:bg-gray-200 px-3 w-[45%] py-1 border-2 border-gray-400 rounded-md text-md"
+                        >
+                            Ver Perfil
+                        </Link>
+                        <Link
+                            href={'#'}
+                            className="hover:bg-gray-900 flex flex-row gap-2 px-3 w-[45%] py-1 bg-black text-white items-center justify-center rounded-md text-md"
+                        >
                             <Calendar height={20} />
                             Reservar
                         </Link>

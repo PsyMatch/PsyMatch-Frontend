@@ -1,8 +1,5 @@
-import { useEffect, useState } from "react";
-
 const ReseñasAdmin = () => {
-    const [reseñas, setReseñas] = useState([]);
-    
+    // const [reseñas, setReseñas] = useState([]);
     //TIENEN QUE HACER UNA RUTA PARA TRAER TODAS LAS RESEÑAS
 
     // useEffect(() => {
@@ -28,7 +25,7 @@ const ReseñasAdmin = () => {
                 ))}
             </ul> */}
         </div>
-    )
-}
+    );
+};
 
-export default ReseñasAdmin
+export default ReseñasAdmin;

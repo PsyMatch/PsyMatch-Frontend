@@ -1,5 +1,4 @@
-import { profesionales } from "@/helpers/professional";
-import { IProfessional } from "@/services/prrofessionalProfile";
+import { IProfessional } from '@/services/prrofessionalProfile';
 
 const InfoRapida = ({ data }: { data: IProfessional }) => {
     return (
@@ -30,12 +29,9 @@ const InfoRapida = ({ data }: { data: IProfessional }) => {
                 <ul className="flex flex-row">
                     {data.insurance_accepted?.length ? (
                         data.insurance_accepted.map((obra, index) => (
-                        <li
-                            key={index}
-                            className="px-2 py-[0.8px] mr-1 text-[11px] text-white text-center bg-[#5046E7] w-fit h-fit rounded-xl"
-                        >
-                            {obra}
-                        </li>
+                            <li key={index} className="px-2 py-[0.8px] mr-1 text-[11px] text-white text-center bg-[#5046E7] w-fit h-fit rounded-xl">
+                                {obra}
+                            </li>
                         ))
                     ) : (
                         <li className="text-sm text-gray-400">Sin obras sociales registradas</li>
@@ -43,7 +39,7 @@ const InfoRapida = ({ data }: { data: IProfessional }) => {
                 </ul>
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default InfoRapida;

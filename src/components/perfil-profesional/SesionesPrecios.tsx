@@ -1,5 +1,4 @@
-import { profesionales } from "@/helpers/professional";
-import { IProfessional } from "@/services/prrofessionalProfile";
+import { IProfessional } from '@/services/prrofessionalProfile';
 
 const SesionesPrecios = ({ data }: { data: IProfessional }) => {
     return (
@@ -11,7 +10,7 @@ const SesionesPrecios = ({ data }: { data: IProfessional }) => {
                 </div>
             ))}
         </div>
-    )
-}
+    );
+};
 
 export default SesionesPrecios;
