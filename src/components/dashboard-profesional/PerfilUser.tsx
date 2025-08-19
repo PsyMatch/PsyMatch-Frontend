@@ -5,6 +5,7 @@ import Input from '../ui/input';
 import { Camera } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { envs } from '@/config/envs.config';
 
 type UserProfile = {
     id?: string;
@@ -61,7 +62,7 @@ const PerfilUser = () => {
                     router.push('/login');
                     return;
                 }
-                const res = await fetch('`${envs.next_public_api_url}/users/me', {
+                const res = await fetch(`${envs.next_public_api_url}/users/me`, {
                     method: 'GET',
                     headers: {
                         Authorization: `Bearer ${token}`,
