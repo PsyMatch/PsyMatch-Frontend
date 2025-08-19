@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from "react"
 import { Field, Formik } from "formik"
 import { Form } from "formik"
+import Image from "next/image";
+import { Camera } from "lucide-react";
 
 interface ResponseDataProfile {
     name: string;
@@ -18,6 +20,7 @@ interface ResponseDataProfile {
     modality: string;
     specialities: string[]
     availability: string[];
+    profileImage?: string;
 }
 
 const Perfil = () => {
@@ -36,6 +39,10 @@ const Perfil = () => {
         .then(res => res.json())
             .then(response => {
                 setPerfil(response.data);
+                setProfileImage(
+                    response.data.profileImage || response.data.profile_picture ||
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(response.data.fullName || response.data.name || 'Profesional')}`
+                );
         })
         .catch(console.error);
     }, []);
@@ -84,19 +91,19 @@ const Perfil = () => {
 
 
 
-    // const [profileImage, setProfileImage] = useState<string>("https://ui-avatars.com/api/?name=Profesional&background=E0E7FF&color=3730A3");
+    const [profileImage, setProfileImage] = useState<string>("https://ui-avatars.com/api/?name=Profesional&background=E0E7FF&color=3730A3");
     const [editable, setEditable] = useState<boolean>(false);
 
-    // const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     const file = e.target.files?.[0];
-    //     if (file) {
-    //         const reader = new FileReader();
-    //         reader.onloadend = () => {
-    //             setProfileImage(reader.result as string);
-    //         };
-    //         reader.readAsDataURL(file);
-    //     }
-    // };
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setProfileImage(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     const [menuEnfoques, setMenuEnfoques] = useState<boolean>(false);
     const [menuEspecialidades, setMenuEspecialidades] = useState<boolean>(false);
@@ -111,7 +118,7 @@ const Perfil = () => {
         <div className="flex flex-col w-full gap-8 px-2 py-8 md:flex-row bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl">
             <div className="flex flex-col items-center w-full md:w-1/2">
                 {/* ...profile image code... */}
-            </div>
+            </div> 
             <div className="flex flex-col w-full md:w-1/2">
                 <div className="p-8 bg-white rounded-lg shadow-md">
                     <div className="flex items-center justify-between mb-6">
@@ -134,6 +141,7 @@ const Perfil = () => {
                             insurance_accepted: perfil?.insurance_accepted || [],
                             session_types: perfil?.session_types || [],
                             modality: perfil?.modality || "",
+                            profileImage: perfil?.profileImage || "",
                         }}
                         onSubmit={(values) => {
                             if (!perfil) return;
@@ -142,6 +150,53 @@ const Perfil = () => {
                     >
                         {({ values, handleChange, setFieldValue  }) => (
                             <Form className="space-y-6">
+                                      {/* Panel imagen */}
+                                <div className="flex flex-col items-center w-full md:w-1/2">
+                                    <div className="flex flex-col items-center w-full p-8 bg-white rounded-lg shadow">
+                                    <div className="relative mb-4">
+                                        <Image
+                                        src={
+                                            profileImage && typeof profileImage === 'string' && profileImage.trim() !== ''
+                                            ? profileImage
+                                            : `https://ui-avatars.com/api/?name=${encodeURIComponent(perfil?.name || 'Usuario')}`
+                                        }
+                                        alt="profile"
+                                        width={128}
+                                        height={128}
+                                        className="object-cover w-32 h-32 bg-gray-200 rounded-full"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            if (!target.src.includes('ui-avatars.com')) {
+                                            target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(perfil?.name || 'Usuario')}`;
+                                            }
+                                        }}
+                                        />
+                                        {editable && (
+                                        <>
+                                            <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageUpload}
+                                            className="hidden"
+                                            id="profile-upload"
+                                            />
+                                            <label
+                                            htmlFor="profile-upload"
+                                            className="absolute p-2 bg-gray-200 rounded-full shadow cursor-pointer bottom-2 right-2 hover:bg-gray-300"
+                                            >
+                                            <Camera className="w-5 h-5 text-gray-600" />
+                                            </label>
+                                        </>
+                                        )}
+                                    </div>
+                                    <h3 className="mb-1 text-xl font-semibold">{perfil?.name}</h3>
+                                    <p className="mb-2 text-gray-500">{perfil?.email}</p>
+                                    <div className="mb-2 text-sm text-gray-400">{perfil?.phone}</div>
+                                    <div className="text-xs text-gray-400">
+                                        Obra Social: {perfil?.insurance_accepted || 'No especificada'}
+                                    </div>
+                                    </div>
+                                </div>
                                 <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
                                     <div>
                                         <label className="block mb-1 text-sm font-medium">Nombre Completo</label>
