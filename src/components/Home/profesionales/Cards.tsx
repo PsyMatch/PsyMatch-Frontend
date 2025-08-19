@@ -1,9 +1,7 @@
 "use client"
 import { Calendar } from 'lucide-react';
-import { Star } from 'lucide-react';
 import { Clock } from 'lucide-react';
 import { MapPin } from 'lucide-react';
-import { DollarSign } from 'lucide-react';
 
 import Link from 'next/link';
 
