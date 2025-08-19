@@ -1,7 +1,7 @@
 'use client';
 
 import Calendario from '@/components/session/Calendar';
-import { envs } from '@/config/envs.config';
+import { appointmentsService, CreateAppointmentRequest } from '@/services/appointments';
 import { psychologistsService, PsychologistResponse } from '@/services/psychologists';
 import { Calendar, Clock, MapPin } from 'lucide-react';
 import Image from 'next/image';
@@ -40,6 +40,12 @@ const SessionPage = () => {
             if (token) {
                 // Decodificar JWT payload (parte central del token)
                 const payload = JSON.parse(atob(token.split('.')[1]));
+                console.log('=== TOKEN PAYLOAD DEBUG ===');
+                console.log('Payload completo:', payload);
+                console.log('payload.sub:', payload.sub);
+                console.log('payload.userId:', payload.userId);
+                console.log('payload.id:', payload.id);
+                console.log('===========================');
 
                 // Verificar si el token ha expirado
                 if (payload.exp && payload.exp * 1000 < Date.now()) {
@@ -49,7 +55,9 @@ const SessionPage = () => {
                     return '';
                 }
 
-                return payload.sub || payload.userId || payload.id;
+                const extractedId = payload.sub || payload.userId || payload.id;
+                console.log('ID extraído del token:', extractedId);
+                return extractedId;
             }
 
             return '';
@@ -114,25 +122,23 @@ const SessionPage = () => {
         }
         setUserId(id);
 
-        // Función para cargar psicólogos desde la base de datos
-        const loadPsychologists = async () => {
+        // Función para cargar el psicólogo específico desde la base de datos
+        const loadPsychologist = async () => {
             try {
-                const response = await psychologistsService.getPsychologistsForPatient();
-
-                // Buscar el psicólogo específico por ID
-                const foundPsychologist = await psychologistsService.getPsychologistById(response.data, psychologistId);
+                // Usar la nueva ruta más eficiente que trae solo el psicólogo específico
+                const foundPsychologist = await psychologistsService.getPsychologistByIdDirect(psychologistId);
                 setPsychologist(foundPsychologist);
             } catch (error) {
-                console.error('Error loading psychologists:', error);
-                // Si no podemos cargar psicólogos, redirigir a login o mostrar error
+                console.error('Error loading psychologist:', error);
+                // Si no podemos cargar el psicólogo, redirigir a login o mostrar error
                 redirectToLogin();
             } finally {
                 setLoading(false);
             }
         };
 
-        // Cargar psicólogos desde la base de datos
-        loadPsychologists();
+        // Cargar el psicólogo específico desde la base de datos
+        loadPsychologist();
     }, [psychologistId, router, redirectToLogin]);
 
     // useEffect separado para manejar la configuración inicial cuando se carga el psicólogo
@@ -232,72 +238,58 @@ const SessionPage = () => {
             return;
         }
 
-        const appointmentData = {
+        // Mapear modalidades del frontend al backend (el backend espera valores en español)
+        const modalityMapping: { [key: string]: 'Presencial' | 'En línea' | 'Híbrido' } = {
+            'En línea': 'En línea',
+            Presencial: 'Presencial',
+            Híbrido: 'Híbrido',
+        };
+
+        const appointmentData: CreateAppointmentRequest = {
             date: selectedDate, // Ya está en formato ISO-8601 (YYYY-MM-DD)
             hour: convertTo24Hour(selectedTime), // Formato HH:mm requerido por backend
-            duration: 60, // Duración estándar (debe agregarse al backend)
+            duration: 45, // Duración estándar
             session_type: sessionType,
             therapy_approach: therapyApproach,
             insurance: insurance || undefined,
-            price: 50000, // Precio estándar (debe agregarse al backend)
-            modality: convertModalityToEnum(modality), // Convertir a enum del backend
+            price: 50000, // Precio estándar
+            modality: modalityMapping[modality] || 'En línea', // Mapear valores (backend espera español)
             // Campos requeridos por el backend
             user_id: userId, // Obtenido del token
             psychologist_id: psychologist.id, // UUID del psicólogo obtenido del slug
-            status: 'pending', // Estado inicial según AppointmentStatus enum
+            status: 'pending', // Estado inicial (backend espera minúsculas)
         };
 
-        setLoading(true);
+        console.log('=== DEBUGGING APPOINTMENT DATA ===');
+        console.log('User ID extraído del token:', userId);
+        console.log('Psychologist ID:', psychologist.id);
+        console.log('Datos completos a enviar:', appointmentData);
+        console.log('==================================');
+
         try {
             console.log('Enviando cita:', appointmentData);
 
-            // Obtener token de autorización
-            const authToken = getAuthToken();
-
-            const headers: Record<string, string> = {
-                'Content-Type': 'application/json',
-            };
-
-            // Agregar token si existe
-            if (authToken) {
-                headers['Authorization'] = `Bearer ${authToken}`;
-            }
-
-            const response = await fetch(`${envs.next_public_api_url}/appointments`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify(appointmentData),
-            });
-
-            if (!response.ok) {
-                // Manejo específico para diferentes errores
-                if (response.status === 401) {
-                    alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
-                    redirectToLogin();
-                    return;
-                } else if (response.status === 400) {
-                    const errorData = await response.json().catch(() => null);
-                    const errorMessage = errorData?.message || 'Datos inválidos. Verifica la información ingresada.';
-                    alert(errorMessage);
-                    return;
-                } else if (response.status === 404) {
-                    alert('Psicólogo no encontrado. Por favor, verifica la información.');
-                    return;
-                } else if (response.status === 409) {
-                    alert('Ya existe una cita en ese horario. Por favor, elige otro horario.');
-                    return;
-                }
-                throw new Error(`Error ${response.status}: ${response.statusText}`);
-            }
-
-            const result = await response.json();
+            const result = await appointmentsService.createAppointment(appointmentData);
             console.log('Cita creada exitosamente:', result);
             alert('¡Cita creada exitosamente!');
 
-            // TODO: Redirigir a página de confirmación o dashboard
-        } catch (error) {
+            // Redirigir al dashboard del usuario para ver las citas
+            router.push('/dashboard/user');
+        } catch (error: unknown) {
             console.error('Error al crear la cita:', error);
-            alert('Error al crear la cita. Por favor, intenta nuevamente.');
+
+            // Manejo específico de errores
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+            if (errorMessage.includes('Authentication failed')) {
+                alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                redirectToLogin();
+            } else if (errorMessage.includes('Bad request') || errorMessage.includes('Ese horario ya está reservado')) {
+                alert('Ya existe una cita en ese horario. Por favor, elige otro horario.');
+            } else if (errorMessage.includes('not found')) {
+                alert('Error: No se pudo encontrar el psicólogo o tu perfil de paciente. Verifica tu información.');
+            } else {
+                alert('Error al crear la cita. Por favor, intenta nuevamente.');
+            }
         } finally {
             setLoading(false);
         }
@@ -316,16 +308,6 @@ const SessionPage = () => {
         }
 
         return `${hours.padStart(2, '0')}:${minutes}`;
-    };
-
-    // Función para convertir modalidad del frontend al enum del backend
-    const convertModalityToEnum = (modalityValue: string): string => {
-        const modalityMap: { [key: string]: string } = {
-            Presencial: 'IN_PERSON',
-            'En línea': 'ONLINE',
-            Híbrido: 'HYBRID',
-        };
-        return modalityMap[modalityValue] || modalityValue;
     };
 
     // Función para obtener horarios filtrados
@@ -746,7 +728,7 @@ const SessionPage = () => {
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Duración de la Sesión</label>
                                             <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600">
-                                                60 minutos
+                                                45 minutos
                                             </div>
                                         </div>
                                         <div>
@@ -782,7 +764,7 @@ const SessionPage = () => {
                                             <strong>Modalidad:</strong> {modality}
                                         </p>
                                         <p className="text-sm text-gray-600">
-                                            <strong>Duración:</strong> 60 minutos
+                                            <strong>Duración:</strong> 45 minutos
                                         </p>
                                         {insurance && (
                                             <p className="text-sm text-gray-600">
