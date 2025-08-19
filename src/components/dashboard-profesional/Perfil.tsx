@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Field, Formik } from 'formik';
 import { Form } from 'formik';
 import { envs } from '@/config/envs.config';
@@ -132,7 +132,7 @@ const Perfil = () => {
                             handleUpdateProfile(values, perfil);
                         }}
                     >
-                        {({ values, handleChange, setFieldValue }) => (
+                        {({ values, setFieldValue }) => (
                             <Form className="space-y-6">
                                 <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
                                     <div>
