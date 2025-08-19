@@ -1,5 +1,4 @@
 import MenuNavegacionUser from "@/components/dashboard-profesional/MenuNavegacionUser";
-import CardsUser from "@/components/dashboard-profesional/CardsUser";
 
 const dashboardUser = () => {
     return (
@@ -9,7 +8,6 @@ const dashboardUser = () => {
                     <h1 className="text-[26px] font-semibold text-black">Perfil Usuario</h1>
                     <span className="text-black">Bienvenido/a de vuelta</span>
                 </div>
-                <CardsUser />
                 <MenuNavegacionUser />
             </div>
         </div>

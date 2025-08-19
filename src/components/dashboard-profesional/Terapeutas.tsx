@@ -1,120 +1,120 @@
 'use client';
-import { useState, useEffect } from "react"
-import Image from "next/image"
 
-type Terapeuta = {
-  id: number
-  nombre: string
-  especialidad: string
-  sesiones: number
-  ultimaSesion: string
-  foto?: string
-}
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { ITherapist, therapistsService } from '@/services/therapists';
 
 const Terapeutas = () => {
-  const [terapeutas, setTerapeutas] = useState<Terapeuta[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+    const [terapeutas, setTerapeutas] = useState<ITherapist[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
- useEffect(() => {
-  const token = localStorage.getItem("authToken");
-  if (!token) {
-    setError("No autenticado. Inicia sesión para ver tus terapeutas.");
-    setLoading(false);
-    return;
-  }
+    useEffect(() => {
+        fetchTerapeutas();
+    }, []);
 
-  const fetchTerapeutas = async () => {
-    try {
-      const res = await fetch("http://localhost:8080/patient/professionals", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        credentials: "include",
-      });
-      const result = await res.json();
-      if (!res.ok) {
-        if (res.status === 404) {
-          setError('No se encontraron profesionales para este usuario.');
-        } else {
-          const backendMsg = result?.message || result?.error || JSON.stringify(result);
-          setError(`Error (${res.status}): ${backendMsg}`);
+    const fetchTerapeutas = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const data = await therapistsService.getMyTherapists();
+            setTerapeutas(data);
+
+            if (data.length === 0) {
+                setError('No tienes terapeutas asignados aún. Los terapeutas aparecerán aquí cuando reserves tu primera cita.');
+            }
+        } catch (error) {
+            console.error('Error al cargar terapeutas:', error);
+            setError('Error al cargar los terapeutas');
+        } finally {
+            setLoading(false);
         }
-        setTerapeutas([]);
-        return;
-      }
-      setTerapeutas(result.data || []);
-      if (!result.data || result.data.length === 0) {
-        setError("No tienes terapeutas conectados todavía.");
-      } else {
-        setError(null);
-      }
-    } catch (error) {
-      setError("No se pudieron obtener los terapeutas.");
-      setTerapeutas([]);
-      console.error(error);
-    } finally {
-      setLoading(false);
+    };
+
+    if (loading) {
+        return <div className="px-8 py-8">Cargando terapeutas...</div>;
     }
-  };
 
-  fetchTerapeutas();
-}, [])
-
-
-
-  if (loading) {
-    return <div className="px-8 py-8">Cargando terapeutas...</div>;
-  }
-
-  if (error) {
-    return <div className="px-8 py-8 text-gray-600">{error}</div>;
-  }
-
-  return (
-    <div className="flex flex-col gap-3 px-8 py-8 h-fit">
-      <div>
-        <h1 className="text-xl font-semibold text-black">Lista de Terapeutas</h1>
-        <span className="text-black">Gestiona tu lista de terapeutas</span>
-      </div>
-      <div>
-        {terapeutas.length === 0 ? (
-          <div className="text-gray-600 py-4">No hay psicólogos registrados para este usuario.</div>
-        ) : (
-          terapeutas.map((ter) => (
-            <div
-              key={ter.id}
-              className="grid bg-gray-200 border-2 border-gray-300 items-center py-3 px-5 rounded-lg w-full grid-cols-[0.2fr_2fr_0.2fr] my-4"
-            >
-              <div className="w-10 h-10 bg-white rounded-full overflow-hidden">
-                <Image
-                  src={ter.foto ? ter.foto : "/person-gray-photo-placeholder-woman.webp"}
-                  alt={ter.nombre}
-                  width={40}
-                  height={40}
-                  className="w-full h-full object-cover"
-                  style={{ objectFit: "cover" }}
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="font-extrabold text-black">{ter.nombre}</span>
-                <span className="text-sm text-black">Especialidad: {ter.especialidad}</span>
-                <div className="flex flex-row gap-2">
-                  <span className="text-xs text-black">{ter.sesiones} Sesiones -</span>
-                  <span className="text-xs text-black">Última: {ter.ultimaSesion}</span>
-                </div>
-              </div>
-              <div className="flex items-end">
-                <button className="px-10 py-2 text-white rounded-md bg-[#4138CA]">
-                  Mensaje
+    if (error) {
+        return (
+            <div className="px-8 py-8">
+                <div className="text-gray-600 mb-4">{error}</div>
+                <button onClick={fetchTerapeutas} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                    Reintentar
                 </button>
-              </div>
             </div>
-          ))
-        )}
-      </div>
-    </div>
-  )
-}
+        );
+    }
 
-export default Terapeutas
+    return (
+        <div className="flex flex-col gap-3 px-8 py-8 h-fit">
+            <div>
+                <h1 className="text-xl font-semibold text-black">Lista de Terapeutas</h1>
+                <span className="text-black">Gestiona tu lista de terapeutas</span>
+            </div>
+            <div>
+                {terapeutas.length === 0 ? (
+                    <div className="text-gray-600 py-4">No hay terapeutas registrados para este usuario.</div>
+                ) : (
+                    terapeutas.map((terapeuta) => (
+                        <div
+                            key={terapeuta.id}
+                            className="grid bg-gray-200 border-2 border-gray-300 items-center py-3 px-5 rounded-lg w-full grid-cols-[0.2fr_2fr_0.2fr] my-4"
+                        >
+                            <div className="w-10 h-10 bg-white rounded-full overflow-hidden">
+                                <Image
+                                    src={terapeuta.profile_picture || '/person-gray-photo-placeholder-woman.webp'}
+                                    alt={`${terapeuta.first_name} ${terapeuta.last_name}`}
+                                    width={40}
+                                    height={40}
+                                    className="w-full h-full object-cover"
+                                    style={{ objectFit: 'cover' }}
+                                />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <span className="font-extrabold text-black">
+                                    {terapeuta.professional_title || 'Dr/a'} {terapeuta.first_name} {terapeuta.last_name}
+                                </span>
+                                <span className="text-sm text-black">
+                                    {terapeuta.professional_experience
+                                        ? `${terapeuta.professional_experience} años de experiencia`
+                                        : 'Psicólogo/a Profesional'}
+                                </span>
+                                <div className="flex flex-row gap-2">
+                                    <span className="text-xs text-black">{terapeuta.total_sessions} Sesiones -</span>
+                                    <span className="text-xs text-black">
+                                        Última:{' '}
+                                        {terapeuta.last_session ? new Date(terapeuta.last_session).toLocaleDateString('es-ES') : 'Sin sesiones aún'}
+                                    </span>
+                                    {terapeuta.upcoming_session && (
+                                        <>
+                                            <span className="text-xs text-black"> - Próxima: </span>
+                                            <span className="text-xs text-black">
+                                                {new Date(terapeuta.upcoming_session).toLocaleDateString('es-ES')}
+                                            </span>
+                                        </>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span
+                                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                            terapeuta.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                                        }`}
+                                    >
+                                        {terapeuta.status === 'active' ? 'Activo' : 'Inactivo'}
+                                    </span>
+                                    {terapeuta.location && <span className="text-xs text-gray-600">{terapeuta.location}</span>}
+                                </div>
+                            </div>
+                            <div className="flex items-end">
+                                <button className="px-10 py-2 text-white rounded-md bg-[#4138CA]">Mensaje</button>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default Terapeutas;

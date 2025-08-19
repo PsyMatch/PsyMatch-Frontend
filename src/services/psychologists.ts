@@ -97,8 +97,82 @@ export const psychologistsService = {
         }
     },
 
-    // Función auxiliar para obtener un psicólogo por ID
+    // Función auxiliar para obtener un psicólogo por ID (desde array existente)
     getPsychologistById: async (psychologists: PsychologistResponse[], id: string): Promise<PsychologistResponse | null> => {
         return psychologists.find((p) => p.id === id) || null;
+    },
+
+    // Función para obtener un psicólogo específico por ID directamente del backend
+    getPsychologistByIdDirect: async (id: string): Promise<PsychologistResponse | null> => {
+        try {
+            const token = Cookies.get('authToken') || Cookies.get('auth-token');
+
+            console.log('Service - Getting psychologist by ID:', id);
+            console.log('Service - Token found:', !!token);
+
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            // Verificar si el token ha expirado antes de hacer la petición
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                console.log('Token payload:', payload);
+                if (payload.exp && payload.exp * 1000 < Date.now()) {
+                    console.log('Token ha expirado');
+                    Cookies.remove('authToken');
+                    Cookies.remove('auth-token');
+                    throw new Error('Token expired');
+                }
+            } catch (tokenError) {
+                console.error('Error verificando token:', tokenError);
+                Cookies.remove('authToken');
+                Cookies.remove('auth-token');
+                throw new Error('Invalid token');
+            }
+
+            console.log('Making request to:', `${API_BASE_URL}/users/public/${id}`);
+
+            const response = await fetch(`${API_BASE_URL}/users/public/${id}`, {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    // Token inválido o expirado
+                    Cookies.remove('authToken');
+                    Cookies.remove('auth-token');
+                    throw new Error('Authentication failed - please login again');
+                } else if (response.status === 404) {
+                    console.log('Psychologist not found');
+                    return null;
+                }
+                throw new Error(`Error fetching psychologist: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            console.log('Psychologist result:', result);
+
+            // Verificar si la respuesta tiene el formato esperado
+            if (result.data) {
+                return result.data;
+            } else if (result.id) {
+                // Si la respuesta viene directamente como objeto psicólogo
+                return result;
+            } else {
+                console.error('Unexpected response format:', result);
+                return null;
+            }
+        } catch (error) {
+            console.error('Error fetching psychologist by ID:', error);
+            throw error;
+        }
     },
 };
