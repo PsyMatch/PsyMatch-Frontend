@@ -265,9 +265,25 @@ const SessionPage = () => {
             console.log('Cita creada exitosamente:', newAppointment);
             alert('¡Cita creada exitosamente!');
 
-            router.push('/dashboard/user');
+            // Llamar al backend para obtener el init_point de Mercado Pago
+            const mpRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments/mercadopago-preference`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`,
+                },
+            });
+            if (!mpRes.ok) {
+                throw new Error('No se pudo iniciar el pago con Mercado Pago');
+            }
+            const mpData = await mpRes.json();
+            if (mpData.init_point) {
+                window.location.href = mpData.init_point;
+            } else {
+                alert('No se pudo obtener el link de pago. Intenta nuevamente.');
+            }
         } catch (error: unknown) {
-            console.error('Error al crear la cita:', error);
+            console.error('Error al crear la cita o iniciar el pago:', error);
 
             // Manejo específico de errores
             const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
@@ -279,7 +295,7 @@ const SessionPage = () => {
             } else if (errorMessage.includes('not found')) {
                 alert('Error: No se pudo encontrar el psicólogo o tu perfil de paciente. Verifica tu información.');
             } else {
-                alert('Error al crear la cita. Por favor, intenta nuevamente.');
+                alert('Error al crear la cita o iniciar el pago. Por favor, intenta nuevamente.');
             }
         } finally {
             setLoading(false);
