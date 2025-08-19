@@ -52,9 +52,14 @@ export interface IPaciente {
   meta: Meta;
 }
 
+export interface PacientesResponse {
+  message: string;
+  data: IPaciente;
+}
+
 
 const AdminDashboard = () => {
-  const [users, setUsers] = useState<IPaciente | null>(null);
+  const [users, setUsers] = useState<PacientesResponse | null>(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -62,15 +67,18 @@ const AdminDashboard = () => {
       const res = await fetch("http://localhost:8080/users?limit=50", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const result: IPaciente = await res.json();
+      const result: PacientesResponse = await res.json();
       setUsers(result);
     };
     fetchUsers();
   }, []);
 
-  const totalPacientes = users?.data.filter((u) => u.role === "Paciente").length ?? 0;
-  const totalPsicologos = users?.data.filter((u) => u.role === "Psicólogo").length ?? 0;
-  const totalPsicologosAprobacion = users?.data.filter((u) => u.role === "Psicólogo" && !u.verified).length ?? 0;
+  console.log("Users:", users);
+  console.log("Users.data:", users?.data);
+
+  const totalPacientes = users?.data?.data?.filter((u) => u.role === "Paciente").length ?? 0;
+  const totalPsicologos = users?.data?.data?.filter((u) => u.role === "Psicólogo").length ?? 0;
+  const totalPsicologosAprobacion = users?.data?.data?.filter((u) => u.role === "Psicólogo" && !u.verified).length ?? 0;
 
   return (
     <div className="flex flex-col items-center bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -95,7 +103,7 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      <MenuNavegacionAdmin data={users?.data ?? []} />
+      <MenuNavegacionAdmin data={users?.data?.data ?? []} />
     </div>
   );
 };

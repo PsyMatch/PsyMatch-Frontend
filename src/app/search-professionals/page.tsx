@@ -741,202 +741,213 @@ const Filter = () => {
                     </div>
                     <div className="space-y-4">
                         {psicologosFiltrados.length > 0 ? (
-                            psicologosFiltrados.map((psicologo) => (
-                                <div
-                                    key={psicologo.id}
-                                    className="rounded-lg border bg-white text-gray-900 shadow-sm hover:shadow-lg transition-shadow"
-                                >
-                                    <div className="p-6">
-                                        <div className="flex items-start justify-between mb-4">
-                                            <div className="flex items-start">
-                                                <Image
-                                                    alt={psicologo.name}
-                                                    className="w-16 h-16 rounded-full mr-4"
-                                                    src={psicologo.profile_picture || '/person-gray-photo-placeholder-woman.webp'}
-                                                    width={80}
-                                                    height={80}
-                                                />
-                                                <div>
-                                                    <div className="flex items-center mb-2">
-                                                        <h3 className="text-lg font-semibold mr-2">{psicologo.name}</h3>
-                                                    </div>
-                                                    <div className="flex items-center text-sm text-gray-600 mb-2">
-                                                        <Star className="h-4 w-4 mr-1" strokeWidth={2} />
-                                                        <span className="text-sm text-gray-600">4.8 (12 reseñas)</span>
-                                                    </div>
-                                                    <div className="flex items-center text-sm text-gray-600 mb-2">
-                                                        <MapPin className="h-4 w-4 mr-1" strokeWidth={2} />
-                                                        {psicologo.office_address || 'Consulta disponible'}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="flex gap-1 flex-wrap">
-                                                    {(Array.isArray(psicologo.modality)
-                                                        ? psicologo.modality
-                                                        : [psicologo.modality || 'Presencial']
-                                                    ).map((modalidad) => (
-                                                        <div
-                                                            key={modalidad}
-                                                            className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-gray-900 text-xs"
-                                                        >
-                                                            {modalidad === 'Presencial' && <Users className="h-3 w-3 mr-1" strokeWidth={2} />}
-                                                            {modalidad === 'En línea' && <Video className="h-3 w-3 mr-1" strokeWidth={2} />}
-                                                            {modalidad === 'Híbrido' && (
-                                                                <>
-                                                                    <Users className="h-3 w-3 mr-1" strokeWidth={2} />
-                                                                    <Video className="h-3 w-3 mr-1" strokeWidth={2} />
-                                                                </>
-                                                            )}
-                                                            {obtenerNombreModalidad(modalidad)}
+                            psicologosFiltrados.map((psicologo) => {
+                                // DEBUG: Verificar estructura del psicólogo y su ID
+                                console.log('=== DEBUGGING PSYCHOLOGIST DATA ===');
+                                console.log('Psychologist object:', psicologo);
+                                console.log('Psychologist ID:', psicologo.id);
+                                console.log('Psychologist name:', psicologo.name);
+                                console.log('Generated session URL:', `/session/${psicologo.id}`);
+                                console.log('Generated profile URL:', `/professionalProfile/${psicologo.id}`);
+                                console.log('================================');
+
+                                return (
+                                    <div
+                                        key={psicologo.id}
+                                        className="rounded-lg border bg-white text-gray-900 shadow-sm hover:shadow-lg transition-shadow"
+                                    >
+                                        <div className="p-6">
+                                            <div className="flex items-start justify-between mb-4">
+                                                <div className="flex items-start">
+                                                    <Image
+                                                        alt={psicologo.name}
+                                                        className="w-16 h-16 rounded-full mr-4"
+                                                        src={psicologo.profile_picture || '/person-gray-photo-placeholder-woman.webp'}
+                                                        width={80}
+                                                        height={80}
+                                                    />
+                                                    <div>
+                                                        <div className="flex items-center mb-2">
+                                                            <h3 className="text-lg font-semibold mr-2">Dr/a {psicologo.name}</h3>
                                                         </div>
-                                                    ))}
+                                                        <div className="flex items-center text-sm text-gray-600 mb-2">
+                                                            <Star className="h-4 w-4 mr-1" strokeWidth={2} />
+                                                            <span className="text-sm text-gray-600">4.8 (12 reseñas)</span>
+                                                        </div>
+                                                        <div className="flex items-center text-sm text-gray-600 mb-2">
+                                                            <MapPin className="h-4 w-4 mr-1" strokeWidth={2} />
+                                                            {psicologo.office_address || 'Consulta disponible'}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="flex gap-1 flex-wrap">
+                                                        {(Array.isArray(psicologo.modality)
+                                                            ? psicologo.modality
+                                                            : [psicologo.modality || 'Presencial']
+                                                        ).map((modalidad) => (
+                                                            <div
+                                                                key={modalidad}
+                                                                className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-gray-900 text-xs"
+                                                            >
+                                                                {modalidad === 'Presencial' && <Users className="h-3 w-3 mr-1" strokeWidth={2} />}
+                                                                {modalidad === 'En línea' && <Video className="h-3 w-3 mr-1" strokeWidth={2} />}
+                                                                {modalidad === 'Híbrido' && (
+                                                                    <>
+                                                                        <Users className="h-3 w-3 mr-1" strokeWidth={2} />
+                                                                        <Video className="h-3 w-3 mr-1" strokeWidth={2} />
+                                                                    </>
+                                                                )}
+                                                                {obtenerNombreModalidad(modalidad)}
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <p className="text-gray-600 mb-4 text-sm">
-                                            {psicologo.personal_biography || 'Psicólogo profesional con experiencia en terapia individual.'}
-                                        </p>
+                                            <p className="text-gray-600 mb-4 text-sm">
+                                                {psicologo.personal_biography || 'Psicólogo profesional con experiencia en terapia individual.'}
+                                            </p>
 
-                                        {/* Obras Sociales */}
-                                        {psicologo.insurance_accepted && psicologo.insurance_accepted.length > 0 && (
-                                            <div className="mb-3">
-                                                <span className="text-xs font-medium text-gray-700 mb-1 block">Obras Sociales Aceptadas:</span>
-                                                <div className="flex flex-wrap gap-1">
-                                                    {psicologo.insurance_accepted.slice(0, 3).map((seguro, index) => (
-                                                        <span
-                                                            key={index}
-                                                            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800"
-                                                        >
-                                                            {seguro}
-                                                        </span>
-                                                    ))}
-                                                    {psicologo.insurance_accepted.length > 3 && (
-                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
-                                                            +{psicologo.insurance_accepted.length - 3} más
-                                                        </span>
-                                                    )}
+                                            {/* Obras Sociales */}
+                                            {psicologo.insurance_accepted && psicologo.insurance_accepted.length > 0 && (
+                                                <div className="mb-3">
+                                                    <span className="text-xs font-medium text-gray-700 mb-1 block">Obras Sociales Aceptadas:</span>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {psicologo.insurance_accepted.slice(0, 3).map((seguro, index) => (
+                                                            <span
+                                                                key={index}
+                                                                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800"
+                                                            >
+                                                                {seguro}
+                                                            </span>
+                                                        ))}
+                                                        {psicologo.insurance_accepted.length > 3 && (
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
+                                                                +{psicologo.insurance_accepted.length - 3} más
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Tipos de Sesión */}
+                                            {psicologo.session_types && psicologo.session_types.length > 0 && (
+                                                <div className="mb-3">
+                                                    <span className="text-xs font-medium text-gray-700 mb-1 block">Tipos de Sesión:</span>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {psicologo.session_types.map((tipo, index) => (
+                                                            <span
+                                                                key={index}
+                                                                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-purple-100 text-purple-800"
+                                                            >
+                                                                {tipo}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Enfoques Terapéuticos */}
+                                            {psicologo.therapy_approaches && psicologo.therapy_approaches.length > 0 && (
+                                                <div className="mb-3">
+                                                    <span className="text-xs font-medium text-gray-700 mb-1 block">Enfoques Terapéuticos:</span>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {psicologo.therapy_approaches.slice(0, 2).map((enfoque, index) => (
+                                                            <span
+                                                                key={index}
+                                                                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-indigo-100 text-indigo-800"
+                                                            >
+                                                                {enfoque}
+                                                            </span>
+                                                        ))}
+                                                        {psicologo.therapy_approaches.length > 2 && (
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
+                                                                +{psicologo.therapy_approaches.length - 2} más
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Especialidades */}
+                                            {psicologo.specialities && psicologo.specialities.length > 0 && (
+                                                <div className="mb-3">
+                                                    <span className="text-xs font-medium text-gray-700 mb-1 block">Especialidades:</span>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {psicologo.specialities.map((especialidad, index) => (
+                                                            <span
+                                                                key={index}
+                                                                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-purple-100 text-purple-800"
+                                                            >
+                                                                {especialidad}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Disponibilidad */}
+                                            {psicologo.availability && psicologo.availability.length > 0 && (
+                                                <div className="mb-3">
+                                                    <span className="text-xs font-medium text-gray-700 mb-1 block">Disponibilidad:</span>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {psicologo.availability.slice(0, 4).map((horario, index) => (
+                                                            <span
+                                                                key={index}
+                                                                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800"
+                                                            >
+                                                                {horario}
+                                                            </span>
+                                                        ))}
+                                                        {psicologo.availability.length > 4 && (
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
+                                                                +{psicologo.availability.length - 4} más
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
+                                                <div>
+                                                    <span className="font-medium">Idiomas:</span>{' '}
+                                                    {(psicologo.languages || ['Español'])
+                                                        .map((idioma) => idiomas.find((i) => i === idioma) || idioma)
+                                                        .join(', ')}
+                                                </div>
+                                                <div>
+                                                    <span className="font-medium">Experiencia:</span> {psicologo.professional_experience || 5} años
                                                 </div>
                                             </div>
-                                        )}
 
-                                        {/* Tipos de Sesión */}
-                                        {psicologo.session_types && psicologo.session_types.length > 0 && (
-                                            <div className="mb-3">
-                                                <span className="text-xs font-medium text-gray-700 mb-1 block">Tipos de Sesión:</span>
-                                                <div className="flex flex-wrap gap-1">
-                                                    {psicologo.session_types.map((tipo, index) => (
-                                                        <span
-                                                            key={index}
-                                                            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-purple-100 text-purple-800"
-                                                        >
-                                                            {tipo}
-                                                        </span>
-                                                    ))}
+                                            <div className="flex items-center justify-end text-sm mb-4">
+                                                <div className="text-right">
+                                                    <div className="text-2xl font-bold text-green-600">
+                                                        ${calcularPrecio(psicologo).toLocaleString('es-AR')}
+                                                    </div>
+                                                    <div className="text-xs text-gray-500">por sesión</div>
                                                 </div>
                                             </div>
-                                        )}
 
-                                        {/* Enfoques Terapéuticos */}
-                                        {psicologo.therapy_approaches && psicologo.therapy_approaches.length > 0 && (
-                                            <div className="mb-3">
-                                                <span className="text-xs font-medium text-gray-700 mb-1 block">Enfoques Terapéuticos:</span>
-                                                <div className="flex flex-wrap gap-1">
-                                                    {psicologo.therapy_approaches.slice(0, 2).map((enfoque, index) => (
-                                                        <span
-                                                            key={index}
-                                                            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-indigo-100 text-indigo-800"
-                                                        >
-                                                            {enfoque}
-                                                        </span>
-                                                    ))}
-                                                    {psicologo.therapy_approaches.length > 2 && (
-                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
-                                                            +{psicologo.therapy_approaches.length - 2} más
-                                                        </span>
-                                                    )}
-                                                </div>
+                                            <div className="flex gap-2">
+                                                <a className="flex-1" href={`/professionalProfile/${psicologo.id}`}>
+                                                    <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-gray-300 hover:bg-gray-100 hover:text-gray-900 h-9 rounded-md px-3 w-full bg-transparent">
+                                                        Ver Perfil Completo
+                                                    </button>
+                                                </a>
+
+                                                <a className="flex-1" href={`/session/${psicologo.id}`}>
+                                                    <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 h-9 rounded-md px-3 w-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
+                                                        <Calendar className="h-4 w-4 mr-1" strokeWidth={2} />
+                                                        Reservar Cita
+                                                    </button>
+                                                </a>
                                             </div>
-                                        )}
-
-                                        {/* Especialidades */}
-                                        {psicologo.specialities && psicologo.specialities.length > 0 && (
-                                            <div className="mb-3">
-                                                <span className="text-xs font-medium text-gray-700 mb-1 block">Especialidades:</span>
-                                                <div className="flex flex-wrap gap-1">
-                                                    {psicologo.specialities.map((especialidad, index) => (
-                                                        <span
-                                                            key={index}
-                                                            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-purple-100 text-purple-800"
-                                                        >
-                                                            {especialidad}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Disponibilidad */}
-                                        {psicologo.availability && psicologo.availability.length > 0 && (
-                                            <div className="mb-3">
-                                                <span className="text-xs font-medium text-gray-700 mb-1 block">Disponibilidad:</span>
-                                                <div className="flex flex-wrap gap-1">
-                                                    {psicologo.availability.slice(0, 4).map((horario, index) => (
-                                                        <span
-                                                            key={index}
-                                                            className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800"
-                                                        >
-                                                            {horario}
-                                                        </span>
-                                                    ))}
-                                                    {psicologo.availability.length > 4 && (
-                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
-                                                            +{psicologo.availability.length - 4} más
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
-                                            <div>
-                                                <span className="font-medium">Idiomas:</span>{' '}
-                                                {(psicologo.languages || ['Español'])
-                                                    .map((idioma) => idiomas.find((i) => i === idioma) || idioma)
-                                                    .join(', ')}
-                                            </div>
-                                            <div>
-                                                <span className="font-medium">Experiencia:</span> {psicologo.professional_experience || 5} años
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center justify-end text-sm mb-4">
-                                            <div className="text-right">
-                                                <div className="text-2xl font-bold text-green-600">
-                                                    ${calcularPrecio(psicologo).toLocaleString('es-AR')}
-                                                </div>
-                                                <div className="text-xs text-gray-500">por sesión</div>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex gap-2">
-                                            <a className="flex-1" href={`/professionalProfile/${psicologo.id}`}>
-                                                <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-gray-300 hover:bg-gray-100 hover:text-gray-900 h-9 rounded-md px-3 w-full bg-transparent">
-                                                    Ver Perfil Completo
-                                                </button>
-                                            </a>
-
-                                            <a className="flex-1" href={`/session/${psicologo.id}`}>
-                                                <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 h-9 rounded-md px-3 w-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
-                                                    <Calendar className="h-4 w-4 mr-1" strokeWidth={2} />
-                                                    Reservar Cita
-                                                </button>
-                                            </a>
                                         </div>
                                     </div>
-                                </div>
-                            ))
+                                );
+                            })
                         ) : (
                             <div className="text-center py-12">
                                 <p className="text-gray-500 text-lg">No se encontraron terapeutas que coincidan con los filtros seleccionados.</p>

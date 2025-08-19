@@ -15,9 +15,12 @@ import Cookies from 'js-cookie';
 const RegisterSchema = Yup.object().shape({
     fullName: Yup.string().min(2, 'El nombre debe tener al menos 2 caracteres').required('El nombre completo es requerido'),
     alias: Yup.string().min(2, 'El alias debe tener al menos 2 caracteres').required('El alias es requerido'),
-    birthDate: Yup.date().max(new Date(), 'La fecha de nacimiento no puede ser futura').required('La fecha de nacimiento es requerida'),
+    birthDate: Yup.date()
+        .max(new Date(new Date().setFullYear(new Date().getFullYear() - 18)), 'Debes ser mayor de 18 años')
+        .required('La fecha de nacimiento es requerida'),
     phone: Yup.string()
-        .matches(/^[0-9+\-\s()]+$/, 'Número de teléfono inválido')
+        .matches(/^\+\d{1,3}\s?\d{1,4}[\s\d-]{6,}$/,
+            'El teléfono debe estar en formato internacional, por ejemplo: +54 261 5552184')
         .required('El número de teléfono es requerido'),
     email: Yup.string().email('Correo electrónico inválido').required('El correo electrónico es requerido'),
     password: Yup.string()
@@ -103,11 +106,11 @@ export default function RegisterForm() {
                 // Si no hay archivo, enviamos una URL por defecto como string
                 formData.append(
                     'profile_picture',
-                    'https://res.cloudinary.com/dibnkd72j/image/upload/v1755031810/default-profile-picture_lzshvt.webp'
+                    'https://res.cloudinary.com/dibnkd72j/image/upload/v1755495603/default-pacient-profile-picture_kqpobf.webp'
                 );
             }
 
-            const response = await fetch('http://localhost:3000/auth/signup', {
+            const response = await fetch('http://localhost:8080/auth/signup', {
                 method: 'POST',
                 body: formData,
             });
@@ -115,26 +118,25 @@ export default function RegisterForm() {
             const data = await response.json();
 
             if (response.ok) {
-                router.push('/login');
+                // Guardar el rol solo si existe y la respuesta es exitosa
+                if (data && data.data && data.data.role) {
+                    Cookies.set('role', data.data.role);
+                    const traerRole = data.data.role;
+                    // Redirigir según el tipo de usuario
+                    if (traerRole === 'Psicólogo') {
+                        router.push('/dashboard/professional');
+                    } else if (traerRole === 'Administrador') {
+                        router.push('/dashboard/admin');
+                    } else {
+                        router.push('/dashboard/user');
+                    }
+                } else {
+                    // Si no hay rol, solo redirigir al login
+                    router.push('/login');
+                }
                 alert('Registro exitoso. Por favor inicia sesión.');
             } else {
                 setRegisterError(data.message || 'Error al crear la cuenta');
-            }
-
-            if (data.data.role) {
-                Cookies.set('role', data.data.role);
-            }
-
-            const traerRole = Cookies.get('role');
-
-            // Redirigir según el tipo de usuario
-            if (traerRole === 'Psicólogo') {
-                router.push('/dashboard/professional');
-            }
-            if (traerRole === 'Administrador') {
-                router.push('/dashboard/admin');
-            } else {
-                router.push('/dashboard/user');
             }
         } catch (error) {
             console.error('Error en registro:', error);
@@ -289,19 +291,20 @@ export default function RegisterForm() {
                                     <option value="">Selecciona tu obra social (opcional)</option>
                                     <option value="OSDE">OSDE</option>
                                     <option value="Swiss Medical">Swiss Medical</option>
-                                    <option value="Galeno">Galeno</option>
-                                    <option value="Medicus">Medicus</option>
+                                    <option value="IOMA">IOMA</option>
+                                    <option value="Unión Personal">Union Personal</option>
                                     <option value="PAMI">PAMI</option>
-                                    <option value="Unión-personal">Unión-personal</option>
-                                    <option value="Osdepy">Osdepy</option>
-                                    <option value="Luis-pasteur">Luis-pasteur</option>
-                                    <option value="Jerarquicos-salud">Jerarquicos-salud</option>
-                                    <option value="Osecac">Osecac</option>
+                                    <option value="OSDEPYM">OSDEPYM</option>
+                                    <option value="Luis Pasteur">Luis Pasteur</option>
+                                    <option value="Jerárquicos Salud">Jerarquicos Salud</option>
+                                    <option value="Sancor Salud">Sancor Salud</option>
+                                    <option value="OSECAC">Osecac</option>
+                                    <option value="OSMECON Salud">OSMECON Salud</option>
                                     <option value="Apross">Apross</option>
-                                    <option value="Osprera">Osprera</option>
-                                    <option value="Ospat">Ospat</option>
-                                    <option value="Ase-nacional">Ase-nacional</option>
-                                    <option value="Ospsip">Ospsip</option>
+                                    <option value="OSPRERA">OSPRERA</option>
+                                    <option value="OSPAT">OSPAT</option>
+                                    <option value="ASE Nacional">ASE nacional</option>
+                                    <option value="OSPIP">OSPIP</option>
                                 </select>
                                 {errors.socialWork && touched.socialWork && <p className="mt-1 text-sm text-red-600">{errors.socialWork}</p>}
                             </div>
@@ -343,7 +346,7 @@ export default function RegisterForm() {
                                     value={values.emergencyContact}
                                     error={errors.emergencyContact && touched.emergencyContact && errors.emergencyContact}
                                 />
-                                <p className="text-xs text-grey-500 mt-1">¨* Este número no puede coincidir con el de teléfono principal.</p>
+                                <p className="mt-1 text-xs text-grey-500">¨* Este número no puede coincidir con el de teléfono principal.</p>
                             </div>
                         </div>
 
