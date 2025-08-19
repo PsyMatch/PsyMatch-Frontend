@@ -1,35 +1,34 @@
-"use client"
-import { useEffect, useState } from "react";
+'use client';
+import { envs } from '@/config/envs.config';
+import { useEffect, useState } from 'react';
 
-    const Reseñas = () => {
-        const [reseñas, setReseñas] = useState(null);
-    
-        useEffect(() => {
-            const token = localStorage.getItem("authToken");
-            if (!token) return;
-    
-            fetch("http://localhost:8080/psychologist/reviews", {
-                headers: { 
-                    Authorization: `Bearer ${token}` 
-                },
-            })
-            .then(res => res.json())
-                .then(response => {
+const Reseñas = () => {
+    const [reseñas, setReseñas] = useState(null);
+
+    useEffect(() => {
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
+
+        fetch(`${envs.next_public_api_url}/psychologist/reviews`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        })
+            .then((res) => res.json())
+            .then((response) => {
                 setReseñas(response.message);
             })
             .catch(console.error);
-        }, []);
+    }, []);
 
-        console.log(reseñas)
-    return(
+    console.log(reseñas);
+    return (
         <div className="flex flex-col gap-3 px-8 py-8 h-fit">
             <div>
                 <h1 className="text-xl font-semibold text-black">Reseñas sobre vos</h1>
                 <span className="text-black">Análisis de desempeño y temas de tus reseñas</span>
             </div>
-            <div>
-                {reseñas ? JSON.stringify(reseñas) : "Cargando reseñas..."}
-            </div>
+            <div>{reseñas ? JSON.stringify(reseñas) : 'Cargando reseñas...'}</div>
             {/* <div>
                 {dashboardProfesionalMock.reseñas.map((res, index) => (
                     <div key={index} className="items-center w-full px-5 py-3 my-4 bg-gray-200 border-2 border-gray-300 rounded-lg ">
@@ -49,7 +48,7 @@ import { useEffect, useState } from "react";
                 ))}
             </div> */}
         </div>
-    )
-}
+    );
+};
 
-export default Reseñas
+export default Reseñas;

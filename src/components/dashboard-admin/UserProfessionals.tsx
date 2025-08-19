@@ -1,5 +1,6 @@
 "use client"
 import { Paciente } from "@/app/dashboard/admin/page";
+import { envs } from "@/config/envs.config";
 import { useEffect, useState } from "react";
 
 interface UserProfessionalsProps {
@@ -9,7 +10,7 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
 
     const handleAccept = async (id: string) => {
         const token = localStorage.getItem("authToken");
-        const response = await fetch(`http://localhost:8080/psychologist/verification/${id}/verify `, {
+        const response = await fetch(`${envs.next_public_api_url}/psychologist/verification/${id}/verify`, {
             method: "PUT",
             headers: {
                 Authorization: `Bearer ${token}`,

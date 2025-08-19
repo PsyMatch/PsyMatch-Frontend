@@ -8,6 +8,7 @@ import { dataToSave, getCookieObject, saveMerged } from '@/helpers/formRegister/
 import { useFotoDePerfil } from '@/context/fotoDePerfil';
 import { useAuthProfessionalContext } from '@/context/registerProfessional';
 import { ToastContainer, toast } from 'react-toastify';
+import { envs } from '@/config/envs.config';
 
 const modalidades = ['Presencial', 'En línea', 'Híbrido'];
 
@@ -148,7 +149,7 @@ const Services_Prices = () => {
                 formData.append('profile_picture', profileImageFile);
             }
 
-            const response = await fetch('http://localhost:8080/auth/signup/psychologist', {
+            const response = await fetch(`${envs.next_public_api_url}/auth/signup/psychologist`, {
                 method: 'POST',
                 // headers: { 'Content-Type': 'application/json' },
                 body: formData,
