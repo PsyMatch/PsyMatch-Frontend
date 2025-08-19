@@ -188,6 +188,7 @@ const PersonalInformation = () => {
                                 </div>
                             </div>
 
+
                             {/* Contraseñas */}
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>

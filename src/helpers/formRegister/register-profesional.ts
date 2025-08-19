@@ -69,6 +69,7 @@ export interface Valores {
     modality: string;
     insurance_accepted: string[];
     availability: string[];
+    consultation_fee: number;
 }
 
 export const initialValuesTipos: Valores = {
@@ -78,6 +79,7 @@ export const initialValuesTipos: Valores = {
     modality: '',
     insurance_accepted: [],
     availability: [],
+    consultation_fee: 0
 };
 
 import * as Yup from 'yup';
@@ -92,4 +94,6 @@ export const validationSchema = Yup.object().shape({
     modality: Yup.string().required('Debes seleccionar modalidad'),
 
     availability: Yup.array().min(1, 'Selecciona al menos un día disponible').required('Debes seleccionar días disponibles'),
+
+    consultation_fee: Yup.string().required('Debes ingresar el costo de la consulta'),
 });
