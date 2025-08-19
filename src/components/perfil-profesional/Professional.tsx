@@ -14,7 +14,7 @@ const Professional = ({ data }: { data: IProfessional }) => {
 
             <div className="flex flex-col justify-between h-40 text-start">
                 <h3 className="text-xl font-bold text-black">{data.name}</h3>
-                <span className="text-xs font-semibold text-black">{data.personal_biography}</span>
+                <span className="text-xs font-semibold text-black">{data.professional_title}</span>
 
                 {/* <div className="flex flex-row">
                     <span><strong>{data.data.infoPersonal.reseñas.porcentaje}</strong> reseñas</span>

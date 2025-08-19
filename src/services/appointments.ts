@@ -84,8 +84,6 @@ export const appointmentsService = {
                 throw new Error('Invalid token');
             }
 
-            console.log('Creating appointment:', appointmentData);
-
             const response = await fetch(`${API_BASE_URL}/appointments`, {
                 method: 'POST',
                 headers: {
@@ -108,7 +106,6 @@ export const appointmentsService = {
             }
 
             const result = await response.json();
-            console.log('Appointment created:', result);
 
             return result;
         } catch (error) {
@@ -159,7 +156,6 @@ export const appointmentsService = {
             }
 
             const result = await response.json();
-            console.log('My appointments:', result);
 
             // El backend devuelve un array directamente
             return Array.isArray(result) ? result : [];

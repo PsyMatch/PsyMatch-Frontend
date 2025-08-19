@@ -7,7 +7,6 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthProfessionalContext } from '@/context/registerProfessional';
 import Cookies from 'js-cookie';
 import { envs } from '@/config/envs.config';
 
@@ -20,7 +19,6 @@ export default function LoginForm() {
     const router = useRouter();
     const [loginError, setLoginError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const { setIsAuth } = useAuthProfessionalContext();
 
     const handleSubmit = async (values: { email: string; password: string }) => {
         setIsLoading(true);

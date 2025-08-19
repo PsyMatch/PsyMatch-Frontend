@@ -34,8 +34,6 @@ const CitasUser = () => {
         loadAppointments();
     }, []);
 
-    console.log('Citas cargadas:', citas);
-
     // Función para cancelar cita usando el nuevo servicio
     const cancelarCita = async (id: string) => {
         if (!window.confirm('¿Estás seguro que deseas cancelar esta cita? Esta acción no se puede deshacer.')) {

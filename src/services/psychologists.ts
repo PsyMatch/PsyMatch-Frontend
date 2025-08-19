@@ -37,11 +37,6 @@ export const psychologistsService = {
         try {
             const token = Cookies.get('authToken') || Cookies.get('auth-token');
 
-            console.log('Service - Checking for tokens:');
-            console.log('authToken:', Cookies.get('authToken'));
-            console.log('auth-token:', Cookies.get('auth-token'));
-            console.log('Selected token:', token);
-
             if (!token) {
                 throw new Error('No authentication token found');
             }
@@ -49,9 +44,7 @@ export const psychologistsService = {
             // Verificar si el token ha expirado antes de hacer la petición
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
-                console.log('Token payload:', payload);
                 if (payload.exp && payload.exp * 1000 < Date.now()) {
-                    console.log('Token ha expirado');
                     Cookies.remove('authToken');
                     Cookies.remove('auth-token');
                     throw new Error('Token expired');
@@ -63,9 +56,6 @@ export const psychologistsService = {
                 throw new Error('Invalid token');
             }
 
-            console.log('Making request to:', `${API_BASE_URL}/psychologist/verification/verified`);
-
-            // Usar la ruta correcta para obtener psicólogos verificados
             const response = await fetch(`${API_BASE_URL}/psychologist/verification/verified`, {
                 method: 'GET',
                 headers: {
@@ -74,12 +64,8 @@ export const psychologistsService = {
                 },
             });
 
-            console.log('Response status:', response.status);
-            console.log('Response ok:', response.ok);
-
             if (!response.ok) {
                 if (response.status === 401) {
-                    // Token inválido o expirado
                     Cookies.remove('authToken');
                     Cookies.remove('auth-token');
                     throw new Error('Authentication failed - please login again');
@@ -88,7 +74,6 @@ export const psychologistsService = {
             }
 
             const result = await response.json();
-            console.log('Psychologists result:', result);
 
             return result;
         } catch (error) {
@@ -107,9 +92,6 @@ export const psychologistsService = {
         try {
             const token = Cookies.get('authToken') || Cookies.get('auth-token');
 
-            console.log('Service - Getting psychologist by ID:', id);
-            console.log('Service - Token found:', !!token);
-
             if (!token) {
                 throw new Error('No authentication token found');
             }
@@ -117,9 +99,7 @@ export const psychologistsService = {
             // Verificar si el token ha expirado antes de hacer la petición
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
-                console.log('Token payload:', payload);
                 if (payload.exp && payload.exp * 1000 < Date.now()) {
-                    console.log('Token ha expirado');
                     Cookies.remove('authToken');
                     Cookies.remove('auth-token');
                     throw new Error('Token expired');
@@ -131,8 +111,6 @@ export const psychologistsService = {
                 throw new Error('Invalid token');
             }
 
-            console.log('Making request to:', `${API_BASE_URL}/users/public/${id}`);
-
             const response = await fetch(`${API_BASE_URL}/users/public/${id}`, {
                 method: 'GET',
                 headers: {
@@ -141,9 +119,6 @@ export const psychologistsService = {
                 },
             });
 
-            console.log('Response status:', response.status);
-            console.log('Response ok:', response.ok);
-
             if (!response.ok) {
                 if (response.status === 401) {
                     // Token inválido o expirado
@@ -151,14 +126,12 @@ export const psychologistsService = {
                     Cookies.remove('auth-token');
                     throw new Error('Authentication failed - please login again');
                 } else if (response.status === 404) {
-                    console.log('Psychologist not found');
                     return null;
                 }
                 throw new Error(`Error fetching psychologist: ${response.statusText}`);
             }
 
             const result = await response.json();
-            console.log('Psychologist result:', result);
 
             // Verificar si la respuesta tiene el formato esperado
             if (result.data) {

@@ -137,7 +137,6 @@ class TherapistsService {
                     });
                 }
             });
-
             return Array.from(therapistsMap.values());
         } catch (error) {
             console.error('Error al obtener terapeutas:', error);

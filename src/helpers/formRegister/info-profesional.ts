@@ -26,6 +26,7 @@ export const validationSchemaInfoProfesional = Yup.object().shape({
         .required("Debes poner al menos un idioma"),
     license_number: Yup.mixed().required('La matricula es obligatoria'),
     professional_title: Yup.mixed().required('El titulo profesional es obligatorio'),
+    professional_experience: Yup.mixed().required('La experiencia profesional es obligatoria, si no tienes pone 0'),
 })
 
 

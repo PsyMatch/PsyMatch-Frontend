@@ -11,16 +11,14 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
+import { envs } from '@/config/envs.config';
 
 const RegisterSchema = Yup.object().shape({
     fullName: Yup.string().min(2, 'El nombre debe tener al menos 2 caracteres').required('El nombre completo es requerido'),
     alias: Yup.string().min(2, 'El alias debe tener al menos 2 caracteres').required('El alias es requerido'),
-    birthDate: Yup.date()
-        .max(new Date(new Date().setFullYear(new Date().getFullYear() - 18)), 'Debes ser mayor de 18 años')
-        .required('La fecha de nacimiento es requerida'),
+    birthDate: Yup.date().max(new Date(), 'La fecha de nacimiento no puede ser futura').required('La fecha de nacimiento es requerida'),
     phone: Yup.string()
-        .matches(/^\+\d{1,3}\s?\d{1,4}[\s\d-]{6,}$/,
-            'El teléfono debe estar en formato internacional, por ejemplo: +54 261 5552184')
+        .matches(/^[0-9+\-\s()]+$/, 'Número de teléfono inválido')
         .required('El número de teléfono es requerido'),
     email: Yup.string().email('Correo electrónico inválido').required('El correo electrónico es requerido'),
     password: Yup.string()
@@ -110,7 +108,7 @@ export default function RegisterForm() {
                 );
             }
 
-            const response = await fetch('http://localhost:8080/auth/signup', {
+            const response = await fetch(`${envs.next_public_api_url}/auth/signup`, {
                 method: 'POST',
                 body: formData,
             });
@@ -118,25 +116,26 @@ export default function RegisterForm() {
             const data = await response.json();
 
             if (response.ok) {
-                // Guardar el rol solo si existe y la respuesta es exitosa
-                if (data && data.data && data.data.role) {
-                    Cookies.set('role', data.data.role);
-                    const traerRole = data.data.role;
-                    // Redirigir según el tipo de usuario
-                    if (traerRole === 'Psicólogo') {
-                        router.push('/dashboard/professional');
-                    } else if (traerRole === 'Administrador') {
-                        router.push('/dashboard/admin');
-                    } else {
-                        router.push('/dashboard/user');
-                    }
-                } else {
-                    // Si no hay rol, solo redirigir al login
-                    router.push('/login');
-                }
+                router.push('/login');
                 alert('Registro exitoso. Por favor inicia sesión.');
             } else {
                 setRegisterError(data.message || 'Error al crear la cuenta');
+            }
+
+            if (data.data.role) {
+                Cookies.set('role', data.data.role);
+            }
+
+            const traerRole = Cookies.get('role');
+
+            // Redirigir según el tipo de usuario
+            if (traerRole === 'Psicólogo') {
+                router.push('/dashboard/professional');
+            }
+            if (traerRole === 'Administrador') {
+                router.push('/dashboard/admin');
+            } else {
+                router.push('/dashboard/user');
             }
         } catch (error) {
             console.error('Error en registro:', error);
