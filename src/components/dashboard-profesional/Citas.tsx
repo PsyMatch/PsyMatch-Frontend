@@ -33,8 +33,6 @@ const Citas = () => {
         loadAppointments();
     }, []);
 
-    console.log('Citas del psicólogo:', citas);
-
     // Función para actualizar estado de cita
     const updateAppointmentStatus = async (id: string, newStatus: 'confirmed' | 'cancelled') => {
         try {

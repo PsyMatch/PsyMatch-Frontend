@@ -52,8 +52,6 @@ export const getProfessionalById = async (id: string, token?: string): Promise<I
             console.error('Backend error:', data);
             return null;
         }
-
-        console.log(data.data);
         return data.data;
     } catch (error) {
         console.warn('Error fetching product', error);

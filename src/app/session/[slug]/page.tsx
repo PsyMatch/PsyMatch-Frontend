@@ -1,7 +1,6 @@
 'use client';
 
 import Calendario from '@/components/session/Calendar';
-import { appointmentsService, CreateAppointmentRequest } from '@/services/appointments';
 import { psychologistsService, PsychologistResponse } from '@/services/psychologists';
 import { Calendar, Clock, MapPin } from 'lucide-react';
 import Image from 'next/image';
@@ -40,23 +39,15 @@ const SessionPage = () => {
             if (token) {
                 // Decodificar JWT payload (parte central del token)
                 const payload = JSON.parse(atob(token.split('.')[1]));
-                console.log('=== TOKEN PAYLOAD DEBUG ===');
-                console.log('Payload completo:', payload);
-                console.log('payload.sub:', payload.sub);
-                console.log('payload.userId:', payload.userId);
-                console.log('payload.id:', payload.id);
-                console.log('===========================');
 
                 // Verificar si el token ha expirado
                 if (payload.exp && payload.exp * 1000 < Date.now()) {
-                    console.log('Token ha expirado');
                     // Limpiar cookie expirada
                     Cookies.remove('authToken');
                     return '';
                 }
 
                 const extractedId = payload.sub || payload.userId || payload.id;
-                console.log('ID extraído del token:', extractedId);
                 return extractedId;
             }
 
@@ -79,7 +70,6 @@ const SessionPage = () => {
                 // Verificar si el token ha expirado
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 if (payload.exp && payload.exp * 1000 < Date.now()) {
-                    console.log('Token ha expirado al obtenerlo');
                     // Limpiar cookie expirada
                     Cookies.remove('authToken');
                     return null;
@@ -109,14 +99,12 @@ const SessionPage = () => {
         const authToken = getAuthToken();
         if (!authToken) {
             // Redirigir automáticamente si no está autenticado o token expirado
-            console.log('No hay token válido, redirigiendo a login');
             redirectToLogin();
             return;
         }
 
         const id = getUserIdFromToken();
         if (!id) {
-            console.log('No se pudo obtener userId del token, redirigiendo a login');
             redirectToLogin();
             return;
         }
@@ -206,15 +194,12 @@ const SessionPage = () => {
     const handleDateChange = (date: string) => {
         setSelectedDate(date);
         setSelectedTime(''); // Resetear hora al cambiar fecha
-        console.log('Fecha seleccionada (ISO-8601):', date);
     };
 
     const handleTimeSelect = (time: string) => {
         // Verificar que el horario aún esté disponible antes de seleccionarlo
         if (isTimeAvailable(time)) {
             setSelectedTime(time);
-            console.log('Hora seleccionada:', time);
-            console.log('Cita completa:', selectedDate, time);
         } else {
             alert('Este horario ya no está disponible. Por favor, selecciona otro horario.');
         }
@@ -239,36 +224,8 @@ const SessionPage = () => {
         }
 
         // Mapear modalidades del frontend al backend (el backend espera valores en español)
-        const modalityMapping: { [key: string]: 'Presencial' | 'En línea' | 'Híbrido' } = {
-            'En línea': 'En línea',
-            Presencial: 'Presencial',
-            Híbrido: 'Híbrido',
-        };
-
-        const appointmentData: CreateAppointmentRequest = {
-            date: selectedDate, // Ya está en formato ISO-8601 (YYYY-MM-DD)
-            hour: convertTo24Hour(selectedTime), // Formato HH:mm requerido por backend
-            session_type: sessionType,
-            therapy_approach: therapyApproach,
-            insurance: insurance || undefined,
-            price: 50000, // Precio estándar
-            modality: modalityMapping[modality] || 'En línea', // Mapear valores (backend espera español)
-            // Campos requeridos por el backend
-            user_id: userId, // Obtenido del token
-            psychologist_id: psychologist.id, // UUID del psicólogo obtenido del slug
-        };
-
-        console.log('=== DEBUGGING APPOINTMENT DATA ===');
-        console.log('User ID extraído del token:', userId);
-        console.log('Psychologist ID:', psychologist.id);
-        console.log('Datos completos a enviar:', appointmentData);
-        console.log('==================================');
 
         try {
-            console.log('Enviando cita:', appointmentData);
-
-            const result = await appointmentsService.createAppointment(appointmentData);
-            console.log('Cita creada exitosamente:', result);
             alert('¡Cita creada exitosamente!');
 
             // Redirigir al dashboard del usuario para ver las citas
@@ -291,21 +248,6 @@ const SessionPage = () => {
         } finally {
             setLoading(false);
         }
-    };
-
-    // Función para convertir formato AM/PM a 24 horas
-    const convertTo24Hour = (time12h: string): string => {
-        const [time, modifier] = time12h.split(' ');
-        let [hours] = time.split(':');
-        const [, minutes] = time.split(':');
-
-        if (hours === '12') {
-            hours = modifier === 'AM' ? '00' : '12';
-        } else if (modifier === 'PM') {
-            hours = (parseInt(hours, 10) + 12).toString();
-        }
-
-        return `${hours.padStart(2, '0')}:${minutes}`;
     };
 
     // Función para obtener horarios filtrados
