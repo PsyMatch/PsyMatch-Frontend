@@ -27,7 +27,7 @@ const Cards = () => {
     }, []);
 
     return (
-        <>
+        <div className="flex justify-center w-full h-full gap-10 mt-10">
             {profesionales.map((profesional) => (
                 <div key={profesional.id} className="p-5 bg-white border-2 border-gray-300 md:mx-10 rounded-xl w-80 md:w-96 min-h-72 max-h-fit">
                     <div className="flex flex-row items-center gap-3">
@@ -50,10 +50,6 @@ const Cards = () => {
                             <MapPin height={15} />
                             <span>{profesional.office_address}</span>
                         </div>
-                        {/* <div className="flex flex-row items-center gap-1">
-                            <DollarSign height={15} />
-                            <span>$ {profesional.precio}/sesión</span>
-                        </div> */}
                         <div className="flex flex-row items-center gap-1">
                             <Clock height={15} className="text-green-700" />
                             <span className="text-green-700 ">{profesional.availability}</span>
@@ -68,7 +64,7 @@ const Cards = () => {
                             Ver Perfil
                         </Link>
                         <Link
-                            href={'#'}
+                            href={`/session/${profesional.id}`}
                             className="hover:bg-gray-900 flex flex-row gap-2 px-3 w-[45%] py-1 bg-black text-white items-center justify-center rounded-md text-md"
                         >
                             <Calendar height={20} />
@@ -77,7 +73,7 @@ const Cards = () => {
                     </div>
                 </div>
             ))}
-        </>
+        </div>
     );
 };
 
