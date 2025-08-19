@@ -46,8 +46,6 @@ export const patientsService = {
                 throw new Error('Invalid token');
             }
 
-            console.log('Fetching patients for psychologist');
-
             const response = await fetch(`${API_BASE_URL}/psychologist/patients`, {
                 method: 'GET',
                 headers: {
@@ -66,7 +64,6 @@ export const patientsService = {
             }
 
             const result = await response.json();
-            console.log('Patients result:', result);
 
             // Verificar el formato de la respuesta del backend
             if (result.data && Array.isArray(result.data)) {

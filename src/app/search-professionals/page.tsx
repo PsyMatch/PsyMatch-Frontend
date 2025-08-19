@@ -38,11 +38,6 @@ const Filter = () => {
         const authToken = Cookies.get('auth-token');
         const authTokenAlt = Cookies.get('authToken');
 
-        console.log('Available cookies:');
-        console.log('auth-token:', authToken);
-        console.log('authToken:', authTokenAlt);
-        console.log('All cookies:', document.cookie);
-
         return authToken || authTokenAlt;
     };
 
@@ -80,7 +75,6 @@ const Filter = () => {
                 const authToken = getAuthToken();
 
                 if (!authToken) {
-                    console.log('No auth token found, redirecting to login');
                     redirectToLogin();
                     return;
                 }
@@ -97,7 +91,6 @@ const Filter = () => {
                         error.message.includes('Invalid token') ||
                         error.message.includes('No authentication token found')
                     ) {
-                        console.log('Authentication error, redirecting to login');
                         redirectToLogin();
                         return;
                     }
@@ -160,13 +153,6 @@ const Filter = () => {
     };
 
     const filtrarPsicologos = () => {
-        if (psychologists.length > 0) {
-            console.log('Ejemplo de psicólogo del backend:', psychologists[0]);
-            console.log('Modalidades disponibles:', [...new Set(psychologists.map((p) => p.modality).filter(Boolean))]);
-            console.log('Idiomas disponibles:', [...new Set(psychologists.flatMap((p) => p.languages || []))]);
-            console.log('Especialidades disponibles:', [...new Set(psychologists.flatMap((p) => p.specialities || []))]);
-        }
-
         let resultado = psychologists.filter((psicologo) => {
             const precioPsicologo = calcularPrecio(psicologo);
             const precioMinNum = precioMin ? parseFloat(precioMin) : 0;
@@ -742,15 +728,6 @@ const Filter = () => {
                     <div className="space-y-4">
                         {psicologosFiltrados.length > 0 ? (
                             psicologosFiltrados.map((psicologo) => {
-                                // DEBUG: Verificar estructura del psicólogo y su ID
-                                console.log('=== DEBUGGING PSYCHOLOGIST DATA ===');
-                                console.log('Psychologist object:', psicologo);
-                                console.log('Psychologist ID:', psicologo.id);
-                                console.log('Psychologist name:', psicologo.name);
-                                console.log('Generated session URL:', `/session/${psicologo.id}`);
-                                console.log('Generated profile URL:', `/professionalProfile/${psicologo.id}`);
-                                console.log('================================');
-
                                 return (
                                     <div
                                         key={psicologo.id}

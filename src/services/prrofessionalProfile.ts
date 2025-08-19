@@ -1,3 +1,5 @@
+import { envs } from "@/config/envs.config";
+
 export interface IProfessional {
     name: string;
     birthdate: string;
@@ -34,7 +36,7 @@ export interface IUser {
 
 export const getProfessionalById = async (id: string, token?: string): Promise<IProfessional | IUser | null> => {
     try {
-        const res = await fetch(`http://localhost:8080/users/public/${id}`, {
+        const res = await fetch(`${envs.next_public_api_url}/users/public/${id}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -52,8 +54,6 @@ export const getProfessionalById = async (id: string, token?: string): Promise<I
             console.error('Backend error:', data);
             return null;
         }
-
-        console.log(data.data);
         return data.data;
     } catch (error) {
         console.warn('Error fetching product', error);
