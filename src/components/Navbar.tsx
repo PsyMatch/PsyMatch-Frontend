@@ -41,7 +41,7 @@ const Navbar = () => {
         <Link key={0} href="/search-professionals">
             Buscar Terapeutas
         </Link>,
-        <a key={1} href="/como-funciona">
+        <a key={1} href="/how-does-it-work">
             Como Funciona
         </a>,
         <a
@@ -62,7 +62,7 @@ const Navbar = () => {
     ];
 
     const botonesNavBarMatch = [
-        <Link key={0} href="/como-funciona">
+        <Link key={0} href="/how-does-it-work">
             Como funciona
         </Link>,
         <Link key={1} href="/dashboard/user" className="px-4 py-2 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">
@@ -74,7 +74,7 @@ const Navbar = () => {
         <a href={isAuth ? '/search-professionals' : '/register-user'} key={0}>
             Buscar Terapeutas
         </a>,
-        <Link key={1} href="/como-funciona">
+        <Link key={1} href="/how-does-it-work">
             Como Funciona
         </Link>,
         <Link key={2} href="/login">

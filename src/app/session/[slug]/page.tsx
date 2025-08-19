@@ -2,6 +2,7 @@
 
 import Calendario from '@/components/session/Calendar';
 import { psychologistsService, PsychologistResponse } from '@/services/psychologists';
+import { appointmentsService, CreateAppointmentRequest } from '@/services/appointments';
 import { Calendar, Clock, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useEffect, useCallback } from 'react';
@@ -205,6 +206,21 @@ const SessionPage = () => {
         }
     };
 
+    // Función para convertir hora de 12h a 24h
+    const convertTo24Hour = (time12h: string): string => {
+        const [timeStr, modifier] = time12h.split(' ');
+        const [hours, minutes] = timeStr.split(':').map(Number);
+
+        let hour24 = hours;
+        if (modifier === 'PM' && hours !== 12) {
+            hour24 = hours + 12;
+        } else if (modifier === 'AM' && hours === 12) {
+            hour24 = 0;
+        }
+
+        return `${hour24.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    };
+
     const handleSubmitAppointment = async () => {
         // Validación de campos requeridos
         if (!selectedDate || !selectedTime || !sessionType || !therapyApproach || !modality || !psychologist || !userId) {
@@ -223,12 +239,32 @@ const SessionPage = () => {
             return;
         }
 
-        // Mapear modalidades del frontend al backend (el backend espera valores en español)
-
         try {
+            // Convertir hora de 12h a 24h para el backend
+            const hour24 = convertTo24Hour(selectedTime);
+
+            // Preparar datos para el backend
+            const appointmentData: CreateAppointmentRequest = {
+                date: selectedDate, // YYYY-MM-DD format
+                hour: hour24, // HH:mm format
+                user_id: userId,
+                psychologist_id: psychologistId,
+                modality: modality as 'Presencial' | 'En línea' | 'Híbrido',
+                session_type: sessionType,
+                therapy_approach: therapyApproach,
+                insurance: insurance || undefined,
+                price: 50000, // Precio fijo por ahora
+                notes: `Cita agendada desde el frontend. Modalidad: ${modality}, Tipo: ${sessionType}, Enfoque: ${therapyApproach}${
+                    insurance ? `, Obra Social: ${insurance}` : ''
+                }`,
+            };
+
+            // Crear la cita usando el servicio
+            const newAppointment = await appointmentsService.createAppointment(appointmentData);
+
+            console.log('Cita creada exitosamente:', newAppointment);
             alert('¡Cita creada exitosamente!');
 
-            // Redirigir al dashboard del usuario para ver las citas
             router.push('/dashboard/user');
         } catch (error: unknown) {
             console.error('Error al crear la cita:', error);
@@ -248,9 +284,7 @@ const SessionPage = () => {
         } finally {
             setLoading(false);
         }
-    };
-
-    // Función para obtener horarios filtrados
+    }; // Función para obtener horarios filtrados
     const getFilteredTimes = useCallback((): string[] => {
         return AVAILABLE_TIMES.filter((time) => isTimeAvailable(time));
     }, [isTimeAvailable]);
