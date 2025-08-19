@@ -123,7 +123,7 @@ const Navbar = () => {
                 </div>
             )}
 
-            {(pathname === '/dashboard/admin' || pathname === `/professionalProfile/${id}` || pathname === '/dashboard/user') && (
+            {(pathname === '/dashboard/admin' || pathname === `/professionalProfile/${id}` || pathname === '/dashboard/user' || pathname === '/dashboard/professional') && (
                 <div className="hidden lg:block">
                     <Link href="/">
                         <button onClick={resetUserData} className="px-4 py-1 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">
