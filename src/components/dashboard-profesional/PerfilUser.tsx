@@ -97,7 +97,7 @@ const PerfilUser = () => {
                         `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.fullName || userData.name || 'Usuario')}`
                 );
             } catch (err) {
-                setErrorMsg('Error al obtener usuario');
+                setErrorMsg(`${err}, Error al obtener usuario`);
                 setLoading(false);
             }
         };
