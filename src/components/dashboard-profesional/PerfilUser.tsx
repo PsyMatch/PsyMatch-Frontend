@@ -148,7 +148,7 @@ const PerfilUser = () => {
             if (profileFile) {
                 formData.append('profile_picture', profileFile);
             }
-            const res = await fetch('`${envs.next_public_api_url}/users/me', {
+            const res = await fetch('${envs.next_public_api_url}/users/me', {
                 method: 'PUT',
                 headers: {
                     Authorization: `Bearer ${token}`,
