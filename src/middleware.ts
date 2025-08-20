@@ -3,6 +3,9 @@ import { NextResponse, NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
     const { pathname, origin } = request.nextUrl;
 
+    // Verificar tanto authToken (login normal) como auth_token (Google OAuth)
+    const hasAuthToken = request.cookies.get('authToken') || request.cookies.get('auth_token');
+
     if (
         (pathname === '/dashboard/professional' ||
             pathname === '/dashboard/user' ||
@@ -11,7 +14,7 @@ export function middleware(request: NextRequest) {
             pathname === '/search-professionals' ||
             pathname.startsWith('/userProfile/') ||
             pathname.startsWith('/session/')) &&
-        !request.cookies.get('authToken')
+        !hasAuthToken
     ) {
         const homeUrl = new URL('/', origin);
         return NextResponse.redirect(homeUrl);

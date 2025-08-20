@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
+import { envs } from '@/config/envs.config';
 
 const RegisterSchema = Yup.object().shape({
     fullName: Yup.string().min(2, 'El nombre debe tener al menos 2 caracteres').required('El nombre completo es requerido'),
@@ -107,7 +108,7 @@ export default function RegisterForm() {
                 );
             }
 
-            const response = await fetch('http://localhost:8080/auth/signup', {
+            const response = await fetch(`${envs.next_public_api_url}/auth/signup`, {
                 method: 'POST',
                 body: formData,
             });

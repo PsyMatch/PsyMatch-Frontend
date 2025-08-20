@@ -5,6 +5,7 @@ import Input from '../ui/input';
 import { Camera } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { envs } from '@/config/envs.config';
 
 type UserProfile = {
     id?: string;
@@ -61,7 +62,7 @@ const PerfilUser = () => {
                     router.push('/login');
                     return;
                 }
-                const res = await fetch('http://localhost:8080/users/me', {
+                const res = await fetch(`${envs.next_public_api_url}/users/me`, {
                     method: 'GET',
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -95,8 +96,8 @@ const PerfilUser = () => {
                         userData.profile_picture ||
                         `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.fullName || userData.name || 'Usuario')}`
                 );
-            } catch {
-                setErrorMsg('Error al obtener usuario');
+            } catch (err) {
+                setErrorMsg(`${err}, Error al obtener usuario`);
                 setLoading(false);
             }
         };
@@ -147,7 +148,7 @@ const PerfilUser = () => {
             if (profileFile) {
                 formData.append('profile_picture', profileFile);
             }
-            const res = await fetch('http://localhost:8080/users/me', {
+            const res = await fetch(`${envs.next_public_api_url}/users/me`, {
                 method: 'PUT',
                 headers: {
                     Authorization: `Bearer ${token}`,

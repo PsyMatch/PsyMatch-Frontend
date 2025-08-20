@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Field, Formik } from 'formik';
 import { Form } from 'formik';
+import { envs } from '@/config/envs.config';
 
 interface ResponseDataProfile {
     name: string;
@@ -28,7 +29,7 @@ const Perfil = () => {
         const token = localStorage.getItem('authToken');
         if (!token) return;
 
-        fetch('http://localhost:8080/psychologist/me', {
+        fetch(`${envs.next_public_api_url}/psychologist/me`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -55,7 +56,7 @@ const Perfil = () => {
 
         console.log('Cuerpo de la solicitud:', bodySend);
 
-        fetch('http://localhost:8080/psychologist/me', {
+        fetch(`${envs.next_public_api_url}/psychologist/me`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

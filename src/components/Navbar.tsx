@@ -13,12 +13,15 @@ const Navbar = () => {
     const [, setUserData] = useState<object | null>(null);
     const [token, setToken] = useState<string | null>(null);
 
+
     const { isAuth, resetUserData } = useAuthProfessionalContext();
     const pathname = usePathname();
     const id = pathname?.split('/')[2] || '';
 
+
     // Cargar cookies y token SOLO en cliente
     useEffect(() => {
+        const cookies = Cookies.get('responseData');
         const cookies = Cookies.get('responseData');
         if (cookies) {
             try {
@@ -28,7 +31,10 @@ const Navbar = () => {
             }
         }
         setToken(localStorage.getItem('authToken'));
+        setToken(localStorage.getItem('authToken'));
     }, []);
+
+    const rolGuardado = Cookies.get('role');
 
     const rolGuardado = Cookies.get('role');
 
@@ -41,6 +47,15 @@ const Navbar = () => {
         </a>,
         <a
             key={2}
+            href={
+                rolGuardado === 'Psicólogo'
+                    ? '/dashboard/professional'
+                    : rolGuardado === 'Paciente'
+                    ? '/dashboard/user'
+                    : rolGuardado === 'Administrador'
+                    ? '/dashboard/admin'
+                    : '/'
+            }
             href={
                 rolGuardado === 'Psicólogo'
                     ? '/dashboard/professional'
@@ -90,9 +105,13 @@ const Navbar = () => {
             {/* Menú móvil */}
             <div className="md:hidden lg:hidden">
                 <Menu onClick={() => setMenu((prev) => !prev)} />
+                <Menu onClick={() => setMenu((prev) => !prev)} />
                 {menu && pathname === '/' && (
                     <ul className="absolute flex flex-col items-center gap-4 p-3 top-20 right-1 bg-[#CDCDCD]">
                         {(!isAuth ? botonesNavBarHome : botonesNavBarHomeLogeado).map((boton, index) => (
+                            <li key={index} className="text-sm list-none hover:text-gray-700">
+                                {boton}
+                            </li>
                             <li key={index} className="text-sm list-none hover:text-gray-700">
                                 {boton}
                             </li>
@@ -105,7 +124,19 @@ const Navbar = () => {
                             <li key={index} className="text-sm list-none hover:text-gray-700">
                                 {boton}
                             </li>
+                            <li key={index} className="text-sm list-none hover:text-gray-700">
+                                {boton}
+                            </li>
                         ))}
+                    </ul>
+                )}
+                {menu && (pathname === '/dashboard/admin' || pathname === `/professionalProfile/${id}` || pathname === '/dashboard/user') && (
+                    <ul className="absolute flex flex-col items-center gap-4 p-3 top-20 right-1 bg-[#CDCDCD]">
+                        <li className="text-sm list-none hover:text-gray-700">
+                            <Link href="/">
+                                <button className="px-4 py-1 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">Cerrar Sesión</button>
+                            </Link>
+                        </li>
                     </ul>
                 )}
                 {menu && (pathname === '/dashboard/admin' || pathname === `/professionalProfile/${id}` || pathname === '/dashboard/user') && (
@@ -128,11 +159,17 @@ const Navbar = () => {
                                 <li key={index} className="text-sm list-none hover:text-gray-700">
                                     {boton}
                                 </li>
+                                <li key={index} className="text-sm list-none hover:text-gray-700">
+                                    {boton}
+                                </li>
                             ))}
                         </ul>
                     ) : (
                         <ul className="flex flex-row gap-10">
                             {botonesNavBarHomeLogeado.map((boton, index) => (
+                                <li key={index} className="text-sm list-none hover:text-gray-700">
+                                    {boton}
+                                </li>
                                 <li key={index} className="text-sm list-none hover:text-gray-700">
                                     {boton}
                                 </li>
@@ -149,11 +186,18 @@ const Navbar = () => {
                             <li key={index} className="text-sm list-none hover:text-gray-700">
                                 {boton}
                             </li>
+                            <li key={index} className="text-sm list-none hover:text-gray-700">
+                                {boton}
+                            </li>
                         ))}
                     </ul>
                 </div>
             )}
 
+            {(pathname === '/dashboard/admin' ||
+                pathname === `/professionalProfile/${id}` ||
+                pathname === '/dashboard/user' ||
+                pathname === '/dashboard/professional') && (
             {(pathname === '/dashboard/admin' ||
                 pathname === `/professionalProfile/${id}` ||
                 pathname === '/dashboard/user' ||

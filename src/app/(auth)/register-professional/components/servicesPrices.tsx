@@ -10,8 +10,29 @@ import { useAuthProfessionalContext } from '@/context/registerProfessional';
 import { ToastContainer, toast } from 'react-toastify';
 
 const modalidades = ['Presencial', 'En línea', 'Híbrido'];
+const modalidades = ['Presencial', 'En línea', 'Híbrido'];
 
 const especialidades = [
+    'Trastorno de ansiedad',
+    'Terapia de pareja',
+    'Trastorno de la alimentación',
+    'Trastorno bipolar',
+    'Transiciones de vida',
+    'Terapia infantil y adolescente',
+    'Trastornos del sueño',
+    'Depresión',
+    'Terapia familiar',
+    'TDAH',
+    'TOC',
+    'Orientación profesional',
+    'Psicología geriátrica',
+    'Manejo de la ira',
+    'Trauma y TEPT',
+    'Adicción y abuso de sustancias',
+    'Trastorno del espectro autista',
+    'Duelo y pérdida',
+    'LGBTQIA',
+    'Manejo del dolor crónico',
     'Trastorno de ansiedad',
     'Terapia de pareja',
     'Trastorno de la alimentación',
@@ -48,12 +69,43 @@ const enfoquesTerapia = [
     'Terapia Gestalt',
     'Terapia de arte',
     'Terapia de grupo',
+    'Terapia cognitivo-conductual',
+    'Terapia de aceptación y compromiso',
+    'Terapia psicodinámica',
+    'Terapia de sistemas familiares',
+    'Terapia breve centrada en soluciones',
+    'Terapia de juego',
+    'Terapia dialéctico-conductual',
+    'Desensibilización y reprocesamiento por movimientos oculares',
+    'Terapia centrada en la persona',
+    'Terapia basada en la atención plena',
+    'Terapia Gestalt',
+    'Terapia de arte',
+    'Terapia de grupo',
 ];
+const tiposTerapia = ['Individual', 'Pareja', 'Familiar', 'Grupo'];
 const tiposTerapia = ['Individual', 'Pareja', 'Familiar', 'Grupo'];
 
 const disponibilidad = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+const disponibilidad = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
 const obrasSociales = [
+    'OSDE',
+    'Swiss Medical',
+    'IOMA',
+    'PAMI',
+    'Unión Personal',
+    'OSDEPYM',
+    'Luis Pasteur',
+    'Jerárquicos Salud',
+    'Sancor Salud',
+    'OSECAC',
+    'OSMECON Salud',
+    'Apross',
+    'OSPRERA',
+    'OSPAT',
+    'ASE Nacional',
+    'OSPIP',
     'OSDE',
     'Swiss Medical',
     'IOMA',
@@ -76,6 +128,7 @@ const Services_Prices = () => {
     const router = useRouter();
 
     const { profileImageFile } = useFotoDePerfil();
+    const { saveUserData } = useAuthProfessionalContext();
     const { saveUserData } = useAuthProfessionalContext();
 
     const [initialValues, setInitialValues] = useState<typeof initialValuesTipos>({
@@ -118,6 +171,9 @@ const Services_Prices = () => {
         const toastId = toast.loading('Enviando datos...', {
             position: 'top-center',
             theme: 'dark',
+        const toastId = toast.loading('Enviando datos...', {
+            position: 'top-center',
+            theme: 'dark',
             closeOnClick: false,
             draggable: false,
         });
@@ -148,7 +204,7 @@ const Services_Prices = () => {
                 formData.append('profile_picture', profileImageFile);
             }
 
-            const response = await fetch('http://localhost:8080/auth/signup/psychologist', {
+            const response = await fetch(`${envs.next_public_api_url}/auth/signup/psychologist`, {
                 method: 'POST',
                 // headers: { 'Content-Type': 'application/json' },
                 body: formData,
@@ -168,14 +224,19 @@ const Services_Prices = () => {
                     Cookies.set('authToken', data.token);
                 }
 
+
                 saveUserData(data);
 
+
                 if (data.data.role) {
+                    Cookies.set('role', data.data.role, { path: '/' });
                     Cookies.set('role', data.data.role, { path: '/' });
                 }
             }
 
             toast.update(toastId, {
+                render: 'Registrado con éxito!',
+                type: 'success',
                 render: 'Registrado con éxito!',
                 type: 'success',
                 isLoading: false,
@@ -186,6 +247,7 @@ const Services_Prices = () => {
             Cookies.remove('userDataCompleta');
 
             const rol = Cookies.get('role');
+            const rol = Cookies.get('role');
 
             // Redirigir según el tipo de usuario
             if (rol === 'Psicólogo') {
@@ -193,13 +255,26 @@ const Services_Prices = () => {
             }
             if (rol === 'Administrador') {
                 router.push('/dashboard/admin');
+                router.push('/dashboard/professional');
+            }
+            if (rol === 'Administrador') {
+                router.push('/dashboard/admin');
             } else {
+                router.push('/dashboard/user');
                 router.push('/dashboard/user');
             }
         } catch (error: unknown) {
+        } catch (error: unknown) {
             console.error('Error:', error);
             const errorMessage = error instanceof Error ? error.message : 'Error al registrar!';
+            const errorMessage = error instanceof Error ? error.message : 'Error al registrar!';
             toast.update(toastId, {
+                render: errorMessage,
+                type: 'error',
+                isLoading: false,
+                autoClose: 3000,
+                closeOnClick: true,
+                draggable: true,
                 render: errorMessage,
                 type: 'error',
                 isLoading: false,
@@ -212,6 +287,7 @@ const Services_Prices = () => {
 
     return (
         <>
+            <ToastContainer />
             <ToastContainer />
             <div className="flex flex-col space-y-1.5 py-6 mb-3">
                 <div className="flex items-center text-[#5046E7] text-2xl font-semibold leading-none tracking-tight">Servicios y Especialidades</div>
@@ -305,6 +381,7 @@ const Services_Prices = () => {
                             ))}
                         </div>
 
+                        <div className="mt-10">
                         <div className="mt-10">
                             <label className="text-sm font-medium leading-none" htmlFor="consultation_fee">
                                 Precio de tus Sesiones *

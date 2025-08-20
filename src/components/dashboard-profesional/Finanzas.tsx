@@ -1,5 +1,6 @@
-"use client"
-import { useEffect, useState } from "react";
+'use client';
+import { envs } from '@/config/envs.config';
+import { useEffect, useState } from 'react';
 
 interface Payment {
     id: string;
@@ -21,11 +22,11 @@ const Finanzas = ({ userType = 'psychologist' }: FinanzasProps) => {
         if (!token) return;
 
         let endpoint = '';
-            if (userType === 'psychologist') {
-                endpoint = 'http://localhost:8080/psychologist/payments';
-            } else {
-                endpoint = 'http://localhost:8080/users/patient/payments';
-            }
+        if (userType === 'psychologist') {
+            endpoint = `${envs.next_public_api_url}/psychologist/payments`;
+        } else {
+            endpoint = `${envs.next_public_api_url}/users/patient/payments`;
+        }
 
         fetch(endpoint, {
             headers: {
@@ -55,9 +56,7 @@ const Finanzas = ({ userType = 'psychologist' }: FinanzasProps) => {
                 </div>
                 <div>
                     {!finanzas && 'Cargando finanzas...'}
-                    {finanzas && finanzas.length === 0 && (
-                        <div className="text-gray-500">No hay transacciones registradas.</div>
-                    )}
+                    {finanzas && finanzas.length === 0 && <div className="text-gray-500">No hay transacciones registradas.</div>}
                     {finanzas && finanzas.length > 0 && (
                         <div className="flex flex-col gap-2">
                             {finanzas.map((pago) => (
@@ -68,9 +67,7 @@ const Finanzas = ({ userType = 'psychologist' }: FinanzasProps) => {
                                     <div className="flex flex-col gap-1">
                                         <span className="font-bold">{pago.description || 'Pago'}</span>
                                         <span className="text-sm text-gray-600">{new Date(pago.date).toLocaleString()}</span>
-                                        {pago.status && (
-                                            <span className="text-xs text-gray-500">Estado: {pago.status}</span>
-                                        )}
+                                        {pago.status && <span className="text-xs text-gray-500">Estado: {pago.status}</span>}
                                     </div>
                                     <div>
                                         <span className="font-bold text-green-700">${pago.amount.toFixed(2)}</span>
