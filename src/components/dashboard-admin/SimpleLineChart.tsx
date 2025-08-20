@@ -1,5 +1,3 @@
-import React, { useState } from 'react';
-
 
 interface ChartData {
   label: string;
@@ -22,7 +20,6 @@ interface SimpleLineChartProps {
 
 const SimpleLineChart: React.FC<SimpleLineChartProps> = ({
   data,
-  dataWeek,
   title,
   color = '#5046E7',
 }) => {
