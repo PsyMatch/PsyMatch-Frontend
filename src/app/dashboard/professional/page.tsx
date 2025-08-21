@@ -17,8 +17,9 @@ const [verified, setVerified] = useState<string | null>(null);
     return (
         <div className="w-[100%] flex justify-center pt-10 bg-gradient-to-br from-blue-50 to-indigo-100">
             <div className="w-[90%] mb-8">
-                {/* <MenuNavegacion /> */}
-                {verified === 'Pendiente' && <PendingProfessional />}
+                {verified === 'Pendiente' ? 
+                <PendingProfessional /> : <MenuNavegacion />
+            }             
             </div>
         </div>
     )

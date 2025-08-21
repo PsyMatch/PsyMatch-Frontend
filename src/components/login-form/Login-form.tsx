@@ -26,7 +26,7 @@ export default function LoginForm() {
 
         try {
             console.log('Enviando petición de login a:', `${envs.next_public_api_url}/auth/signin`);
-            const response = await fetch("http://localhost:8080/auth/signin", {
+            const response = await fetch(`${envs.next_public_api_url}/auth/signin`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
