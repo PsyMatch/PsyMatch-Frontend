@@ -16,11 +16,23 @@ interface MissingDataModalProps {
 }
 
 const healthInsuranceOptions = [
-  { value: 'OSDE', label: 'OSDE' },
-  { value: 'Swiss Medical', label: 'Swiss Medical' },
-  { value: 'PAMI', label: 'PAMI' },
-  { value: 'IOMA', label: 'IOMA' },
-  { value: 'Otra', label: 'Otra' },
+    { value: '', label: 'Seleccionar obra social' },
+    { value: 'OSDE', label: 'OSDE' },
+    { value: 'Swiss Medical', label: 'Swiss Medical' },
+    { value: 'IOMA', label: 'IOMA' },
+    { value: 'PAMI', label: 'PAMI' },
+    { value: 'Unión Personal', label: 'Unión Personal' },
+    { value: 'OSDEPYM', label: 'OSDEPYM' },
+    { value: 'Luis Pasteur', label: 'Luis Pasteur' },
+    { value: 'Jerárquicos Salud', label: 'Jerárquicos Salud' },
+    { value: 'Sancor Salud', label: 'Sancor Salud' },
+    { value: 'OSECAC', label: 'OSECAC' },
+    { value: 'OSMECON Salud', label: 'OSMECON Salud' },
+    { value: 'Apross', label: 'Apross' },
+    { value: 'OSPRERA', label: 'OSPRERA' },
+    { value: 'OSPAT', label: 'OSPAT' },
+    { value: 'ASE Nacional', label: 'ASE Nacional' },
+    { value: 'OSPIP', label: 'OSPIP' },
 ];
 
 export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave, onClose }) => {
@@ -65,14 +77,8 @@ export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave
       newErrors.address = 'La dirección debe tener al menos 3 caracteres';
     }
 
-    if (!formData.emergency_contact?.trim()) {
-      newErrors.emergency_contact = 'El contacto de emergencia es obligatorio';
-    } else if (formData.emergency_contact.length < 10) {
+    if (formData.emergency_contact?.trim() && formData.emergency_contact.length < 10) {
       newErrors.emergency_contact = 'Debe incluir nombre, teléfono y relación (ej: María Pérez - +5411987654321 - Madre)';
-    }
-
-    if (!formData.health_insurance?.trim()) {
-      newErrors.health_insurance = 'La obra social es obligatoria';
     }
 
     setErrors(newErrors);
@@ -206,12 +212,12 @@ export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave
           {/* Contacto de emergencia */}
           <div className="space-y-2">
             <Label htmlFor="emergency_contact" className="text-sm font-medium text-gray-700">
-              Contacto de emergencia *
+              Contacto de emergencia (opcional)
             </Label>
             <Input
               id="emergency_contact"
               type="text"
-              placeholder="Ej: María Pérez - +5411987654321 - Madre"
+              placeholder="Ej: María Pérez - +5411987654321 - Madre (opcional)"
               value={formData.emergency_contact || ''}
               onChange={(e) => handleInputChange('emergency_contact', e.target.value)}
               className={errors.emergency_contact ? 'border-red-500' : ''}
@@ -222,14 +228,14 @@ export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave
           {/* Obra social */}
           <div className="space-y-2">
             <Label htmlFor="health_insurance" className="text-sm font-medium text-gray-700">
-              Obra social *
+              Obra social (opcional)
             </Label>
             <Select
               value={formData.health_insurance || ''}
               onValueChange={(value) => handleInputChange('health_insurance', value)}
             >
               <SelectTrigger className={errors.health_insurance ? 'border-red-500' : ''}>
-                <SelectValue placeholder="Selecciona tu obra social" />
+                <SelectValue placeholder="Selecciona tu obra social (opcional)" />
               </SelectTrigger>
               <SelectContent>
                 {healthInsuranceOptions.map((option) => (
