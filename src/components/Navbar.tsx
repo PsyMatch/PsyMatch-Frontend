@@ -6,19 +6,15 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthProfessionalContext } from '@/context/registerProfessional';
+import { useAuth } from '@/hooks/useAuth';
 import Cookies from 'js-cookie';
 
 const Navbar = () => {
     const [menu, setMenu] = useState(false);
-    const [userData, setUserData] = useState<{
-        id?: string;
-        name?: string;
-        email?: string;
-        role?: string;
-    } | null>(null);
     const [token, setToken] = useState<string | null>(null);
 
     const { isAuth, resetUserData } = useAuthProfessionalContext();
+    const { logout } = useAuth();
     const pathname = usePathname();
     const id = pathname?.split('/')[2] || '';
 
@@ -27,13 +23,29 @@ const Navbar = () => {
         const cookies = Cookies.get('responseData');
         if (cookies) {
             try {
-                setUserData(JSON.parse(cookies));
+                // setUserData no se usa, pero mantenemos la lógica por si se necesita después
+                JSON.parse(cookies);
             } catch {
-                setUserData(null);
+                // Error parsing, continuar
             }
         }
-        setToken(localStorage.getItem('authToken'));
+        setToken(localStorage.getItem('authToken') || Cookies.get('auth_token') || Cookies.get('authToken' )|| null );
     }, []);
+
+    // Función mejorada de logout que combina ambas funcionalidades
+    const handleLogout = async () => {
+        try {
+            // Usar la nueva función logout que borra todo
+            await logout();
+            // También llamar a resetUserData por compatibilidad
+            resetUserData();
+        } catch (error) {
+            console.error('Error durante logout:', error);
+            // Fallback a la función original
+            resetUserData();
+            window.location.href = '/';
+        }
+    };
 
     const rolGuardado = Cookies.get('role');
 
@@ -116,9 +128,12 @@ const Navbar = () => {
                 {menu && (pathname === '/dashboard/admin' || pathname === `/professionalProfile/${id}` || pathname === '/dashboard/user') && (
                     <ul className="absolute flex flex-col items-center gap-4 p-3 top-20 right-1 bg-[#CDCDCD]">
                         <li className="text-sm list-none hover:text-gray-700">
-                            <Link href="/">
-                                <button className="px-4 py-1 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">Cerrar Sesión</button>
-                            </Link>
+                            <button 
+                                onClick={handleLogout}
+                                className="px-4 py-1 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]"
+                            >
+                                Cerrar Sesión
+                            </button>
                         </li>
                     </ul>
                 )}
@@ -164,11 +179,12 @@ const Navbar = () => {
                 pathname === '/dashboard/user' ||
                 pathname === '/dashboard/professional') && (
                 <div className="hidden lg:block">
-                    <Link href="/">
-                        <button onClick={resetUserData} className="px-4 py-1 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">
-                            Cerrar Sesión
-                        </button>
-                    </Link>
+                    <button 
+                        onClick={handleLogout}
+                        className="px-4 py-1 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]"
+                    >
+                        Cerrar Sesión
+                    </button>
                 </div>
             )}
         </div>

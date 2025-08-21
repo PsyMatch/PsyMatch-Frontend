@@ -8,6 +8,7 @@ import SimpleLineChart from '@/components/dashboard-admin/SimpleLineChart';
 import SimpleBarChart from '@/components/dashboard-admin/SimpleBarChart';
 import DataTable from '@/components/dashboard-admin/DataTable';
 import SocialTrafficTable from '@/components/dashboard-admin/SocialTrafficTable';
+import Cookies from 'js-cookie';
 
 interface Psicologo {
     name: string;
@@ -70,7 +71,7 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         const fetchUsers = async () => {
-            const token = localStorage.getItem('authToken');
+            const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
             const res = await fetch(`${envs.next_public_api_url}/users?limit=50`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
