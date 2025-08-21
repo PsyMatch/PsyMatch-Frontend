@@ -6,6 +6,8 @@ import { Camera } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { envs } from '@/config/envs.config';
+import Cookies from 'js-cookie';
+
 
 type UserProfile = {
     id?: string;
@@ -57,7 +59,7 @@ const PerfilUser = () => {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const token = localStorage.getItem('authToken');
+                const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
                 if (!token) {
                     router.push('/login');
                     return;
@@ -123,7 +125,7 @@ const PerfilUser = () => {
             setLoading(true);
             setSuccessMsg('');
             setErrorMsg('');
-            const token = localStorage.getItem('authToken');
+            const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
             if (!token) {
                 router.push('/login');
                 return;
@@ -148,7 +150,7 @@ const PerfilUser = () => {
             if (profileFile) {
                 formData.append('profile_picture', profileFile);
             }
-            const res = await fetch(`${envs.next_public_api_url}/users/me`, {
+            const res = await fetch('${envs.next_public_api_url}/users/me', {
                 method: 'PUT',
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -301,3 +303,6 @@ const PerfilUser = () => {
     );
 };
 export default PerfilUser;
+
+
+

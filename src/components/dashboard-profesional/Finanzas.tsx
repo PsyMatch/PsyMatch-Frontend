@@ -1,6 +1,7 @@
 'use client';
 import { envs } from '@/config/envs.config';
 import { useEffect, useState } from 'react';
+import Cookies from 'js-cookie';
 
 interface Payment {
     id: string;
@@ -18,7 +19,7 @@ const Finanzas = ({ userType = 'psychologist' }: FinanzasProps) => {
     const [finanzas, setFinanzas] = useState<Payment[] | null>(null);
 
     useEffect(() => {
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
         if (!token) return;
 
         let endpoint = '';

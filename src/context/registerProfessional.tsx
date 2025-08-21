@@ -58,7 +58,7 @@ export const AuthProfessionalProvider: FC<{ children: ReactNode }> = ({ children
     useEffect(() => {
         // Al montar, chequea si hay cookie o token guardado
         const cookieStr = Cookies.get('responseData');
-        const localToken = localStorage.getItem('authToken');
+        const localToken = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
 
         if (cookieStr && localToken) {
             const data = JSON.parse(cookieStr);

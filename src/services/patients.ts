@@ -25,8 +25,7 @@ export const patientsService = {
     // Obtener todos los pacientes de un psicólogo
     getMyPatients: async (): Promise<PatientResponse[]> => {
         try {
-            const token = Cookies.get('authToken') || Cookies.get('auth-token');
-
+            const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token') || Cookies.get('auth-token');
             if (!token) {
                 throw new Error('No authentication token found');
             }

@@ -13,32 +13,48 @@ interface MenuNavegacionAdminProps {
 const MenuNavegacionAdmin = ({ data }: MenuNavegacionAdminProps) => {
     const [pestañaActiva, setpestañaActiva] = useState('pacientes');
 
-    const pestañas = [
-        { id: 'pacientes', label: 'Pacientes', component: <UserPacientes data={data} /> },
-        { id: 'profesionales', label: 'Profesionales', component: <UserProfessionals data={data} /> },
-        { id: 'reseñas', label: 'Reseñas', component: <ReseñasAdmin /> },
-        { id: 'turnos', label: 'Turnos', component: <TurnosAdmin /> },
-    ];
+  const pestañas = [
+    { id: "pacientes", label: "Pacientes", component: <UserPacientes data={data} /> },
+    { id: "profesionales", label: "Profesionales", component: <UserProfessionals data={data} /> },
+    { id: "reseñas", label: "Reseñas", component: <ReseñasAdmin /> },
+    { id: "turnos", label: "Turnos", component: <TurnosAdmin /> },
+  ]
 
-    return (
-        <>
-            <div className="grid items-center w-[80%] h-10 grid-cols-4 gap-3 px-1 mt-6 bg-white rounded-md">
-                {pestañas.map((pestaña) => (
-                    <button
-                        key={pestaña.id}
-                        className={`h-[80%] rounded-md transition-colors ${pestañaActiva === pestaña.id ? 'bg-blue-200' : 'hover:bg-blue-100'}`}
-                        onClick={() => setpestañaActiva(pestaña.id)}
-                    >
-                        {pestaña.label}
-                    </button>
-                ))}
-            </div>
+  const handleTabChange = (newTab: string) => {
+    setpestañaActiva(newTab);
+    // Prevenir el scroll automático
+    setTimeout(() => {
+      window.scrollTo({ top: window.scrollY, behavior: 'auto' });
+    }, 50);
+  }
 
-            <div className="flex justify-center w-screen mt-10 bg-white h-fit bg-gradient-to-br from-blue-50 to-indigo-100">
-                {pestañas.find((pestaña) => pestaña.id === pestañaActiva)?.component}
-            </div>
-        </>
-    );
-};
+  return (
+    <div className="scroll-smooth">
+      <div className="flex items-center justify-center w-full h-12 bg-gray-50 rounded-lg border border-gray-200 p-1">
+        {pestañas.map((pestaña) => (
+          <button
+            key={pestaña.id}
+            className={`flex-1 h-full rounded-md transition-all duration-200 font-medium text-sm ${
+              pestañaActiva === pestaña.id 
+                ? "bg-[#5046E7] text-white shadow-md" 
+                : "text-gray-600 hover:text-[#5046E7] hover:bg-[#5046E7]/10"
+            }`}
+            onClick={() => handleTabChange(pestaña.id)}
+          >
+            {pestaña.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-6 bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden" style={{ scrollBehavior: 'auto' }}>
+        <div className="min-h-[600px] transition-all duration-300 ease-in-out">
+          <div className="p-6">
+            {pestañas.find((pestaña) => pestaña.id === pestañaActiva)?.component}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default MenuNavegacionAdmin;

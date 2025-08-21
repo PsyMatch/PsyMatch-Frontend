@@ -6,6 +6,8 @@ import Footer from '@/components/Footer';
 import { BotonesRegisterProvider } from '@/context/botonesRegisterContext';
 import { FotoDePerfilProvider } from '@/context/fotoDePerfil';
 import { AuthProfessionalProvider } from '@/context/registerProfessional';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -18,8 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: 'PsyMatch',
-    description: 'Plataforma de gestión de psicólogos y pacientes',
+    title: 'PsyMatch - Conectando mentes',
+    description: 'Plataforma para conectar pacientes con profesionales de salud mental',
 };
 
 export default function RootLayout({
@@ -28,7 +30,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
+        <html lang="es">
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
                 <BotonesRegisterProvider>
                     <FotoDePerfilProvider>
@@ -36,6 +38,18 @@ export default function RootLayout({
                             <Navbar />
                             {children}
                             <Footer />
+                            <ToastContainer
+                                position="top-right"
+                                autoClose={5000}
+                                hideProgressBar={false}
+                                newestOnTop={false}
+                                closeOnClick
+                                rtl={false}
+                                pauseOnFocusLoss
+                                draggable
+                                pauseOnHover
+                                theme="light"
+                            />
                         </AuthProfessionalProvider>
                     </FotoDePerfilProvider>
                 </BotonesRegisterProvider>
