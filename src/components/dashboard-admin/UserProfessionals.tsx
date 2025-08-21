@@ -3,6 +3,7 @@ import { Paciente } from "@/app/dashboard/admin/page";
 import { envs } from "@/config/envs.config";
 import Image from "next/image";
 import { useState } from "react";
+import Cookies from 'js-cookie';
 
 interface UserProfessionalsProps {
   data: Paciente[];
@@ -10,7 +11,7 @@ interface UserProfessionalsProps {
 const UserProfessionals = ({ data }: UserProfessionalsProps) => {
 
     const handleAccept = async (id: string) => {
-        const token = localStorage.getItem("authToken");
+        const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
         const response = await fetch(`${envs.next_public_api_url}/psychologist/verification/${id}/verify`, {
             method: "PUT",
             headers: {
