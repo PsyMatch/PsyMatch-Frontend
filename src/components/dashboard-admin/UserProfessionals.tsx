@@ -8,11 +8,12 @@ import Cookies from 'js-cookie';
 interface UserProfessionalsProps {
     data: Paciente[];
 }
+
 const UserProfessionals = ({ data }: UserProfessionalsProps) => {
     const handleAccept = async (id: string) => {
         const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
         const response = await fetch(`${envs.next_public_api_url}/psychologist/verification/${id}/verify`, {
-            method: "PUT",
+            method: 'PUT',
             headers: {
                 Authorization: `Bearer ${token}`,
             },

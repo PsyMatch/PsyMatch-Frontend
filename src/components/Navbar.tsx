@@ -1,26 +1,30 @@
 'use client';
 import Image from 'next/image';
-import logoCabeza from '../assets/logoCabeza.svg';
-import { Menu } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Menu, X } from 'lucide-react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthProfessionalContext } from '@/context/registerProfessional';
 import { useAuth } from '@/hooks/useAuth';
 import Cookies from 'js-cookie';
 
-const Navbar = () => {
-    const [menu, setMenu] = useState(false);
-    const [token, setToken] = useState<string | null>(null);
+interface NavButton {
+    href: string;
+    label: string;
+    isPrimary?: boolean;
+    onClick?: () => void;
+}
 
+const Navbar = () => {
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [, setUserData] = useState<object | null>(null);
+    const [token, setToken] = useState<string | null>(null);
 
     const { isAuth, resetUserData } = useAuthProfessionalContext();
     const { logout } = useAuth();
     const pathname = usePathname();
     const id = pathname?.split('/')[2] || '';
 
-
-    // Cargar cookies y token SOLO en cliente
     useEffect(() => {
         const cookies = Cookies.get('responseData');
         if (cookies) {
@@ -31,181 +35,191 @@ const Navbar = () => {
                 // Error parsing, continuar
             }
         }
-        setToken(localStorage.getItem('authToken') || Cookies.get('auth_token') || Cookies.get('authToken' )|| null );
+        setToken(Cookies.get('auth_token') ?? null);
     }, []);
 
-    // Función mejorada de logout que combina ambas funcionalidades
-    const handleLogout = async () => {
-        try {
-            // Usar la nueva función logout que borra todo
-            await logout();
-            // También llamar a resetUserData por compatibilidad
-            resetUserData();
-        } catch (error) {
-            console.error('Error durante logout:', error);
-            // Fallback a la función original
-            resetUserData();
-            window.location.href = '/';
+    useEffect(() => {
+        setIsMenuOpen(false);
+    }, [pathname]);
+
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                setIsMenuOpen(false);
+            }
+        };
+
+        if (isMenuOpen) {
+            document.addEventListener('keydown', handleEscape);
+            // Prevent body scroll when menu is open
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
         }
-    };
+
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+            document.body.style.overflow = 'unset';
+        };
+    }, [isMenuOpen]);
 
     const rolGuardado = Cookies.get('role');
 
-    const botonesNavBarHomeLogeado = [
-        <Link key={0} href="/search-professionals">
-            Buscar Terapeutas
-        </Link>,
-        <a key={1} href="/como-funciona">
-            Como Funciona
-        </a>,
-        <a
-            key={2}
-            href={
-                rolGuardado === 'Psicólogo'
-                    ? '/dashboard/professional'
-                    : rolGuardado === 'Paciente'
-                    ? '/dashboard/user'
-                    : rolGuardado === 'Administrador'
-                    ? '/dashboard/admin'
-                    : '/'
+    const navigationConfig = useMemo(() => {
+        const getDashboardUrl = () => {
+            switch (rolGuardado) {
+                case 'Psicólogo':
+                    return '/dashboard/professional';
+                case 'Paciente':
+                    return '/dashboard/user';
+                case 'Administrador':
+                    return '/dashboard/admin';
+                default:
+                    return '/';
             }
-            className="px-4 py-2 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]"
-        >
-            Perfil
-        </a>,
-    ];
+        };
 
-    const botonesNavBarMatch = [
-        <Link key={0} href="/como-funciona">
-            Como funciona
-        </Link>,
-        <Link key={1} href="/dashboard/user" className="px-4 py-2 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">
-            Perfil
-        </Link>,
-    ];
+        return {
+            homeLoggedIn: [
+                { href: '/search-professionals', label: 'Buscar Terapeutas' },
+                { href: '/como-funciona', label: 'Como Funciona' },
+                { href: getDashboardUrl(), label: 'Perfil', isPrimary: true },
+            ] as NavButton[],
 
-    const botonesNavBarHome = [
-        <a href={isAuth ? '/search-professionals' : '/register-user'} key={0}>
-            Buscar Terapeutas
-        </a>,
-        <Link key={1} href="/como-funciona">
-            Como Funciona
-        </Link>,
-        <Link key={2} href="/login">
-            Iniciar Sesión
-        </Link>,
-        <Link key={3} href="/register-user" className="px-4 py-2 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]">
-            Comenzar
-        </Link>,
-    ];
+            searchProfessionals: [
+                { href: '/como-funciona', label: 'Como funciona' },
+                { href: '/dashboard/user', label: 'Perfil', isPrimary: true },
+            ] as NavButton[],
+
+            homeGuest: [
+                { href: isAuth ? '/search-professionals' : '/register-user', label: 'Buscar Terapeutas' },
+                { href: '/como-funciona', label: 'Como Funciona' },
+                { href: '/login', label: 'Iniciar Sesión' },
+                { href: '/register-user', label: 'Comenzar', isPrimary: true },
+            ] as NavButton[],
+
+            dashboard: [{ href: '/', label: 'Cerrar Sesión', isPrimary: true, onClick: resetUserData }] as NavButton[],
+        };
+    }, [isAuth, rolGuardado, resetUserData]);
+
+    const currentNavButtons = useMemo(() => {
+        if (pathname === '/') {
+            return !token ? navigationConfig.homeGuest : navigationConfig.homeLoggedIn;
+        }
+
+        if (pathname === '/search-professionals') {
+            return navigationConfig.searchProfessionals;
+        }
+
+        if (
+            pathname === '/dashboard/admin' ||
+            pathname === `/professionalProfile/${id}` ||
+            pathname === '/dashboard/user' ||
+            pathname === '/dashboard/professional'
+        ) {
+            return navigationConfig.dashboard;
+        }
+
+        return [];
+    }, [pathname, token, navigationConfig, id]);
+
+    const toggleMenu = useCallback(() => {
+        setIsMenuOpen((prev) => !prev);
+    }, []);
+
+    const NavButton = ({ href, label, isPrimary, onClick }: NavButton) => {
+        const baseClasses = 'relative transition-all duration-200 ease-in-out focus:ring-2 focus:ring-white focus:ring-offset-2 rounded-md';
+        const primaryClasses =
+            'px-4 py-2 text-white bg-black hover:bg-black/85 hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0';
+        const secondaryClasses = 'text-gray-700 hover:text-black';
+
+        const content = <span className={`${baseClasses} ${isPrimary ? primaryClasses : secondaryClasses}`}>{label}</span>;
+
+        if (onClick) {
+            return (
+                <button onClick={onClick} className="block w-full text-left">
+                    {content}
+                </button>
+            );
+        }
+
+        return (
+            <Link href={href} className="block">
+                {content}
+            </Link>
+        );
+    };
 
     return (
-        <div className="flex flex-row items-center justify-between w-full h-20 px-6 bg-white md:px-36">
-            <Link href="/" className="flex flex-row items-center gap-2 cursor-pointer">
-                <Image src={logoCabeza} alt="logo" />
-                <h3 className="text-xl font-bold text-black">PsyMatch</h3>
-            </Link>
+        <nav className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
+            <div className="flex items-center justify-between w-full h-20 px-6 md:px-36">
+                <Link
+                    href="/"
+                    className="flex items-center gap-2 transition-transform duration-200 hover:scale-105"
+                    aria-label="PsyMatch - Ir al inicio"
+                >
+                    <Image
+                        src="https://res.cloudinary.com/dibnkd72j/image/upload/v1755747168/logoCabeza_mb8k7q.svg"
+                        alt="PsyMatch logo"
+                        width={40}
+                        height={40}
+                    />
+                    <h1 className="text-xl font-bold text-gray-900">PsyMatch</h1>
+                </Link>
 
-            {/* Menú móvil */}
-            <div className="md:hidden lg:hidden">
-                <Menu onClick={() => setMenu((prev) => !prev)} />
-                <Menu onClick={() => setMenu((prev) => !prev)} />
-                {menu && pathname === '/' && (
-                    <ul className="absolute flex flex-col items-center gap-4 p-3 top-20 right-1 bg-[#CDCDCD]">
-                        {(!isAuth ? botonesNavBarHome : botonesNavBarHomeLogeado).map((boton, index) => (
-                            <li key={index} className="text-sm list-none hover:text-gray-700">
-                                {boton}
+                <button
+                    onClick={toggleMenu}
+                    className="md:hidden p-2 rounded-md transition-colors duration-200 hover:bg-gray-100"
+                    aria-expanded={isMenuOpen}
+                    aria-controls="mobile-menu"
+                    aria-label={isMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
+                >
+                    <div className="relative w-6 h-6">
+                        <Menu
+                            className={`absolute inset-0 transition-all duration-300 ${isMenuOpen ? 'opacity-0 rotate-180' : 'opacity-100 rotate-0'}`}
+                            size={24}
+                        />
+                        <X
+                            className={`absolute inset-0 transition-all duration-300 ${
+                                isMenuOpen ? 'opacity-100 rotate-0' : 'opacity-0 -rotate-180'
+                            }`}
+                            size={24}
+                        />
+                    </div>
+                </button>
+
+                {isMenuOpen && (
+                    <>
+                        {/* Backdrop */}
+                        <div className="fixed inset-0 bg-black bg-opacity-25 md:hidden z-40" onClick={toggleMenu} aria-hidden="true" />
+
+                        {/* Mobile menu */}
+                        <div
+                            id="mobile-menu"
+                            className="absolute top-full right-0 left-0 bg-white shadow-lg border-t border-gray-100 md:hidden z-50 animate-in slide-in-from-top-2 duration-300"
+                        >
+                            <ul className="flex flex-col p-4 space-y-3" role="menu">
+                                {currentNavButtons.map((button, index) => (
+                                    <li key={index} role="menuitem">
+                                        <NavButton {...button} />
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </>
+                )}
+
+                <div className="hidden md:block">
+                    <ul className="flex items-center space-x-6" role="menubar">
+                        {currentNavButtons.map((button, index) => (
+                            <li key={index} role="menuitem">
+                                <NavButton {...button} />
                             </li>
                         ))}
                     </ul>
-                )}
-                {menu && pathname === '/search-professionals' && (
-                    <ul className="absolute flex flex-col items-center gap-4 p-3 top-20 right-1 bg-[#CDCDCD]">
-                        {botonesNavBarMatch.map((boton, index) => (
-                            <li key={index} className="text-sm list-none hover:text-gray-700">
-                                {boton}
-                            </li>
-                        ))}
-                    </ul>
-                )}
-                {menu && (pathname === '/dashboard/admin' || pathname === `/professionalProfile/${id}` || pathname === '/dashboard/user') && (
-                    <ul className="absolute flex flex-col items-center gap-4 p-3 top-20 right-1 bg-[#CDCDCD]">
-                        <li className="text-sm list-none hover:text-gray-700">
-                            <button 
-                                onClick={handleLogout}
-                                className="px-4 py-1 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]"
-                            >
-                                Cerrar Sesión
-                            </button>
-                        </li>
-                    </ul>
-                )}
-                {menu && (pathname === '/dashboard/admin' || pathname === `/professionalProfile/${id}` || pathname === '/dashboard/user') && (
-                    <ul className="absolute flex flex-col items-center gap-4 p-3 top-20 right-1 bg-[#CDCDCD]">
-                        <li className="text-sm list-none hover:text-gray-700">
-                            <button 
-                                onClick={handleLogout}
-                                className="px-4 py-1 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]"
-                            >
-                                Cerrar Sesión
-                            </button>
-                        </li>
-                    </ul>
-                )}
+                </div>
             </div>
-
-            {/* Menú escritorio */}
-            {pathname === '/' && (
-                <div className="hidden lg:block">
-                    {!token ? (
-                        <ul className="flex flex-row items-center gap-4 p-3">
-                            {botonesNavBarHome.map((boton, index) => (
-                                <li key={index} className="text-sm list-none hover:text-gray-700">
-                                    {boton}
-                                </li>
-
-                            ))}
-                        </ul>
-                    ) : (
-                        <ul className="flex flex-row gap-10">
-                            {botonesNavBarHomeLogeado.map((boton, index) => (
-                                <li key={index} className="text-sm list-none hover:text-gray-700">
-                                    {boton}
-                                </li>
-
-                            ))}
-                        </ul>
-                    )}
-                </div>
-            )}
-
-            {pathname === '/search-professionals' && (
-                <div className="hidden lg:block">
-                    <ul className="flex flex-row items-center gap-4 p-3">
-                        {botonesNavBarMatch.map((boton, index) => (
-                            <li key={index} className="text-sm list-none hover:text-gray-700">
-                                {boton}
-                            </li>
-
-                        ))}
-                    </ul>
-                </div>
-            )}
-
-            {(pathname === '/dashboard/admin' ||
-                pathname === `/professionalProfile/${id}` ||
-                pathname === '/dashboard/user' ||
-                pathname === '/dashboard/professional') && (
-                <div className="hidden lg:block">
-                    <button 
-                        onClick={handleLogout}
-                        className="px-4 py-1 text-white rounded-md bg-[#5046E7] hover:bg-[#615ac2]"
-                    >
-                        Cerrar Sesión
-                    </button>
-                </div>
-            )}
-        </div>
+        </nav>
     );
 };
 

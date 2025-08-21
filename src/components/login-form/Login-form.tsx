@@ -46,10 +46,9 @@ export default function LoginForm() {
             if (response.ok) {
                 console.log('Login exitoso:', data);
 
-                // Guardar token en localStorage si viene en la respuesta
+                // Guardar token en Cookies si viene en la respuesta
                 if (data.token) {
-                    localStorage.setItem('authToken', data.token);
-                    Cookies.set('authToken', data.token);
+                    Cookies.set('auth_token', data.token);
                 }
 
                 if (data.data.role) {
