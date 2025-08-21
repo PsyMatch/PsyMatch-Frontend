@@ -23,7 +23,6 @@ const Navbar = () => {
     // Cargar cookies y token SOLO en cliente
     useEffect(() => {
         const cookies = Cookies.get('responseData');
-        const cookies = Cookies.get('responseData');
         if (cookies) {
             try {
                 // setUserData no se usa, pero mantenemos la lógica por si se necesita después
@@ -61,15 +60,6 @@ const Navbar = () => {
         </a>,
         <a
             key={2}
-            href={
-                rolGuardado === 'Psicólogo'
-                    ? '/dashboard/professional'
-                    : rolGuardado === 'Paciente'
-                    ? '/dashboard/user'
-                    : rolGuardado === 'Administrador'
-                    ? '/dashboard/admin'
-                    : '/'
-            }
             href={
                 rolGuardado === 'Psicólogo'
                     ? '/dashboard/professional'
@@ -126,18 +116,12 @@ const Navbar = () => {
                             <li key={index} className="text-sm list-none hover:text-gray-700">
                                 {boton}
                             </li>
-                            <li key={index} className="text-sm list-none hover:text-gray-700">
-                                {boton}
-                            </li>
                         ))}
                     </ul>
                 )}
                 {menu && pathname === '/search-professionals' && (
                     <ul className="absolute flex flex-col items-center gap-4 p-3 top-20 right-1 bg-[#CDCDCD]">
                         {botonesNavBarMatch.map((boton, index) => (
-                            <li key={index} className="text-sm list-none hover:text-gray-700">
-                                {boton}
-                            </li>
                             <li key={index} className="text-sm list-none hover:text-gray-700">
                                 {boton}
                             </li>
@@ -179,9 +163,7 @@ const Navbar = () => {
                                 <li key={index} className="text-sm list-none hover:text-gray-700">
                                     {boton}
                                 </li>
-                                <li key={index} className="text-sm list-none hover:text-gray-700">
-                                    {boton}
-                                </li>
+
                             ))}
                         </ul>
                     ) : (
@@ -190,9 +172,7 @@ const Navbar = () => {
                                 <li key={index} className="text-sm list-none hover:text-gray-700">
                                     {boton}
                                 </li>
-                                <li key={index} className="text-sm list-none hover:text-gray-700">
-                                    {boton}
-                                </li>
+
                             ))}
                         </ul>
                     )}
@@ -206,18 +186,12 @@ const Navbar = () => {
                             <li key={index} className="text-sm list-none hover:text-gray-700">
                                 {boton}
                             </li>
-                            <li key={index} className="text-sm list-none hover:text-gray-700">
-                                {boton}
-                            </li>
+
                         ))}
                     </ul>
                 </div>
             )}
 
-            {(pathname === '/dashboard/admin' ||
-                pathname === `/professionalProfile/${id}` ||
-                pathname === '/dashboard/user' ||
-                pathname === '/dashboard/professional') && (
             {(pathname === '/dashboard/admin' ||
                 pathname === `/professionalProfile/${id}` ||
                 pathname === '/dashboard/user' ||
