@@ -16,7 +16,7 @@ interface MissingDataModalProps {
 }
 
 const healthInsuranceOptions = [
-    { value: '', label: 'Seleccionar obra social' },
+    { value: 'none', label: 'Seleccionar obra social' },
     { value: 'OSDE', label: 'OSDE' },
     { value: 'Swiss Medical', label: 'Swiss Medical' },
     { value: 'IOMA', label: 'IOMA' },
@@ -231,8 +231,8 @@ export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave
               Obra social (opcional)
             </Label>
             <Select
-              value={formData.health_insurance || ''}
-              onValueChange={(value) => handleInputChange('health_insurance', value)}
+              value={formData.health_insurance || 'none'}
+              onValueChange={(value) => handleInputChange('health_insurance', value === 'none' ? '' : value)}
             >
               <SelectTrigger className={errors.health_insurance ? 'border-red-500' : ''}>
                 <SelectValue placeholder="Selecciona tu obra social (opcional)" />
