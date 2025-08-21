@@ -5,12 +5,7 @@ import { validationSchemaInfoProfesional, ValoresInfoProfesional } from '@/helpe
 import { useBotonesRegisterContext } from '@/context/botonesRegisterContext';
 import { AutoSaveCookies, dataToSave, getCookieObject, saveMerged } from '@/helpers/formRegister/helpers';
 
-const idiomas = [
-    "Inglés",
-    "Español",
-    "Portugués"
-];
-
+const idiomas = ['Inglés', 'Español', 'Portugués'];
 
 const InfoProfesional = () => {
     const { avanzarPaso } = useBotonesRegisterContext();
@@ -19,7 +14,7 @@ const InfoProfesional = () => {
         personal_biography: '',
         languages: [],
         license_number: '',
-        professional_title: "",
+        professional_title: '',
         professional_experience: '',
         office_address: '',
     });
@@ -45,7 +40,7 @@ const InfoProfesional = () => {
     }, [initialValues.languages.length, initialValues.license_number, initialValues.personal_biography]);
 
     const handleSubmit = (values: ValoresInfoProfesional) => {
-        console.log("Languages enviados:", values.languages);
+        console.log('Languages enviados:', values.languages);
         const toSave = dataToSave(values as unknown as Record<string, unknown>);
         console.log('Guardando en cookie (submit):', toSave);
         saveMerged(toSave);

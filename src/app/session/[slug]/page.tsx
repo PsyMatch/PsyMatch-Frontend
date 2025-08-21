@@ -35,7 +35,7 @@ const SessionPage = () => {
 
         try {
             // Obtener token de las cookies
-            const token = Cookies.get('authToken');
+            const token = Cookies.get('auth_token');
 
             if (token) {
                 // Decodificar JWT payload (parte central del token)
@@ -44,7 +44,7 @@ const SessionPage = () => {
                 // Verificar si el token ha expirado
                 if (payload.exp && payload.exp * 1000 < Date.now()) {
                     // Limpiar cookie expirada
-                    Cookies.remove('authToken');
+                    Cookies.remove('auth_token');
                     return '';
                 }
 
@@ -64,7 +64,7 @@ const SessionPage = () => {
         // Solo ejecutar en el cliente
         if (typeof window === 'undefined') return null;
 
-        const token = Cookies.get('authToken');
+        const token = Cookies.get('auth_token');
 
         if (token) {
             try {
@@ -72,14 +72,14 @@ const SessionPage = () => {
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 if (payload.exp && payload.exp * 1000 < Date.now()) {
                     // Limpiar cookie expirada
-                    Cookies.remove('authToken');
+                    Cookies.remove('auth_token');
                     return null;
                 }
                 return token;
             } catch (error) {
                 console.error('Error verificando token:', error);
                 // Si hay error decodificando, limpiar cookie
-                Cookies.remove('authToken');
+                Cookies.remove('auth_token');
                 return null;
             }
         }
@@ -253,7 +253,7 @@ const SessionPage = () => {
                 session_type: sessionType,
                 therapy_approach: therapyApproach,
                 insurance: insurance || undefined,
-                price: 50000, // Precio fijo por ahora
+                price: psychologist.consultation_fee || 50000,
                 notes: `Cita agendada desde el frontend. Modalidad: ${modality}, Tipo: ${sessionType}, Enfoque: ${therapyApproach}${
                     insurance ? `, Obra Social: ${insurance}` : ''
                 }`,
@@ -265,23 +265,23 @@ const SessionPage = () => {
             console.log('Cita creada exitosamente:', newAppointment);
             alert('¡Cita creada exitosamente!');
 
-            // Llamar al backend para obtener el init_point de Mercado Pago
-            const mpRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments/mercadopago-preference`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`,
-                },
-            });
-            if (!mpRes.ok) {
-                throw new Error('No se pudo iniciar el pago con Mercado Pago');
-            }
-            const mpData = await mpRes.json();
-            if (mpData.init_point) {
-                window.location.href = mpData.init_point;
-            } else {
-                alert('No se pudo obtener el link de pago. Intenta nuevamente.');
-            }
+            // // Llamar al backend para obtener el init_point de Mercado Pago
+            // const mpRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments/mercadopago-preference`, {
+            //     method: 'POST',
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //         Authorization: `Bearer ${authToken}`,
+            //     },
+            // });
+            // if (!mpRes.ok) {
+            //     throw new Error('No se pudo iniciar el pago con Mercado Pago');
+            // }
+            // const mpData = await mpRes.json();
+            // if (mpData.init_point) {
+            //     window.location.href = mpData.init_point;
+            // } else {
+            //     alert('No se pudo obtener el link de pago. Intenta nuevamente.');
+            // }
         } catch (error: unknown) {
             console.error('Error al crear la cita o iniciar el pago:', error);
 
@@ -385,7 +385,7 @@ const SessionPage = () => {
 
                                     <div className="flex items-center gap-4 mt-2">
                                         <span className="text-sm text-gray-600">⭐ 4.8 (Reviews próximamente)</span>
-                                        <span className="text-sm font-semibold text-green-600">💰 $50.000</span>
+                                        <span className="text-sm font-semibold text-green-600">💰 {psychologist.consultation_fee || 50000}</span>
                                         {psychologist.verified && (
                                             <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
                                                 ✓ Verificado
@@ -698,8 +698,13 @@ const SessionPage = () => {
                                             required
                                         >
                                             <option value="">Selecciona modalidad</option>
-                                            {/* Usar modalidad única del psicólogo o opciones por defecto */}
-                                            {psychologist?.modality ? (
+                                            {/* Si el psicólogo ofrece modalidad híbrida, permitir elegir entre presencial y en línea */}
+                                            {psychologist?.modality === 'Híbrido' ? (
+                                                <>
+                                                    <option value="Presencial">Presencial</option>
+                                                    <option value="En línea">En línea</option>
+                                                </>
+                                            ) : psychologist?.modality ? (
                                                 <option value={psychologist.modality}>{psychologist.modality}</option>
                                             ) : (
                                                 // Opciones por defecto si no hay datos específicos
@@ -722,7 +727,9 @@ const SessionPage = () => {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Precio de la Sesión</label>
-                                            <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600">$50.000</div>
+                                            <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600">
+                                                {psychologist.consultation_fee || 50000}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -761,7 +768,7 @@ const SessionPage = () => {
                                             </p>
                                         )}
                                         <p className="text-sm text-gray-600">
-                                            <strong>Precio:</strong> $50.000
+                                            <strong>Precio:</strong> {psychologist.consultation_fee || 50000}
                                         </p>
                                     </div>
                                     <button

@@ -6,14 +6,14 @@ import { useState } from "react";
 import Cookies from 'js-cookie';
 
 interface UserProfessionalsProps {
-  data: Paciente[];
+    data: Paciente[];
 }
-const UserProfessionals = ({ data }: UserProfessionalsProps) => {
 
+const UserProfessionals = ({ data }: UserProfessionalsProps) => {
     const handleAccept = async (id: string) => {
         const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
         const response = await fetch(`${envs.next_public_api_url}/psychologist/verification/${id}/verify`, {
-            method: "PUT",
+            method: 'PUT',
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -22,11 +22,11 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
         console.log(result);
     };
 
-    const [filter, setFilter] = useState<"Pendiente" | "Validado">("Pendiente");
+    const [filter, setFilter] = useState<'Pendiente' | 'Validado'>('Pendiente');
 
-    const profesionales = data.filter((u) => u.role === "Psicólogo");
+    const profesionales = data.filter((u) => u.role === 'Psicólogo');
     const filtrados = profesionales.filter((u) => u.verified === filter);
-    const [ alerta, setAlerta] = useState(false);
+    const [alerta, setAlerta] = useState(false);
 
     return (
         <div className="w-full min-h-[500px] flex flex-col">
@@ -177,7 +177,7 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                 )}
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default UserProfessionals
+export default UserProfessionals;

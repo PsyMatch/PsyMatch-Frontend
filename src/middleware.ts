@@ -3,8 +3,8 @@ import { NextResponse, NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
     const { pathname, origin } = request.nextUrl;
 
-    // Verificar tanto authToken (login normal) como auth_token (Google OAuth)
-    const hasAuthToken = request.cookies.get('authToken') || request.cookies.get('auth_token');
+    // Verificar  auth_token (Google OAuth)
+    const hasAuthToken = request.cookies.get('auth_token');
 
     if (
         (pathname === '/dashboard/professional' ||
@@ -20,7 +20,7 @@ export function middleware(request: NextRequest) {
         return NextResponse.redirect(homeUrl);
     }
 
-    if ((pathname === '/login' || pathname === '/register-user' || pathname === '/professional/register') && hasAuthToken) {
+    if ((pathname === '/login' || pathname === '/register-user' || pathname === '/register-professional') && request.cookies.get('auth_token')) {
         const dashboardUrl = new URL('/', origin);
         return NextResponse.redirect(dashboardUrl);
     }

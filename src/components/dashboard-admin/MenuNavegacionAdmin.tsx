@@ -1,18 +1,17 @@
-"use client"
-import { useState } from "react"
-import UserProfessionals from "./UserProfessionals"
-import UserPacientes from "./UserPacientes"
-import ReseñasAdmin from "./ReseñasAdmin"
-import TurnosAdmin from "./TurnosAdmin"
-import { Paciente } from "@/app/dashboard/admin/page"
-
+'use client';
+import { useState } from 'react';
+import UserProfessionals from './UserProfessionals';
+import UserPacientes from './UserPacientes';
+import ReseñasAdmin from './ReseñasAdmin';
+import TurnosAdmin from './TurnosAdmin';
+import { Paciente } from '@/app/dashboard/admin/page';
 
 interface MenuNavegacionAdminProps {
-  data: Paciente[];
+    data: Paciente[];
 }
 
 const MenuNavegacionAdmin = ({ data }: MenuNavegacionAdminProps) => {
-  const [pestañaActiva, setpestañaActiva] = useState("pacientes")
+    const [pestañaActiva, setpestañaActiva] = useState('pacientes');
 
   const pestañas = [
     { id: "pacientes", label: "Pacientes", component: <UserPacientes data={data} /> },
@@ -58,4 +57,4 @@ const MenuNavegacionAdmin = ({ data }: MenuNavegacionAdminProps) => {
   )
 }
 
-export default MenuNavegacionAdmin
+export default MenuNavegacionAdmin;

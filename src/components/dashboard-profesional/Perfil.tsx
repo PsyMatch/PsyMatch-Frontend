@@ -27,9 +27,8 @@ const Perfil = () => {
     const [cambios, setCambios] = useState<Partial<ResponseDataProfile>>({});
 
     useEffect(() => {
-        const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
+        const token = Cookies.get('auth_token');
         if (!token) return;
-
         fetch(`${envs.next_public_api_url}/psychologist/me`, {
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -45,7 +44,7 @@ const Perfil = () => {
     console.log(perfil);
 
     const handleUpdateProfile = (cambios: Partial<ResponseDataProfile>, original: ResponseDataProfile) => {
-        const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
+        const token = Cookies.get('auth_token');
         if (!token) return;
 
         let bodySend = Object.fromEntries(Object.entries(cambios).filter(([key, value]) => value !== original[key as keyof ResponseDataProfile]));

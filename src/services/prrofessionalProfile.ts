@@ -1,6 +1,7 @@
-import { envs } from "@/config/envs.config";
+import { envs } from '@/config/envs.config';
 
 export interface IProfessional {
+    id: string;
     name: string;
     birthdate: string;
     phone: string;

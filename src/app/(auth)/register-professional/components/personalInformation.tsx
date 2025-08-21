@@ -47,11 +47,7 @@ const PersonalInformation = () => {
     }, [initialValues.email, initialValues.name]);
 
     const today = new Date();
-    const haceDieciochoAños = new Date(
-    today.getFullYear() - 18,
-    today.getMonth(),
-    today.getDate()
-    );
+    const haceDieciochoAños = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
 
     const validationSchema = Yup.object({
         name: Yup.string().required('El nombre es obligatorio'),
@@ -187,7 +183,6 @@ const PersonalInformation = () => {
                                     <ErrorMessage name="dni" component="div" className="mt-1 text-sm text-red-500" />
                                 </div>
                             </div>
-
 
                             {/* Contraseñas */}
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
