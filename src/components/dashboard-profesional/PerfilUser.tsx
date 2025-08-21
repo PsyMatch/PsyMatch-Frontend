@@ -15,7 +15,7 @@ type UserProfile = {
     birthDate?: string;
     phone: string;
     address: string;
-    email: string;
+    email?: string;
     socialWork: string;
     emergencyContact: string;
     profileImage?: string;
@@ -24,11 +24,8 @@ type UserProfile = {
 const fields: { label: string; field: keyof UserProfile; type?: string }[] = [
     { label: 'Nombre Completo', field: 'fullName' },
     { label: 'Alias', field: 'alias' },
-    { label: 'Fecha de nacimiento', field: 'birthDate', type: 'date' },
     { label: 'Número de teléfono', field: 'phone' },
     { label: 'Dirección', field: 'address' },
-    { label: 'Correo electrónico', field: 'email' },
-    { label: 'Obra Social', field: 'socialWork' },
     { label: 'Contacto de emergencia', field: 'emergencyContact' },
 ];
 
@@ -50,6 +47,26 @@ const extractUserFromToken = (token: string) => {
     }
 };
 
+const socialWorkOptions = [
+    { value: '', label: 'Seleccionar obra social' },
+    { value: 'OSDE', label: 'OSDE' },
+    { value: 'Swiss Medical', label: 'Swiss Medical' },
+    { value: 'IOMA', label: 'IOMA' },
+    { value: 'PAMI', label: 'PAMI' },
+    { value: 'Unión Personal', label: 'Unión Personal' },
+    { value: 'OSDEPYM', label: 'OSDEPYM' },
+    { value: 'Luis Pasteur', label: 'Luis Pasteur' },
+    { value: 'Jerárquicos Salud', label: 'Jerárquicos Salud' },
+    { value: 'Sancor Salud', label: 'Sancor Salud' },
+    { value: 'OSECAC', label: 'OSECAC' },
+    { value: 'OSMECON Salud', label: 'OSMECON Salud' },
+    { value: 'Apross', label: 'Apross' },
+    { value: 'OSPRERA', label: 'OSPRERA' },
+    { value: 'OSPAT', label: 'OSPAT' },
+    { value: 'ASE Nacional', label: 'ASE Nacional' },
+    { value: 'OSPIP', label: 'OSPIP' },
+];
+
 const PerfilUser = () => {
     const [editable, setEditable] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -59,10 +76,8 @@ const PerfilUser = () => {
         id: '',
         fullName: '',
         alias: '',
-        birthDate: '',
         phone: '',
         address: '',
-        email: '',
         socialWork: '',
         emergencyContact: '',
         profileImage: '',
@@ -103,7 +118,6 @@ const PerfilUser = () => {
                     id: userData.id || userFromToken.id || '',
                     fullName: userData.fullName || userData.name ||  '',
                     alias: userData.alias || '',
-                    birthDate: userData.birthDate || userData.birthdate || '',
                     phone: userData.phone || '',
                     address: userData.address || '',
                     email: userData.email || userFromToken.email || '',
@@ -159,7 +173,6 @@ const PerfilUser = () => {
             formData.append('name', user.fullName);
             formData.append('alias', user.alias);
             formData.append('phone', user.phone);
-            formData.append('email', user.email);
             formData.append('address', user.address);
             if (user.socialWork) {
                 formData.append('health_insurance', user.socialWork);
@@ -170,7 +183,7 @@ const PerfilUser = () => {
             if (profileFile) {
                 formData.append('profile_picture', profileFile);
             }
-            const res = await fetch('${envs.next_public_api_url}/users/me', {
+            const res = await fetch(`${envs.next_public_api_url}/users/me`, {
                 method: 'PUT',
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -204,10 +217,8 @@ const PerfilUser = () => {
                 id: userData.id ?? prev.id,
                 fullName: userData.fullName ?? userData.name ?? prev.fullName,
                 alias: userData.alias ?? prev.alias,
-                birthDate: userData.birthDate ?? userData.birthdate ?? prev.birthDate,
                 phone: userData.phone ?? prev.phone,
                 address: userData.address ?? prev.address,
-                email: userData.email ?? prev.email,
                 socialWork: userData.socialWork ?? userData.social_security_number ?? prev.socialWork,
                 emergencyContact: userData.emergencyContact ?? userData.emergency_contact ?? prev.emergencyContact,
                 profileImage: userData.profileImage ?? userData.profile_picture ?? prev.profileImage,
@@ -264,7 +275,6 @@ const PerfilUser = () => {
                         )}
                     </div>
                     <h3 className="text-xl font-semibold mb-1">{user.fullName}</h3>
-                    <p className="text-gray-500 mb-2">{user.email}</p>
                     <div className="text-sm text-gray-400 mb-2">{user.phone}</div>
                     <div className="text-xs text-gray-400">Obra Social: {user.socialWork || 'No especificada'}</div>
                 </div>
@@ -293,7 +303,7 @@ const PerfilUser = () => {
                                     <label className="block text-sm font-medium mb-1">{label}</label>
                                     <Input
                                         name={field}
-                                        type={field === 'birthDate' ? 'date' : type || 'text'}
+                                        type={type || 'text'}
                                         className="border rounded px-3 py-2 w-full"
                                         value={user[field] || ''}
                                         disabled={!editable || loading}
@@ -301,6 +311,24 @@ const PerfilUser = () => {
                                     />
                                 </div>
                             ))}
+                            {/* Select para Obra Social */}
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Obra Social</label>
+                                <select
+                                    name="socialWork"
+                                    className="border rounded px-3 py-2 w-full bg-white"
+                                    value={user.socialWork || ''}
+                                    disabled={!editable || loading}
+                                    onChange={(e) => handleChange({ target: { name: 'socialWork', value: e.target.value } } as React.ChangeEvent<HTMLInputElement>)}
+                                >
+                                    <option value="">Seleccionar obra social</option>
+                                    {socialWorkOptions.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
                         {editable && (
                             <div className="flex justify-end">
