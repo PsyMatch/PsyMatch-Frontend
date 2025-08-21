@@ -63,8 +63,7 @@ export const appointmentsService = {
     // Crear una nueva cita
     createAppointment: async (appointmentData: CreateAppointmentRequest): Promise<AppointmentResponse> => {
         try {
-            const token = Cookies.get('authToken') || Cookies.get('auth-token');
-
+            const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token') || Cookies.get('auth-token');
             if (!token) {
                 throw new Error('No authentication token found');
             }
@@ -117,7 +116,7 @@ export const appointmentsService = {
     // Obtener todas las citas del usuario autenticado
     getMyAppointments: async (): Promise<AppointmentResponse[]> => {
         try {
-            const token = Cookies.get('authToken') || Cookies.get('auth-token');
+            const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token') || Cookies.get('auth-token');
 
             if (!token) {
                 throw new Error('No authentication token found');
@@ -147,12 +146,16 @@ export const appointmentsService = {
             });
 
             if (!response.ok) {
+                console.error('Response status:', response.status);
+                console.error('Response statusText:', response.statusText);
+                console.error('Response headers:', response.headers);
+                
                 if (response.status === 401) {
                     Cookies.remove('authToken');
                     Cookies.remove('auth-token');
                     throw new Error('Authentication failed - please login again');
                 }
-                throw new Error(`Error fetching appointments: ${response.statusText}`);
+                throw new Error(`Error fetching appointments: Status ${response.status} - ${response.statusText}`);
             }
 
             const result = await response.json();
@@ -172,7 +175,7 @@ export const appointmentsService = {
         slotMinutes = 30
     ): Promise<{ date: string; hour: string; available: boolean }[]> => {
         try {
-            const token = Cookies.get('authToken') || Cookies.get('auth-token');
+            const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token') || Cookies.get('auth-token');
 
             if (!token) {
                 throw new Error('No authentication token found');

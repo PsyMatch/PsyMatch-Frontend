@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Field, Formik } from 'formik';
 import { Form } from 'formik';
 import { envs } from '@/config/envs.config';
+import Cookies from 'js-cookie';
 
 interface ResponseDataProfile {
     name: string;
@@ -26,7 +27,7 @@ const Perfil = () => {
     const [cambios, setCambios] = useState<Partial<ResponseDataProfile>>({});
 
     useEffect(() => {
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
         if (!token) return;
 
         fetch("http://localhost:8080/psychologist/me", {
@@ -44,7 +45,7 @@ const Perfil = () => {
     console.log(perfil);
 
     const handleUpdateProfile = (cambios: Partial<ResponseDataProfile>, original: ResponseDataProfile) => {
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
         if (!token) return;
 
         let bodySend = Object.fromEntries(Object.entries(cambios).filter(([key, value]) => value !== original[key as keyof ResponseDataProfile]));

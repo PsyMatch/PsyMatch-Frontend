@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { envs } from '@/config/envs.config';
-
+import Cookies from 'js-cookie';
 export interface AdminDashboardMetrics {
   users: number;
   appointments: number;
@@ -26,32 +26,32 @@ export function useAdminDashboardMetrics(pollInterval = 10000) {
 
   useEffect(() => {
     let isMounted = true;
-    let interval: NodeJS.Timeout;
 
     const fetchMetrics = async () => {
       setLoading(true);
       setError(null);
       try {
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
         const res = await fetch(`${envs.next_public_api_url}/admin/dashboard/metrics`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error('Error al obtener métricas');
         const data = await res.json();
         if (isMounted) setMetrics(data);
-      } catch (err: any) {
-        if (isMounted) setError(err.message);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+        if (isMounted) setError(errorMessage);
       } finally {
         if (isMounted) setLoading(false);
       }
     };
 
     fetchMetrics();
-    interval = setInterval(fetchMetrics, pollInterval);
+    const intervalId = setInterval(fetchMetrics, pollInterval);
 
     return () => {
       isMounted = false;
-      clearInterval(interval);
+      clearInterval(intervalId);
     };
   }, [pollInterval]);
 

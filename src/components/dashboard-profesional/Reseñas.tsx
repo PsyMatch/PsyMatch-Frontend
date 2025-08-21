@@ -1,12 +1,13 @@
 'use client';
 import { envs } from '@/config/envs.config';
 import { useEffect, useState } from 'react';
+import Cookies from 'js-cookie';
 
 const Reseñas = () => {
     const [reseñas, setReseñas] = useState(null);
 
     useEffect(() => {
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
         if (!token) return;
 
         fetch(`${envs.next_public_api_url}/psychologist/reviews`, {
