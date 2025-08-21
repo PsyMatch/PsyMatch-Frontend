@@ -50,6 +50,7 @@ const enfoquesTerapia = [
     'Terapia de arte',
     'Terapia de grupo',
 ];
+
 const tiposTerapia = ['Individual', 'Pareja', 'Familiar', 'Grupo'];
 
 const disponibilidad = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
@@ -71,6 +72,7 @@ const obrasSociales = [
     'OSPAT',
     'ASE Nacional',
     'OSPIP',
+    'Ninguna',
 ];
 
 const Services_Prices = () => {
@@ -135,7 +137,12 @@ const Services_Prices = () => {
                 if (Array.isArray(value)) {
                     value.forEach((item) => formData.append(`${key}[]`, item));
                 } else {
-                    formData.append(key, String(value));
+                    // Para consultation_fee, mantener como número si es numérico
+                    if (key === 'consultation_fee' && typeof value === 'number') {
+                        formData.append(key, value.toString());
+                    } else {
+                        formData.append(key, String(value));
+                    }
                 }
             });
 
@@ -148,13 +155,13 @@ const Services_Prices = () => {
             if (profileImageFile) {
                 formData.append('profile_picture', profileImageFile);
             }
-
+            console.log(formData.get('consultation_fee')); // 45000
             const response = await fetch(`${envs.next_public_api_url}/auth/signup/psychologist`, {
                 method: 'POST',
                 // headers: { 'Content-Type': 'application/json' },
                 body: formData,
             });
-
+            console.log('Response:', response);
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message);
@@ -163,15 +170,15 @@ const Services_Prices = () => {
             const data = await response.json();
 
             if (response.ok) {
-                // Guardar token en localStorage si viene en la respuesta
+                // Guardar token en cookies si viene en la respuesta
                 if (data.token) {
-                    localStorage.setItem('authToken', data.token);
-                    Cookies.set('authToken', data.token);
+                    Cookies.set('auth_token', data.token);
                 }
 
                 saveUserData(data);
 
                 if (data.data.role) {
+                    Cookies.set('role', data.data.role, { path: '/' });
                     Cookies.set('role', data.data.role, { path: '/' });
                 }
             }
@@ -194,7 +201,12 @@ const Services_Prices = () => {
             }
             if (rol === 'Administrador') {
                 router.push('/dashboard/admin');
+                router.push('/dashboard/professional');
+            }
+            if (rol === 'Administrador') {
+                router.push('/dashboard/admin');
             } else {
+                router.push('/dashboard/user');
                 router.push('/dashboard/user');
             }
         } catch (error: unknown) {

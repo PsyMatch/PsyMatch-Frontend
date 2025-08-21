@@ -41,10 +41,10 @@ const DataTable: React.FC<DataTableProps> = ({ title, data }) => (
                 {row.pageName}
               </td>
               <td className="py-3 text-sm text-gray-900">
-                {row.visitors.toLocaleString()}
+                {row.visitors.toLocaleString('es-AR')}
               </td>
               <td className="py-3 text-sm text-gray-900">
-                {row.uniqueUsers}
+                {row.uniqueUsers.toLocaleString('es-AR')}
               </td>
               <td className="py-3 text-sm text-gray-900 flex items-center">
                 <span className={`mr-2 ${

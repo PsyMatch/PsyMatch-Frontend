@@ -83,6 +83,8 @@ const AdminDashboard = () => {
 
     console.log('Users:', users);
     console.log('Users.data:', users?.data);
+    console.log('Users:', users);
+    console.log('Users.data:', users?.data);
 
     // Mostrar solo datos reales semanales si existen
     const totalUsers = metrics?.weekly?.users?.at(-1)?.value ?? 0;

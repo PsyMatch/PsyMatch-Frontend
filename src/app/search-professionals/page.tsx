@@ -35,10 +35,9 @@ const Filter = () => {
     const getAuthToken = () => {
         if (typeof window === 'undefined') return null;
 
-        const authToken = Cookies.get('auth-token');
-        const authTokenAlt = Cookies.get('authToken');
+        const authToken = Cookies.get('auth_token');
 
-        return authToken || authTokenAlt;
+        return authToken;
     };
 
     const redirectToLogin = useCallback(() => {
@@ -46,27 +45,13 @@ const Filter = () => {
     }, [router]);
 
     const calcularPrecio = useCallback((psicologo: PsychologistResponse): number => {
-        const experiencia = psicologo.professional_experience || 0;
-        const precioBase = 35000;
+        const precioDB = psicologo.consultation_fee;
 
-        let precio = precioBase;
-        if (experiencia >= 20) {
-            precio = 60000;
-        } else if (experiencia >= 15) {
-            precio = 55000;
-        } else if (experiencia >= 10) {
-            precio = 50000;
-        } else if (experiencia >= 5) {
-            precio = 45000;
-        } else {
-            precio = 40000;
+        if (precioDB != null && precioDB > 0) {
+            return precioDB;
         }
 
-        if (psicologo.modality === 'En línea') {
-            precio *= 0.85;
-        }
-
-        return Math.round(precio);
+        return 50000;
     }, []);
 
     useEffect(() => {
@@ -908,7 +893,7 @@ const Filter = () => {
                                             </div>
 
                                             <div className="flex gap-2">
-                                                <a className="flex-1" href={`/professionalProfile/${psicologo.id}`}>
+                                                <a className="flex-1" href={`/profile/${psicologo.id}`}>
                                                     <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-gray-300 hover:bg-gray-100 hover:text-gray-900 h-9 rounded-md px-3 w-full bg-transparent">
                                                         Ver Perfil Completo
                                                     </button>

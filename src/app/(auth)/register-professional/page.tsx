@@ -1,8 +1,8 @@
 'use client';
 import { useBotonesRegisterContext } from '@/context/botonesRegisterContext';
-import PersonalInformation from './components/PersonalInformation';
+import PersonalInformation from './components/personalInformation';
 import InfoProfesional from './components/infoProfesional';
-import Services_Prices from './components/Services_Prices';
+import Services_Prices from './components/servicesPrices';
 
 const RegisterProfessional = () => {
     const { pasoActual, retrocederPaso } = useBotonesRegisterContext();

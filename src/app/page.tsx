@@ -1,16 +1,16 @@
-"use client"
-import Information from "@/components/Home/Information/Information";
-import Match from "@/components/Home/Match/Match";
-import Profesionales from "@/components/Home/profesionales/Profesionales";
+'use client';
+import Information from '@/components/Home/Information/Information';
+import Match from '@/components/Home/Match/Match';
+import Profesionales from '@/components/Home/profesionales/Profesionales';
 import Start from '@/components/Home/Start/Start';
 import Cookies from 'js-cookie';
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 export default function Home() {
     const [token, setToken] = useState<string | undefined>(undefined);
 
     useEffect(() => {
-        const cookieToken = Cookies.get('authToken');
+        const cookieToken = Cookies.get('auth_token');
         setToken(cookieToken);
     }, []);
 

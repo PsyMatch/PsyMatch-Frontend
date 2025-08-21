@@ -95,5 +95,8 @@ export const validationSchema = Yup.object().shape({
 
     availability: Yup.array().min(1, 'Selecciona al menos un día disponible').required('Debes seleccionar días disponibles'),
 
-    consultation_fee: Yup.string().required('Debes ingresar el costo de la consulta'),
+    consultation_fee: Yup.number()
+        .positive('El precio debe ser un número positivo')
+        .max(9999999, 'El costo de la consulta no puede exceder los 7 dígitos')
+        .required('Debes ingresar el costo de la consulta'),
 });
