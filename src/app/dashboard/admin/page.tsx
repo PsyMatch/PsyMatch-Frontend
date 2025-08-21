@@ -341,34 +341,6 @@ const AdminDashboard = () => {
                     <MenuNavegacionAdmin data={users?.data?.data ?? []} />
                 </div>
             </div>
-    return (
-        <div className="flex flex-col items-center bg-gradient-to-br from-blue-50 to-indigo-100">
-            <div className="grid grid-cols-4 gap-4 mt-16 mb-6">
-                <div className="flex flex-col justify-center items-center h-32 w-72 rounded-xl bg-[#625bbe]">
-                    <h1 className="text-[26px] font-bold text-white">{totalPacientes}</h1>
-                    <span className="text-white">Total de usuarios pacientes</span>
-                </div>
-                <div className="flex flex-col justify-center items-center h-32 w-72 rounded-xl bg-[#625bbe]">
-                    <h1 className="text-[26px] font-bold text-white">{totalPsicologos}</h1>
-                    <span className="text-white">Total de usuarios psicólogos</span>
-                </div>
-                <div
-                    className={`flex flex-col ${
-                        totalPsicologosAprobacion === 0 ? 'items-center pl-0' : ''
-                    } justify-center h-32 w-72 rounded-xl bg-[#625bbe]`}
-                >
-                    {totalPsicologosAprobacion === 0 ? (
-                        <span className="text-center text-white">No hay psicólogos pendientes de aprobación</span>
-                    ) : (
-                        <div className="flex flex-col justify-center items-center h-32 w-72 rounded-xl bg-[#625bbe]">
-                            <h1 className="text-[26px] font-bold text-white">{totalPsicologosAprobacion}</h1>
-                            <span className="text-white">Cantidad de psicologos para aprobar</span>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            <MenuNavegacionAdmin data={users?.data?.data ?? []} />
         </div>
     );
 };

@@ -253,7 +253,7 @@ const SessionPage = () => {
                 session_type: sessionType,
                 therapy_approach: therapyApproach,
                 insurance: insurance || undefined,
-                price: 50000, // Precio fijo por ahora
+                price: psychologist.consultation_fee || 50000,
                 notes: `Cita agendada desde el frontend. Modalidad: ${modality}, Tipo: ${sessionType}, Enfoque: ${therapyApproach}${
                     insurance ? `, Obra Social: ${insurance}` : ''
                 }`,
@@ -727,7 +727,9 @@ const SessionPage = () => {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Precio de la Sesión</label>
-                                            <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600">$50.000</div>
+                                            <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600">
+                                                {psychologist.consultation_fee || 50000}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -766,7 +768,7 @@ const SessionPage = () => {
                                             </p>
                                         )}
                                         <p className="text-sm text-gray-600">
-                                            <strong>Precio:</strong> $50.000
+                                            <strong>Precio:</strong> {psychologist.consultation_fee || 50000}
                                         </p>
                                     </div>
                                     <button
