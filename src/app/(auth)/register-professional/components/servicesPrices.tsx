@@ -8,31 +8,11 @@ import { dataToSave, getCookieObject, saveMerged } from '@/helpers/formRegister/
 import { useFotoDePerfil } from '@/context/fotoDePerfil';
 import { useAuthProfessionalContext } from '@/context/registerProfessional';
 import { ToastContainer, toast } from 'react-toastify';
+import { envs } from '@/config/envs.config';
 
-const modalidades = ['Presencial', 'En línea', 'Híbrido'];
 const modalidades = ['Presencial', 'En línea', 'Híbrido'];
 
 const especialidades = [
-    'Trastorno de ansiedad',
-    'Terapia de pareja',
-    'Trastorno de la alimentación',
-    'Trastorno bipolar',
-    'Transiciones de vida',
-    'Terapia infantil y adolescente',
-    'Trastornos del sueño',
-    'Depresión',
-    'Terapia familiar',
-    'TDAH',
-    'TOC',
-    'Orientación profesional',
-    'Psicología geriátrica',
-    'Manejo de la ira',
-    'Trauma y TEPT',
-    'Adicción y abuso de sustancias',
-    'Trastorno del espectro autista',
-    'Duelo y pérdida',
-    'LGBTQIA',
-    'Manejo del dolor crónico',
     'Trastorno de ansiedad',
     'Terapia de pareja',
     'Trastorno de la alimentación',
@@ -69,24 +49,10 @@ const enfoquesTerapia = [
     'Terapia Gestalt',
     'Terapia de arte',
     'Terapia de grupo',
-    'Terapia cognitivo-conductual',
-    'Terapia de aceptación y compromiso',
-    'Terapia psicodinámica',
-    'Terapia de sistemas familiares',
-    'Terapia breve centrada en soluciones',
-    'Terapia de juego',
-    'Terapia dialéctico-conductual',
-    'Desensibilización y reprocesamiento por movimientos oculares',
-    'Terapia centrada en la persona',
-    'Terapia basada en la atención plena',
-    'Terapia Gestalt',
-    'Terapia de arte',
-    'Terapia de grupo',
 ];
-const tiposTerapia = ['Individual', 'Pareja', 'Familiar', 'Grupo'];
+
 const tiposTerapia = ['Individual', 'Pareja', 'Familiar', 'Grupo'];
 
-const disponibilidad = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 const disponibilidad = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
 const obrasSociales = [
@@ -106,29 +72,13 @@ const obrasSociales = [
     'OSPAT',
     'ASE Nacional',
     'OSPIP',
-    'OSDE',
-    'Swiss Medical',
-    'IOMA',
-    'PAMI',
-    'Unión Personal',
-    'OSDEPYM',
-    'Luis Pasteur',
-    'Jerárquicos Salud',
-    'Sancor Salud',
-    'OSECAC',
-    'OSMECON Salud',
-    'Apross',
-    'OSPRERA',
-    'OSPAT',
-    'ASE Nacional',
-    'OSPIP',
+    'Ninguna',
 ];
 
 const Services_Prices = () => {
     const router = useRouter();
 
     const { profileImageFile } = useFotoDePerfil();
-    const { saveUserData } = useAuthProfessionalContext();
     const { saveUserData } = useAuthProfessionalContext();
 
     const [initialValues, setInitialValues] = useState<typeof initialValuesTipos>({
@@ -171,9 +121,6 @@ const Services_Prices = () => {
         const toastId = toast.loading('Enviando datos...', {
             position: 'top-center',
             theme: 'dark',
-        const toastId = toast.loading('Enviando datos...', {
-            position: 'top-center',
-            theme: 'dark',
             closeOnClick: false,
             draggable: false,
         });
@@ -190,7 +137,12 @@ const Services_Prices = () => {
                 if (Array.isArray(value)) {
                     value.forEach((item) => formData.append(`${key}[]`, item));
                 } else {
-                    formData.append(key, String(value));
+                    // Para consultation_fee, mantener como número si es numérico
+                    if (key === 'consultation_fee' && typeof value === 'number') {
+                        formData.append(key, value.toString());
+                    } else {
+                        formData.append(key, String(value));
+                    }
                 }
             });
 
@@ -203,13 +155,13 @@ const Services_Prices = () => {
             if (profileImageFile) {
                 formData.append('profile_picture', profileImageFile);
             }
-
+            console.log(formData.get('consultation_fee')); // 45000
             const response = await fetch(`${envs.next_public_api_url}/auth/signup/psychologist`, {
                 method: 'POST',
                 // headers: { 'Content-Type': 'application/json' },
                 body: formData,
             });
-
+            console.log('Response:', response);
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message);
@@ -218,15 +170,12 @@ const Services_Prices = () => {
             const data = await response.json();
 
             if (response.ok) {
-                // Guardar token en localStorage si viene en la respuesta
+                // Guardar token en cookies si viene en la respuesta
                 if (data.token) {
-                    localStorage.setItem('authToken', data.token);
-                    Cookies.set('authToken', data.token);
+                    Cookies.set('auth_token', data.token);
                 }
 
-
                 saveUserData(data);
-
 
                 if (data.data.role) {
                     Cookies.set('role', data.data.role, { path: '/' });
@@ -237,8 +186,6 @@ const Services_Prices = () => {
             toast.update(toastId, {
                 render: 'Registrado con éxito!',
                 type: 'success',
-                render: 'Registrado con éxito!',
-                type: 'success',
                 isLoading: false,
                 autoClose: 3000,
                 closeOnClick: true,
@@ -246,7 +193,6 @@ const Services_Prices = () => {
             });
             Cookies.remove('userDataCompleta');
 
-            const rol = Cookies.get('role');
             const rol = Cookies.get('role');
 
             // Redirigir según el tipo de usuario
@@ -264,17 +210,9 @@ const Services_Prices = () => {
                 router.push('/dashboard/user');
             }
         } catch (error: unknown) {
-        } catch (error: unknown) {
             console.error('Error:', error);
             const errorMessage = error instanceof Error ? error.message : 'Error al registrar!';
-            const errorMessage = error instanceof Error ? error.message : 'Error al registrar!';
             toast.update(toastId, {
-                render: errorMessage,
-                type: 'error',
-                isLoading: false,
-                autoClose: 3000,
-                closeOnClick: true,
-                draggable: true,
                 render: errorMessage,
                 type: 'error',
                 isLoading: false,
@@ -287,7 +225,6 @@ const Services_Prices = () => {
 
     return (
         <>
-            <ToastContainer />
             <ToastContainer />
             <div className="flex flex-col space-y-1.5 py-6 mb-3">
                 <div className="flex items-center text-[#5046E7] text-2xl font-semibold leading-none tracking-tight">Servicios y Especialidades</div>
@@ -381,7 +318,6 @@ const Services_Prices = () => {
                             ))}
                         </div>
 
-                        <div className="mt-10">
                         <div className="mt-10">
                             <label className="text-sm font-medium leading-none" htmlFor="consultation_fee">
                                 Precio de tus Sesiones *

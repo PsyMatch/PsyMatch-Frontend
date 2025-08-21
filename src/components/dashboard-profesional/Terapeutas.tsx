@@ -59,12 +59,12 @@ const Terapeutas = () => {
                     terapeutas.map((terapeuta) => (
                         <div
                             key={terapeuta.id}
-                            className="grid bg-gray-200 border-2 border-gray-300 items-center py-3 px-5 rounded-lg w-full grid-cols-[0.2fr_2fr_0.2fr] my-4"
+                            className="grid bg-stone-50 border-2 border-gray-300 items-center py-3 px-5 rounded-lg w-full grid-cols-[0.2fr_2fr_0.2fr] my-4"
                         >
                             <div className="w-10 h-10 bg-white rounded-full overflow-hidden">
                                 <Image
                                     src={terapeuta.profile_picture || '/person-gray-photo-placeholder-woman.webp'}
-                                    alt={`${terapeuta.first_name} ${terapeuta.last_name}`}
+                                    alt={terapeuta.name}
                                     width={40}
                                     height={40}
                                     className="w-full h-full object-cover"
@@ -72,8 +72,8 @@ const Terapeutas = () => {
                                 />
                             </div>
                             <div className="flex flex-col gap-1">
-                                <span className="font-extrabold text-black">
-                                    {terapeuta.professional_title || 'Dr/a'} {terapeuta.first_name} {terapeuta.last_name}
+                                <span className="font-bold text-black">
+                                    {terapeuta.professional_title || 'Dr/a'} {terapeuta.name}
                                 </span>
                                 <span className="text-sm text-black">
                                     {terapeuta.professional_experience
@@ -84,16 +84,44 @@ const Terapeutas = () => {
                                     <span className="text-xs text-black">{terapeuta.total_sessions} Sesiones -</span>
                                     <span className="text-xs text-black">
                                         Última:{' '}
-                                        {terapeuta.last_session ? new Date(terapeuta.last_session).toLocaleDateString('es-ES') : 'Sin sesiones aún'}
+                                        {terapeuta.last_session
+                                            ? (() => {
+                                                  const date = new Date(terapeuta.last_session);
+                                                  return isNaN(date.getTime()) ? 'Fecha inválida' : date.toLocaleDateString('es-ES');
+                                              })()
+                                            : 'Sin sesiones aún'}
                                     </span>
-                                    {terapeuta.upcoming_session && (
-                                        <>
-                                            <span className="text-xs text-black"> - Próxima: </span>
-                                            <span className="text-xs text-black">
-                                                {new Date(terapeuta.upcoming_session).toLocaleDateString('es-ES')}
-                                            </span>
-                                        </>
-                                    )}
+                                    {terapeuta.upcoming_session &&
+                                        (() => {
+                                            const date = new Date(terapeuta.upcoming_session);
+                                            const isValidDate = !isNaN(date.getTime());
+
+                                            if (!isValidDate) return null;
+
+                                            // Verificar si la fecha incluye información de tiempo significativa
+                                            const hasTime =
+                                                terapeuta.upcoming_session.includes('T') && (date.getHours() !== 0 || date.getMinutes() !== 0);
+
+                                            return (
+                                                <>
+                                                    <span className="text-xs text-black"> - Próxima: </span>
+                                                    <span className="text-xs text-black">
+                                                        {date.toLocaleDateString('es-ES')}
+                                                        {hasTime && (
+                                                            <>
+                                                                {' '}
+                                                                a las{' '}
+                                                                {date.toLocaleTimeString('es-ES', {
+                                                                    hour: '2-digit',
+                                                                    minute: '2-digit',
+                                                                    hour12: false,
+                                                                })}
+                                                            </>
+                                                        )}
+                                                    </span>
+                                                </>
+                                            );
+                                        })()}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span

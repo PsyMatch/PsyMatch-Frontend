@@ -9,9 +9,9 @@ export default function GoogleCallbackPage() {
     useEffect(() => {
         const checkAuthAndRedirect = () => {
             // Verificar si hay token de autenticación
-            const authToken = Cookies.get('auth_token') || Cookies.get('authToken');
+            const auth_token = Cookies.get('auth_token');
 
-            if (authToken) {
+            if (auth_token) {
                 // Si hay token, redirigir al dashboard de usuario por defecto
                 // El backend ya debería haber establecido el role en una cookie
                 const userRole = Cookies.get('role');

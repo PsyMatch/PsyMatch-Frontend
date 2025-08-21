@@ -1,5 +1,6 @@
 import { envs } from '@/config/envs.config';
 import { useEffect, useState } from 'react';
+import Cookies from 'js-cookie';
 
 //<ITurno[]>
 
@@ -7,7 +8,7 @@ const TurnosAdmin = () => {
     const [, setTurnos] = useState([]);
 
     useEffect(() => {
-        const token = localStorage.getItem('authToken');
+        const token = Cookies.get('auth_token');
         const fetchData = async () => {
             const response = await fetch(`${envs.next_public_api_url}/appointments`, {
                 headers: {

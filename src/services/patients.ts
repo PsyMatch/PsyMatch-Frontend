@@ -25,7 +25,7 @@ export const patientsService = {
     // Obtener todos los pacientes de un psicólogo
     getMyPatients: async (): Promise<PatientResponse[]> => {
         try {
-            const token = Cookies.get('authToken') || Cookies.get('auth-token');
+            const token = Cookies.get('auth_token');
 
             if (!token) {
                 throw new Error('No authentication token found');
@@ -35,14 +35,12 @@ export const patientsService = {
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 if (payload.exp && payload.exp * 1000 < Date.now()) {
-                    Cookies.remove('authToken');
-                    Cookies.remove('auth-token');
+                    Cookies.remove('auth_token');
                     throw new Error('Token expired');
                 }
             } catch (tokenError) {
                 console.error('Error verificando token:', tokenError);
-                Cookies.remove('authToken');
-                Cookies.remove('auth-token');
+                Cookies.remove('auth_token');
                 throw new Error('Invalid token');
             }
 
@@ -56,8 +54,7 @@ export const patientsService = {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    Cookies.remove('authToken');
-                    Cookies.remove('auth-token');
+                    Cookies.remove('auth_token');
                     throw new Error('Authentication failed - please login again');
                 }
                 throw new Error(`Error fetching patients: ${response.statusText}`);

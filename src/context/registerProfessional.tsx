@@ -58,9 +58,9 @@ export const AuthProfessionalProvider: FC<{ children: ReactNode }> = ({ children
     useEffect(() => {
         // Al montar, chequea si hay cookie o token guardado
         const cookieStr = Cookies.get('responseData');
-        const localToken = localStorage.getItem('authToken');
+        const cookiesToken = Cookies.get('auth_token');
 
-        if (cookieStr && localToken) {
+        if (cookieStr && cookiesToken) {
             const data = JSON.parse(cookieStr);
             setUser({
                 name: data.data.name,
@@ -73,7 +73,7 @@ export const AuthProfessionalProvider: FC<{ children: ReactNode }> = ({ children
                 specialities: data.data.specialities,
                 insurance_accepted: data.data.insurance_accepted,
             });
-            setToken(localToken);
+            setToken(cookiesToken);
             setIsAuth(true);
         } else {
             console.log('No hay cookie o token guardado');
@@ -92,10 +92,8 @@ export const AuthProfessionalProvider: FC<{ children: ReactNode }> = ({ children
         setToken(null);
         setIsAuth(false);
 
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('role');
         Cookies.remove('userDataCompleta');
-        Cookies.remove('authToken');
+        Cookies.remove('auth_token');
         Cookies.remove('role');
         window.location.reload();
     };

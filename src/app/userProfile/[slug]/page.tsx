@@ -7,7 +7,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ sl
     const id = (await params).slug;
 
     const cookieStore = await cookies();
-    const token = cookieStore.get('authToken')?.value;
+    const token = cookieStore.get('auth_token')?.value;
 
     const userData: IUser | null = (await getProfessionalById(id, token)) as IUser;
 
