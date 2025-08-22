@@ -39,9 +39,10 @@ export default function LoginForm() {
 
             console.log('Response status:', response.status);
             console.log('Response ok:', response.ok);
-
+            
             const data = await response.json();
             console.log('Response data:', data);
+            console.log("Valor que viene del back:", data.data.verified);
 
             if (response.ok) {
                 console.log('Login exitoso:', data);
@@ -53,6 +54,10 @@ export default function LoginForm() {
 
                 if (data.data.role) {
                     Cookies.set('role', data.data.role);
+                }
+
+                if(data.data.verified) {
+                    Cookies.set('verified', data.data.verified);
                 }
 
                 const traerRole = Cookies.get('role');
