@@ -219,10 +219,10 @@ const PerfilUser = () => {
     };
 
     return (
-        <div className="flex flex-col md:flex-row gap-8 w-full bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-2 rounded-xl">
+        <div className="flex flex-col w-full gap-8 px-2 py-8 md:flex-row bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl">
             {/* Panel imagen */}
-            <div className="w-full md:w-1/2 flex flex-col items-center">
-                <div className="bg-white rounded-lg shadow p-8 flex flex-col items-center w-full">
+            <div className="flex flex-col items-center w-full md:w-1/2">
+                <div className="flex flex-col items-center w-full p-8 bg-white rounded-lg shadow">
                     <div className="relative mb-4">
                         <Image
                             src={
@@ -233,7 +233,7 @@ const PerfilUser = () => {
                             alt="profile"
                             width={128}
                             height={128}
-                            className="w-32 h-32 rounded-full object-cover bg-gray-200"
+                            className="object-cover w-32 h-32 bg-gray-200 rounded-full"
                             onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 if (!target.src.includes('ui-avatars.com')) {
@@ -246,23 +246,24 @@ const PerfilUser = () => {
                                 <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="profile-upload" />
                                 <label
                                     htmlFor="profile-upload"
-                                    className="absolute bottom-2 right-2 bg-gray-200 hover:bg-gray-300 p-2 rounded-full cursor-pointer shadow"
+                                    className="absolute p-2 bg-gray-200 rounded-full shadow cursor-pointer bottom-2 right-2 hover:bg-gray-300"
                                 >
                                     <Camera className="w-5 h-5 text-gray-600" />
                                 </label>
                             </>
                         )}
                     </div>
-                    <h3 className="text-xl font-semibold mb-1">{user.fullName}</h3>
-                    <div className="text-sm text-gray-400 mb-2">{user.phone}</div>
+                    <h3 className="mb-1 text-xl font-semibold">{user.fullName}</h3>
+                    <p className="mb-2 text-gray-500">{user.email}</p>
+                    <div className="mb-2 text-sm text-gray-400">{user.phone}</div>
                     <div className="text-xs text-gray-400">Obra Social: {user.socialWork || 'No especificada'}</div>
                 </div>
             </div>
 
             {/* Panel edición */}
-            <div className="w-full md:w-1/2 flex flex-col">
-                <div className="bg-white rounded-lg shadow-md p-8">
-                    <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col w-full md:w-1/2">
+                <div className="p-8 bg-white rounded-lg shadow-md">
+                    <div className="flex items-center justify-between mb-6">
                         <h2 className="text-2xl font-bold">Mi cuenta</h2>
                         <button
                             onClick={() => setEditable((e) => !e)}
@@ -273,17 +274,17 @@ const PerfilUser = () => {
                         </button>
                     </div>
                     {/* Mensajes de éxito o error */}
-                    {successMsg && <div className="mb-4 text-green-600 bg-green-100 px-4 py-2 rounded">{successMsg}</div>}
-                    {errorMsg && <div className="mb-4 text-red-600 bg-red-100 px-4 py-2 rounded">{errorMsg}</div>}
+                    {successMsg && <div className="px-4 py-2 mb-4 text-green-600 bg-green-100 rounded">{successMsg}</div>}
+                    {errorMsg && <div className="px-4 py-2 mb-4 text-red-600 bg-red-100 rounded">{errorMsg}</div>}
                     <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             {fields.map(({ label, field, type }) => (
                                 <div key={field}>
-                                    <label className="block text-sm font-medium mb-1">{label}</label>
+                                    <label className="block mb-1 text-sm font-medium">{label}</label>
                                     <Input
                                         name={field}
                                         type={type || 'text'}
-                                        className="border rounded px-3 py-2 w-full"
+                                        className="w-full px-3 py-2 border rounded"
                                         value={user[field] || ''}
                                         disabled={!editable || loading}
                                         onChange={handleChange}
@@ -292,10 +293,10 @@ const PerfilUser = () => {
                             ))}
                             {/* Select para Obra Social */}
                             <div>
-                                <label className="block text-sm font-medium mb-1">Obra Social</label>
+                                <label className="block mb-1 text-sm font-medium">Obra Social</label>
                                 <select
                                     name="socialWork"
-                                    className="border rounded px-3 py-2 w-full bg-white"
+                                    className="w-full px-3 py-2 bg-white border rounded"
                                     value={user.socialWork || ''}
                                     disabled={!editable || loading}
                                     onChange={(e) => handleChange({ target: { name: 'socialWork', value: e.target.value } } as React.ChangeEvent<HTMLInputElement>)}

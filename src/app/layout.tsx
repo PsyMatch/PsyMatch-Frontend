@@ -8,6 +8,8 @@ import { FotoDePerfilProvider } from '@/context/fotoDePerfil';
 import { AuthProfessionalProvider } from '@/context/registerProfessional';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { ModalProvider } from '@/context/modalContraseña';
+
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -53,6 +55,18 @@ export default function RootLayout({
                         </AuthProfessionalProvider>
                     </FotoDePerfilProvider>
                 </BotonesRegisterProvider>
+                    <BotonesRegisterProvider>
+                    <ModalProvider>
+                    <FotoDePerfilProvider>
+                    <AuthProfessionalProvider>
+                    <Navbar />
+                    {children}
+                    <Footer />
+                    </AuthProfessionalProvider>
+                    </FotoDePerfilProvider>
+                    </ModalProvider>
+                    </BotonesRegisterProvider>
+                
             </body>
         </html>
     );
