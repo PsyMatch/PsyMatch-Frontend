@@ -22,6 +22,7 @@ export interface PsychologistResponse {
     profile_picture?: string;
     created_at: string;
     updated_at?: string;
+    consultation_fee?: number;
 }
 
 export interface PsychologistsApiResponse {
@@ -35,7 +36,8 @@ export const psychologistsService = {
     // Obtener todos los psicólogos verificados
     getPsychologistsForPatient: async (): Promise<PsychologistsApiResponse> => {
         try {
-            const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token') || Cookies.get('auth-token');
+            const token = Cookies.get('auth_token');
+
             if (!token) {
                 throw new Error('No authentication token found');
             }
@@ -44,14 +46,12 @@ export const psychologistsService = {
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 if (payload.exp && payload.exp * 1000 < Date.now()) {
-                    Cookies.remove('authToken');
-                    Cookies.remove('auth-token');
+                    Cookies.remove('auth_token');
                     throw new Error('Token expired');
                 }
             } catch (tokenError) {
                 console.error('Error verificando token:', tokenError);
-                Cookies.remove('authToken');
-                Cookies.remove('auth-token');
+                Cookies.remove('auth_token');
                 throw new Error('Invalid token');
             }
 
@@ -65,8 +65,7 @@ export const psychologistsService = {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    Cookies.remove('authToken');
-                    Cookies.remove('auth-token');
+                    Cookies.remove('auth_token');
                     throw new Error('Authentication failed - please login again');
                 }
                 throw new Error(`Error fetching psychologists: ${response.statusText}`);
@@ -89,7 +88,7 @@ export const psychologistsService = {
     // Función para obtener un psicólogo específico por ID directamente del backend
     getPsychologistByIdDirect: async (id: string): Promise<PsychologistResponse | null> => {
         try {
-            const token = Cookies.get('authToken') || Cookies.get('auth-token');
+            const token = Cookies.get('auth_token');
 
             if (!token) {
                 throw new Error('No authentication token found');
@@ -99,14 +98,12 @@ export const psychologistsService = {
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 if (payload.exp && payload.exp * 1000 < Date.now()) {
-                    Cookies.remove('authToken');
-                    Cookies.remove('auth-token');
+                    Cookies.remove('auth_token');
                     throw new Error('Token expired');
                 }
             } catch (tokenError) {
                 console.error('Error verificando token:', tokenError);
-                Cookies.remove('authToken');
-                Cookies.remove('auth-token');
+                Cookies.remove('auth_token');
                 throw new Error('Invalid token');
             }
 
@@ -121,8 +118,7 @@ export const psychologistsService = {
             if (!response.ok) {
                 if (response.status === 401) {
                     // Token inválido o expirado
-                    Cookies.remove('authToken');
-                    Cookies.remove('auth-token');
+                    Cookies.remove('auth_token');
                     throw new Error('Authentication failed - please login again');
                 } else if (response.status === 404) {
                     return null;
@@ -131,7 +127,6 @@ export const psychologistsService = {
             }
 
             const result = await response.json();
-
             // Verificar si la respuesta tiene el formato esperado
             if (result.data) {
                 return result.data;

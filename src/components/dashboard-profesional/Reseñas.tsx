@@ -7,7 +7,7 @@ const Reseñas = () => {
     const [reseñas, setReseñas] = useState(null);
 
     useEffect(() => {
-        const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
+        const token = Cookies.get('auth_token');
         if (!token) return;
 
         fetch(`${envs.next_public_api_url}/psychologist/reviews`, {

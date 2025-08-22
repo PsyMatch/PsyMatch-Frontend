@@ -4,7 +4,7 @@ const ReseñasAdmin = () => {
     //TIENEN QUE HACER UNA RUTA PARA TRAER TODAS LAS RESEÑAS
 
     // useEffect(() => {
-    //     const token = localStorage.getItem("authToken");
+    //     const token = Cookies.get("auth_token");
     //     const fetchData = async () => {
     //         const response = await fetch("", {
     //             headers: {
@@ -74,7 +74,7 @@ const ReseñasAdmin = () => {
                 ))}
             </div> */}
         </div>
-    )
-}
+    );
+};
 
-export default ReseñasAdmin
+export default ReseñasAdmin;

@@ -22,7 +22,7 @@ const [verified, setVerified] = useState<string | null>(null);
             }             
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default dashboardProfessional
+export default dashboardProfessional;

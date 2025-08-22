@@ -51,12 +51,11 @@ const Perfil = () => {
     const {modal, abrirModal} = useModalContext()
 
     useEffect(() => {
-        const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
+        const token = Cookies.get('auth_token');
         if (!token) return;
-
-        fetch("http://localhost:8080/psychologist/me", {
-            headers: { 
-                Authorization: `Bearer ${token}` 
+        fetch(`${envs.next_public_api_url}/psychologist/me`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
             },
         })
             .then((res) => res.json())
@@ -81,7 +80,7 @@ const Perfil = () => {
     };
 
     const handleUpdateProfile = (cambios: Partial<ResponseDataProfile>, original: ResponseDataProfile) => {
-        const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
+        const token = Cookies.get('auth_token');
         if (!token) return;
 
         let bodySend = Object.fromEntries(Object.entries(cambios).filter(([key, value]) => value !== original[key as keyof ResponseDataProfile]));

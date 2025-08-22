@@ -19,7 +19,7 @@ const Finanzas = ({ userType = 'psychologist' }: FinanzasProps) => {
     const [finanzas, setFinanzas] = useState<Payment[] | null>(null);
 
     useEffect(() => {
-        const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
+        const token = Cookies.get('auth_token');
         if (!token) return;
 
         let endpoint = '';

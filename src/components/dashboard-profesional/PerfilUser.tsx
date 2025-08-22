@@ -8,7 +8,6 @@ import { useRouter } from 'next/navigation';
 import { envs } from '@/config/envs.config';
 import Cookies from 'js-cookie';
 
-
 type UserProfile = {
     id?: string;
     fullName: string;
@@ -29,6 +28,24 @@ const fields: { label: string; field: keyof UserProfile; type?: string }[] = [
     { label: 'Dirección', field: 'address' },
     { label: 'Contacto de emergencia', field: 'emergencyContact' },
 ];
+
+const extractUserFromToken = (token: string) => {
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.exp && payload.exp * 1000 < Date.now()) {
+            Cookies.remove('auth_token');
+            throw new Error('Token expired');
+        }
+        return {
+            id: payload.id || payload.sub || payload.userId,
+            email: payload.email,
+        };
+    } catch (error) {
+        console.error('Error al extraer información del token:', error);
+        Cookies.remove('auth_token');
+        throw new Error('Invalid token');
+    }
+};
 
 const socialWorkOptions = [
     { value: '', label: 'Seleccionar obra social' },
@@ -74,7 +91,7 @@ const PerfilUser = () => {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
+                const token = Cookies.get('auth_token');
                 if (!token) {
                     router.push('/login');
                     return;
@@ -96,12 +113,14 @@ const PerfilUser = () => {
                 }
                 const data = await res.json();
                 const userData = data.data;
+                const userFromToken = extractUserFromToken(token); //token de oAuth
                 setUser({
-                    id: userData.id || '',
-                    fullName: userData.fullName || userData.name || '',
+                    id: userData.id || userFromToken.id || '',
+                    fullName: userData.fullName || userData.name ||  '',
                     alias: userData.alias || '',
                     phone: userData.phone || '',
                     address: userData.address || '',
+                    email: userData.email || userFromToken.email || '',
                     socialWork: userData.socialWork || userData.social_security_number || '',
                     emergencyContact: userData.emergencyContact || userData.emergency_contact || '',
                     profileImage: userData.profileImage || userData.profile_picture || '',
@@ -109,7 +128,9 @@ const PerfilUser = () => {
                 setProfileImage(
                     userData.profileImage ||
                         userData.profile_picture ||
-                        `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.fullName || userData.name || 'Usuario')}`
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                            userData.fullName || userData.name || 'Usuario'
+                        )}`
                 );
             } catch (err) {
                 setErrorMsg(`${err}, Error al obtener usuario`);
@@ -138,7 +159,7 @@ const PerfilUser = () => {
             setLoading(true);
             setSuccessMsg('');
             setErrorMsg('');
-            const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
+            const token = Cookies.get('auth_token');
             if (!token) {
                 router.push('/login');
                 return;
@@ -219,7 +240,7 @@ const PerfilUser = () => {
     };
 
     return (
-        <div className="flex flex-col w-full gap-8 px-2 py-8 md:flex-row bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl">
+        <div className="flex flex-col w-full gap-8 px-2 py-8 md:flex-row bg-gradient-to-br from-blue-50 to-indigo-100">
             {/* Panel imagen */}
             <div className="flex flex-col items-center w-full md:w-1/2">
                 <div className="flex flex-col items-center w-full p-8 bg-white rounded-lg shadow">

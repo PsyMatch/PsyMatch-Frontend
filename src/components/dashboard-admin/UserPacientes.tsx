@@ -1,13 +1,13 @@
-"use client"
+'use client';
 
-import { Paciente } from "@/app/dashboard/admin/page";
-import Image from "next/image";
+import { Paciente } from '@/app/dashboard/admin/page';
+import Image from 'next/image';
 
 interface UserPacientesProps {
-  data: Paciente[];
+    data: Paciente[];
 }
 const UserPacientes = ({ data }: UserPacientesProps) => {
-    const pacientes = data.filter((u) => u.role === "Paciente");
+    const pacientes = data.filter((u) => u.role === 'Paciente');
 
     return (
         <div className="w-full min-h-[500px] flex flex-col">
@@ -74,7 +74,7 @@ const UserPacientes = ({ data }: UserPacientesProps) => {
                 )}
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default UserPacientes
+export default UserPacientes;
