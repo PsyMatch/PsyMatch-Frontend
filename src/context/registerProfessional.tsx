@@ -94,7 +94,7 @@ export const AuthProfessionalProvider: FC<{ children: ReactNode }> = ({ children
 
         localStorage.removeItem('authToken');
         localStorage.removeItem('role');
-        localStorage.removeItem("verified")
+        Cookies.remove("verified")
         Cookies.remove('userDataCompleta');
         Cookies.remove('auth_token');
         Cookies.remove('role');
