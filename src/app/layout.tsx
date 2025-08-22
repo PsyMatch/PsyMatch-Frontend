@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import { BotonesRegisterProvider } from '@/context/botonesRegisterContext';
 import { FotoDePerfilProvider } from '@/context/fotoDePerfil';
 import { AuthProfessionalProvider } from '@/context/registerProfessional';
+import { ModalProvider } from '@/context/modalContraseña';
 
 
 const geistSans = Geist({
@@ -32,13 +33,15 @@ export default function RootLayout({
         <html lang="en">
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
                     <BotonesRegisterProvider>
-                        <FotoDePerfilProvider>
-                            <AuthProfessionalProvider>
-                                <Navbar />
-                                {children}
-                                <Footer />
-                            </AuthProfessionalProvider>
-                        </FotoDePerfilProvider>
+                    <ModalProvider>
+                    <FotoDePerfilProvider>
+                    <AuthProfessionalProvider>
+                    <Navbar />
+                    {children}
+                    <Footer />
+                    </AuthProfessionalProvider>
+                    </FotoDePerfilProvider>
+                    </ModalProvider>
                     </BotonesRegisterProvider>
                 
             </body>

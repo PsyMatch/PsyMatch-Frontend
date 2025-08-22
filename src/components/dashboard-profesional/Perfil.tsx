@@ -5,6 +5,8 @@ import { Form } from 'formik';
 import { envs } from '@/config/envs.config';
 import Image from 'next/image';
 import { Camera } from 'lucide-react';
+import ModalContraseña from './ModalContraseña';
+import { useModalContext } from '@/context/modalContraseña';
 
 interface ResponseDataProfile {
     name?: string;
@@ -44,6 +46,8 @@ const Perfil = () => {
     });
 
     const [cambios, setCambios] = useState<Partial<ResponseDataProfile>>({});
+
+    const {modal, abrirModal} = useModalContext()
 
     useEffect(() => {
         const token = localStorage.getItem('authToken');
@@ -124,6 +128,9 @@ const Perfil = () => {
 
     return (
         <div className="flex flex-col w-full gap-8 px-2 py-8 md:flex-row bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl">
+            {modal  && 
+                <ModalContraseña />
+            }
             {/* Panel imagen */}
             <div className="flex flex-col items-center w-full md:w-1/2">
                 <div className="flex flex-col items-center w-full p-8 bg-white rounded-lg shadow">
@@ -161,6 +168,9 @@ const Perfil = () => {
                     <p className="mb-2 text-gray-500">{perfil?.email}</p>
                     <div className="mb-2 text-sm text-gray-400">{perfil?.phone}</div>
                     <div className="text-xs text-gray-400">Idiomas: {perfil?.languages || 'No especificados'}</div>
+                    <div>
+                        <button onClick={abrirModal} className='px-4 mt-6 text-violet-600 hover:underline'>¿Quieres cambiar tu contraseña?</button>
+                    </div>
                 </div>
             </div>
             <div className="flex flex-col w-full md:w-1/2">
