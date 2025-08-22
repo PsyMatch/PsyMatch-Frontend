@@ -1,4 +1,4 @@
-import { MessageCircle, Calendar, MapPin, Clock, Star } from 'lucide-react';
+import { MessageCircle, Calendar, MapPin, Clock } from 'lucide-react';
 import type { IProfessional } from '@/services/prrofessionalProfile';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -77,11 +77,6 @@ const Professional = ({ data }: { data: IProfessional }) => {
                     <MessageCircle className="w-4 h-4" aria-hidden="true" />
                     Enviar mensaje
                 </button>
-
-                <div className="flex items-center gap-1 mt-2 opacity-75">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" aria-hidden="true" />
-                    <span className="text-sm text-gray-600">4.8 (24 reseñas)</span>
-                </div>
             </div>
         </article>
     );
