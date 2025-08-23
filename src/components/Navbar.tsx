@@ -82,18 +82,18 @@ const Navbar = () => {
         return {
             homeLoggedIn: [
                 { href: '/search-professionals', label: 'Buscar Terapeutas' },
-                { href: '/como-funciona', label: 'Como Funciona' },
+                { href: '/how-does-it-work', label: 'Como Funciona' },
                 { href: getDashboardUrl(), label: 'Perfil', isPrimary: true },
             ] as NavButton[],
 
             searchProfessionals: [
-                { href: '/como-funciona', label: 'Como funciona' },
+                { href: '/how-does-it-work', label: 'Como funciona' },
                 { href: '/dashboard/user', label: 'Perfil', isPrimary: true },
             ] as NavButton[],
 
             homeGuest: [
                 { href: isAuth ? '/search-professionals' : '/register-user', label: 'Buscar Terapeutas' },
-                { href: '/como-funciona', label: 'Como Funciona' },
+                { href: '/how-does-it-work', label: 'Como Funciona' },
                 { href: '/login', label: 'Iniciar Sesión' },
                 { href: '/register-user', label: 'Comenzar', isPrimary: true },
             ] as NavButton[],
@@ -151,7 +151,7 @@ const Navbar = () => {
     };
 
     return (
-        <nav className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
+        <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
             <div className="flex items-center justify-between w-full h-20 px-6 md:px-36">
                 <Link
                     href="/"
@@ -169,7 +169,7 @@ const Navbar = () => {
 
                 <button
                     onClick={toggleMenu}
-                    className="md:hidden p-2 rounded-md transition-colors duration-200 hover:bg-gray-100"
+                    className="p-2 transition-colors duration-200 rounded-md md:hidden hover:bg-gray-100"
                     aria-expanded={isMenuOpen}
                     aria-controls="mobile-menu"
                     aria-label={isMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
@@ -191,12 +191,12 @@ const Navbar = () => {
                 {isMenuOpen && (
                     <>
                         {/* Backdrop */}
-                        <div className="fixed inset-0 bg-black bg-opacity-25 md:hidden z-40" onClick={toggleMenu} aria-hidden="true" />
+                        <div className="fixed inset-0 z-40 bg-black bg-opacity-25 md:hidden" onClick={toggleMenu} aria-hidden="true" />
 
                         {/* Mobile menu */}
                         <div
                             id="mobile-menu"
-                            className="absolute top-full right-0 left-0 bg-white shadow-lg border-t border-gray-100 md:hidden z-50 animate-in slide-in-from-top-2 duration-300"
+                            className="absolute left-0 right-0 z-50 duration-300 bg-white border-t border-gray-100 shadow-lg top-full md:hidden animate-in slide-in-from-top-2"
                         >
                             <ul className="flex flex-col p-4 space-y-3" role="menu">
                                 {currentNavButtons.map((button, index) => (
