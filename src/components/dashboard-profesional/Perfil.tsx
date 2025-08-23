@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { Camera } from 'lucide-react';
 import ModalContraseña from './ModalContraseña';
 import { useModalContext } from '@/context/modalContraseña';
+import { toast } from 'react-toastify';
 
 interface ResponseDataProfile {
     name?: string;
@@ -24,7 +25,7 @@ interface ResponseDataProfile {
     modality?: string;
     specialities?: string[];
     availability?: string[];
-    // consultation_fee?: number;
+    consultation_fee?: number;
 }
 
 const Perfil = () => {
@@ -43,7 +44,7 @@ const Perfil = () => {
         modality: '',
         specialities: [],
         availability: [],
-        // consultation_fee: 0,
+        consultation_fee: 0,
     });
 
     const [cambios, setCambios] = useState<Partial<ResponseDataProfile>>({});
@@ -102,16 +103,27 @@ const Perfil = () => {
         })
             .then((res) => res.json())
             .then((response) => {
-                console.log('Respuesta:', response);
+                console.log('Respuesta:', response.message);
 
                 setPerfil((prev) => ({ ...prev, ...response }));
                 setCambios({});
                 bodySend = {};
                 setEditable(false);
+                
+                toast.success(`${response.message}`, {
+                    position: "top-center",
+                    type: 'success',
+                    isLoading: false,
+                    autoClose: 2500,
+                    closeOnClick: true,
+                    draggable: true,
+                });
             })
             .catch((error) => {
                 console.error('Error al actualizar el perfil:', error.message);
             });
+
+
     };
     console.log('Enviando cambios:', cambios);
 
@@ -195,7 +207,7 @@ const Perfil = () => {
                             insurance_accepted: perfil?.insurance_accepted || [],
                             session_types: perfil?.session_types || [],
                             modality: perfil?.modality || '',
-                            // consultation_fee: perfil?.consultation_fee || 0,
+                            consultation_fee: perfil?.consultation_fee || 0,
                         }}
                         onSubmit={(values) => {
                             if (!perfil) return;
@@ -236,7 +248,7 @@ const Perfil = () => {
                                             disabled={!editable}
                                         />
                                     </div>
-                                    {/* <div className="md:col-span-2">
+                                    <div className="md:col-span-2">
                                         <label className="block mb-1 text-sm font-medium">Valor de las Sesiones</label>
                                         <Field
                                             type="text"
@@ -244,7 +256,7 @@ const Perfil = () => {
                                             className="w-full px-3 py-2 border rounded resize-none"
                                             disabled={!editable}
                                         />
-                                    </div> */}
+                                    </div>
 
                                     <div
                                         className={`grid w-full grid-cols-2 col-span-2 gap-4 ${editable ? 'md:grid-cols-1 gap-8' : 'md:grid-cols-2'}`}
@@ -421,9 +433,9 @@ const Perfil = () => {
                                                             }}
                                                             style={{ height: '60px', width: '30%' }}
                                                         >
-                                                            <option value="ingles">Inglés</option>
-                                                            <option value="español">Español</option>
-                                                            <option value="frances">Francés</option>
+                                                            <option value="Inglés">Inglés</option>
+                                                            <option value="Español">Español</option>
+                                                            <option value="Portugués">Portugués</option>
                                                         </select>
                                                     </div>
                                                 )}
