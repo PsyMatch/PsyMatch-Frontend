@@ -28,7 +28,7 @@ const ChangePassword = () => {
                 }}
                 onSubmit={async (values, { setSubmitting }) => {
                     try{   
-                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password`, {
+                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password/:token`, {
                             method: 'POST',
                             headers: {
                                 "Content-Type": "application/json",
@@ -41,7 +41,6 @@ const ChangePassword = () => {
 
                         const response = await res.text();
                         console.log("Respuesta", response)
-
                     }catch(err){
                         console.log("Error", err)
                     }finally {

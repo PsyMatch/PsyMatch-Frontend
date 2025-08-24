@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { Camera, MapPinIcon } from 'lucide-react';
 import ModalContraseña from './ModalContraseña';
 import { useModalContext } from '@/context/modalContraseña';
+import { toast } from 'react-toastify';
 
 interface MapboxSuggestion {
     id: string;
@@ -192,16 +193,27 @@ const Perfil = () => {
         })
             .then((res) => res.json())
             .then((response) => {
-                console.log('Respuesta:', response);
+                console.log('Respuesta:', response.message);
 
                 setPerfil((prev) => ({ ...prev, ...response }));
                 setCambios({});
                 bodySend = {};
                 setEditable(false);
+                
+                toast.success(`${response.message}`, {
+                    position: "top-center",
+                    type: 'success',
+                    isLoading: false,
+                    autoClose: 2500,
+                    closeOnClick: true,
+                    draggable: true,
+                });
             })
             .catch((error) => {
                 console.error('Error al actualizar el perfil:', error.message);
             });
+
+
     };
     console.log('Enviando cambios:', cambios);
 
@@ -407,8 +419,7 @@ const Perfil = () => {
                                                         Agregar Enfoque
                                                     </button>
                                                 )}
-                                                {menuEnfoques ||
-                                                    (editable && (
+                                                {menuEnfoques && editable && (
                                                         <div>
                                                             <div className="text-sm text-gray-500 ">
                                                                 Manetene apretado ctrl para seleccionar múltiples
@@ -428,24 +439,24 @@ const Perfil = () => {
                                                                 }}
                                                                 style={{ height: '120px' }}
                                                             >
-                                                                <option value="cognitivo-conductual">Terapia cognitivo-conductual</option>
-                                                                <option value="aceptacion-compromiso">Terapia de aceptación y compromiso</option>
-                                                                <option value="psicodinamica">Terapia psicodinámica</option>
-                                                                <option value="sistemas-familiares">Terapia de sistemas familiares</option>
-                                                                <option value="breve-soluciones">Terapia breve centrada en soluciones</option>
-                                                                <option value="juego">Terapia de juego</option>
-                                                                <option value="dialectico-conductual">Terapia dialéctico-conductual</option>
-                                                                <option value="emdr">
+                                                                <option value="Terapia cognitivo-conductual">Terapia cognitivo-conductual</option>
+                                                                <option value="Terapia de aceptación y compromiso">Terapia de aceptación y compromiso</option>
+                                                                <option value="Terapia psicodinámica">Terapia psicodinámica</option>
+                                                                <option value="Terapia de sistemas familiares">Terapia de sistemas familiares</option>
+                                                                <option value="Terapia breve centrada en soluciones">Terapia breve centrada en soluciones</option>
+                                                                <option value="Terapia de juego">Terapia de juego</option>
+                                                                <option value="Terapia dialéctico-conductual">Terapia dialéctico-conductual</option>
+                                                                <option value="Desensibilización y reprocesamiento por movimientos oculares">
                                                                     Desensibilización y reprocesamiento por movimientos oculares
                                                                 </option>
-                                                                <option value="centrada-persona">Terapia centrada en la persona</option>
-                                                                <option value="atencion-plena">Terapia basada en la atención plena</option>
-                                                                <option value="gestalt">Terapia Gestalt</option>
-                                                                <option value="arte">Terapia de arte</option>
-                                                                <option value="grupo">Terapia de grupo</option>
+                                                                <option value="Terapia centrada en la persona">Terapia centrada en la persona</option>
+                                                                <option value="Terapia basada en la atención plena">Terapia basada en la atención plena</option>
+                                                                <option value="Terapia Gestalt">Terapia Gestalt</option>
+                                                                <option value="Terapia de arte">Terapia de arte</option>
+                                                                <option value="Terapia de grupo">Terapia de grupo</option>
                                                             </select>
                                                         </div>
-                                                    ))}
+                                                    )}
                                             </ul>
                                         </div>
                                         <div>
@@ -469,45 +480,55 @@ const Perfil = () => {
                                                         Agregar Especialidades
                                                     </button>
                                                 )}
-                                                {menuEspecialidades ||
-                                                    (editable && (
+                                                {menuEspecialidades && editable && (
                                                         <div>
                                                             <div className="text-sm text-gray-500 ">
                                                                 Manetene apretado ctrl para seleccionar múltiples
                                                             </div>
                                                             <select
                                                                 className="mt-4"
-                                                                id="insurance_accepted"
-                                                                name="insurance_accepted"
+                                                                id="specialities"
+                                                                name="specialities"
                                                                 multiple
-                                                                value={values.insurance_accepted}
+                                                                value={values.specialities}
                                                                 onChange={(e) => {
-                                                                    const valuesArrayInsurance_accepted = Array.from(
+                                                                    const valuesArray = Array.from(
                                                                         e.target.selectedOptions,
                                                                         (option) => option.value
                                                                     );
-                                                                    setFieldValue('insurance_accepted', valuesArrayInsurance_accepted);
+                                                                    setFieldValue('specialities', valuesArray);
                                                                 }}
                                                                 style={{ height: '120px' }}
                                                             >
-                                                                <option value="cognitivo-conductual">Terapia cognitivo-conductual</option>
-                                                                <option value="aceptacion-compromiso">Terapia de aceptación y compromiso</option>
-                                                                <option value="psicodinamica">Terapia psicodinámica</option>
-                                                                <option value="sistemas-familiares">Terapia de sistemas familiares</option>
-                                                                <option value="breve-soluciones">Terapia breve centrada en soluciones</option>
-                                                                <option value="juego">Terapia de juego</option>
-                                                                <option value="dialectico-conductual">Terapia dialéctico-conductual</option>
-                                                                <option value="emdr">
-                                                                    Desensibilización y reprocesamiento por movimientos oculares
-                                                                </option>
-                                                                <option value="centrada-persona">Terapia centrada en la persona</option>
-                                                                <option value="atencion-plena">Terapia basada en la atención plena</option>
-                                                                <option value="gestalt">Terapia Gestalt</option>
-                                                                <option value="arte">Terapia de arte</option>
-                                                                <option value="grupo">Terapia de grupo</option>
+<option value="TDAH">TDAH</option>
+<option value="Adicción y abuso de sustancias">Adicción y abuso de sustancias</option>
+<option value="Manejo de la ira">Manejo de la ira</option>
+<option value="Terapia de arte">Terapia de arte</option>
+<option value="Terapia basada en la atención plena">Terapia basada en la atención plena</option>
+<option value="Trastorno del espectro autista">Trastorno del espectro autista</option>
+<option value="Trastorno bipolar">Trastorno bipolar</option>
+<option value="Orientación profesional">Orientación profesional</option>
+<option value="Terapia centrada en la persona">Terapia centrada en la persona</option>
+<option value="Terapia infantil y adolescente">Terapia infantil y adolescente</option>
+<option value="Manejo del dolor crónico">Manejo del dolor crónico</option>
+<option value="Terapia de pareja">Terapia de pareja</option>
+<option value="Depresión">Depresión</option>
+<option value="Terapia dialéctico-conductual">Terapia dialéctico-conductual</option>
+<option value="Trastorno de la alimentación">Trastorno de la alimentación</option>
+<option value="Desensibilización y reprocesamiento por movimientos oculares">Desensibilización y reprocesamiento por movimientos oculares</option>
+<option value="Terapia familiar">Terapia familiar</option>
+<option value="Psicología geriátrica">Psicología geriátrica</option>
+<option value="Terapia Gestalt">Terapia Gestalt</option>
+<option value="Duelo y pérdida">Duelo y pérdida</option>
+<option value="Terapia de grupo">Terapia de grupo</option>
+<option value="LGBTQIA">LGBTQIA</option>
+<option value="Transiciones de vida">Transiciones de vida</option>
+<option value="TOC">TOC</option>
+<option value="Trastornos del sueño">Trastornos del sueño</option>
+<option value="Trauma y TEPT">Trauma y TEPT</option>
                                                             </select>
                                                         </div>
-                                                    ))}
+                                                    )}
                                             </ul>
                                         </div>
                                         <div>
@@ -532,30 +553,29 @@ const Perfil = () => {
                                                     Agregar Idioma
                                                 </button>
                                             )}
-                                            {menuIdiomas ||
-                                                (editable && (
+                                            {menuIdiomas && editable && (
                                                     <div>
                                                         <div className="text-sm text-gray-500 ">
                                                             Manetene apretado ctrl para seleccionar múltiples
                                                         </div>
                                                         <select
                                                             className="mt-4"
-                                                            id="therapy_approaches"
-                                                            name="therapy_approaches"
+                                                            id="languages"
+                                                            name="languages"
                                                             multiple
-                                                            value={values.therapy_approaches}
+                                                            value={values.languages}
                                                             onChange={(e) => {
                                                                 const valuesArray = Array.from(e.target.selectedOptions, (option) => option.value);
-                                                                setFieldValue('therapy_approaches', valuesArray);
+                                                                setFieldValue('languages', valuesArray);
                                                             }}
                                                             style={{ height: '60px', width: '30%' }}
                                                         >
-                                                            <option value="ingles">Inglés</option>
-                                                            <option value="español">Español</option>
-                                                            <option value="frances">Francés</option>
+                                                            <option value="Inglés">Inglés</option>
+                                                            <option value="Español">Español</option>
+                                                            <option value="Portugués">Portugués</option>
                                                         </select>
                                                     </div>
-                                                ))}
+                                                )}
                                         </div>
                                         <div>
                                             <label className="block mb-1 text-sm font-medium">Obra Social Aceptadas</label>
@@ -579,30 +599,43 @@ const Perfil = () => {
                                                     Agregar Obra Social
                                                 </button>
                                             )}
-                                            {menuIsurances ||
-                                                (editable && (
+                                            {menuIsurances && editable && (
                                                     <div>
                                                         <div className="text-sm text-gray-500 ">
                                                             Manetene apretado ctrl para seleccionar múltiples
                                                         </div>
                                                         <select
                                                             className="mt-4"
-                                                            id="therapy_approaches"
-                                                            name="therapy_approaches"
+                                                            id="insurance_accepted"
+                                                            name="insurance_accepted"
                                                             multiple
-                                                            value={values.therapy_approaches}
+                                                            value={values.insurance_accepted}
                                                             onChange={(e) => {
                                                                 const valuesArray = Array.from(e.target.selectedOptions, (option) => option.value);
-                                                                setFieldValue('therapy_approaches', valuesArray);
+                                                                setFieldValue('insurance_accepted', valuesArray);
                                                             }}
                                                             style={{ height: '60px', width: '30%' }}
                                                         >
-                                                            <option value="ingles">Inglés</option>
-                                                            <option value="español">Español</option>
-                                                            <option value="frances">Francés</option>
+<option value="OSDE">OSDE</option>
+<option value="Swiss Medical">Swiss Medical</option>
+<option value="IOMA">IOMA</option>
+<option value="PAMI">PAMI</option>
+<option value="Unión Personal">Unión Personal</option>
+<option value="OSDEPYM">OSDEPYM</option>
+<option value="Luis Pasteur">Luis Pasteur</option>
+<option value="Jerárquicos Salud">Jerárquicos Salud</option>
+<option value="Sancor Salud">Sancor Salud</option>
+<option value="OSECAC">OSECAC</option>
+<option value="OSMECON Salud">OSMECON Salud</option>
+<option value="Apross">Apross</option>
+<option value="OSPRERA">OSPRERA</option>
+<option value="OSPAT">OSPAT</option>
+<option value="ASE Nacional">ASE Nacional</option>
+<option value="OSPIP">OSPIP</option>
+<option value="Ninguna">Ninguna</option>
                                                         </select>
                                                     </div>
-                                                ))}
+                                                )}
                                         </div>
                                         <div>
                                             <label className="block mb-1 text-sm font-medium">Tipos de Sesión</label>
@@ -626,8 +659,7 @@ const Perfil = () => {
                                                     Agregar Tipo de Sesión
                                                 </button>
                                             )}
-                                            {menuTipos ||
-                                                (editable && (
+                                            {menuTipos && editable && (
                                                     <div>
                                                         <div className="text-sm text-gray-500 ">
                                                             Manetene apretado ctrl para seleccionar múltiples
@@ -644,12 +676,13 @@ const Perfil = () => {
                                                             }}
                                                             style={{ height: '60px', width: '30%' }}
                                                         >
-                                                            <option value="ingles">Inglés</option>
-                                                            <option value="español">Español</option>
-                                                            <option value="frances">Francés</option>
+<option value="Individual">Individual</option>
+<option value="Pareja">Pareja</option>
+<option value="Familiar">Familiar</option>
+<option value="Grupo">Grupo</option>
                                                         </select>
                                                     </div>
-                                                ))}
+                                                )}
                                         </div>
                                         <div>
                                             <label className="block mb-1 text-sm font-medium">Modalidad de Sesión</label>
@@ -666,25 +699,23 @@ const Perfil = () => {
                                                     Agregar Modalidad de Sesión
                                                 </button>
                                             )}
-                                            {menuModalidad ||
-                                                (editable && (
+                                            {menuModalidad && editable && (
                                                     <div>
                                                         <select
                                                             className="mt-4"
                                                             id="modality"
                                                             name="modality"
                                                             onChange={(e) => {
-                                                                const valuesArray = Array.from(e.target.selectedOptions, (option) => option.value);
-                                                                setFieldValue('modality', valuesArray);
+                                                                setFieldValue('modality', e.target.value);
                                                             }}
                                                             style={{ height: '20px' }}
                                                         >
-                                                            <option value="on_line">En línea</option>
-                                                            <option value="presencial">Presencial</option>
-                                                            <option value="hibrido">Híbrido</option>
+                                                            <option value="En línea">En línea</option>
+                                                            <option value="Presencial">Presencial</option>
+                                                            <option value="Híbrido">Híbrido</option>
                                                         </select>
                                                     </div>
-                                                ))}
+                                                )}
                                         </div>
                                         <div>
                                             <label className="block mb-1 text-sm font-medium">Días Disponibles</label>
@@ -707,8 +738,7 @@ const Perfil = () => {
                                                     Agregar Día
                                                 </button>
                                             )}
-                                            {menuAvailability ||
-                                                (editable && (
+                                            {menuAvailability && editable && (
                                                     <div>
                                                         <select
                                                             className="mt-4"
@@ -731,7 +761,7 @@ const Perfil = () => {
                                                             <option value="Domingo">Domingo</option>
                                                         </select>
                                                     </div>
-                                                ))}
+                                                )}
                                         </div>
 
                                         <div>

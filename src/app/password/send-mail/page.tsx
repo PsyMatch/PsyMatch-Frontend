@@ -53,6 +53,19 @@ const SendMail = () => {
         console.log("Respuesta", response)
 
         
+        const mail = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emails/new-password`, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                email: formData.email
+            })
+        });
+
+        console.log(mail)
+
+        
         toast.success(`${response.message}`, {
             position: "top-center",
             type: 'success',

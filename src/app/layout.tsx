@@ -35,6 +35,7 @@ export default function RootLayout({
         <html lang="es">
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
                 <BotonesRegisterProvider>
+                    <ModalProvider>
                     <FotoDePerfilProvider>
                         <AuthProfessionalProvider>
                             <Navbar />
@@ -54,7 +55,8 @@ export default function RootLayout({
                             />
                         </AuthProfessionalProvider>
                     </FotoDePerfilProvider>
-                </BotonesRegisterProvider>
+                    </ModalProvider>
+                </BotonesRegisterProvider>             
             </body>
         </html>
     );

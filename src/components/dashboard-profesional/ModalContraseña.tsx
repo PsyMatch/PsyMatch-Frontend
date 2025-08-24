@@ -10,7 +10,7 @@ import { useEffect, useState } from "react"
 
 const ModalContraseña = () => {
     const {cerrarModal} = useModalContext()
-    const token = Cookies.get('authToken');
+    const token = Cookies.get("authToken") || Cookies.get("auth_token");
     const [disabled, setDisabled] = useState(false);
 
     useEffect(() => {
@@ -66,10 +66,6 @@ const ModalContraseña = () => {
 
                             const response = await res.text();
                             console.log("Respuesta", response)
-
-                            const threeWeeks = 21 * 24 * 60 * 60 * 1000; 
-                            const unlockTime = Date.now() + threeWeeks;
-                            localStorage.setItem("buttonUnlockTime", unlockTime.toString());
                             setDisabled(true);
 
                             toast.success("Contraseña cambiada correctamente", {
@@ -134,12 +130,9 @@ const ModalContraseña = () => {
                             />
                             <ErrorMessage name="confirmPassword" component="div" className="text-xs text-red-500" />
                         </div>
-                        <span>Una vez hecho el cambio, no podrás modificarlo por 3 semanas.</span>
-                        {disabled ? <span>No puedes cambiar la contraseña por ahora</span>
-                        :
                         <Button type="submit" className="mt-2 text-black w-fit bg-violet-300" disabled={isSubmitting}>
                             Guardar nueva contraseña
-                        </Button>}
+                        </Button>
                     </Form>
                 )}
                 </Formik>
