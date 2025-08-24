@@ -18,7 +18,7 @@ interface MissingDataModalProps {
 }
 
 const healthInsuranceOptions = [
-    // { value: '', label: 'Seleccionar obra social' }, // Eliminado para evitar value vacío
+    { value: 'none', label: 'Seleccionar obra social' },
     { value: 'OSDE', label: 'OSDE' },
     { value: 'Swiss Medical', label: 'Swiss Medical' },
     { value: 'IOMA', label: 'IOMA' },
@@ -361,25 +361,28 @@ export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave
                         {errors.emergency_contact && <p className="text-sm text-red-500">{errors.emergency_contact}</p>}
                     </div>
 
-                    {/* Obra social */}
-                    <div className="space-y-2">
-                        <Label htmlFor="health_insurance" className="text-sm font-medium text-gray-700">
-                            Obra social (opcional)
-                        </Label>
-                        <Select value={formData.health_insurance || ''} onValueChange={(value) => handleInputChange('health_insurance', value)}>
-                            <SelectTrigger className={errors.health_insurance ? 'border-red-500' : ''}>
-                                <SelectValue placeholder="Selecciona tu obra social (opcional)" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {healthInsuranceOptions.map((option) => (
-                                    <SelectItem key={option.value} value={option.value}>
-                                        {option.label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        {errors.health_insurance && <p className="text-sm text-red-500">{errors.health_insurance}</p>}
-                    </div>
+          {/* Obra social */}
+          <div className="space-y-2">
+            <Label htmlFor="health_insurance" className="text-sm font-medium text-gray-700">
+              Obra social (opcional)
+            </Label>
+            <Select
+              value={formData.health_insurance || 'none'}
+              onValueChange={(value) => handleInputChange('health_insurance', value === 'none' ? '' : value)}
+            >
+              <SelectTrigger className={errors.health_insurance ? 'border-red-500' : ''}>
+                <SelectValue placeholder="Selecciona tu obra social (opcional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {healthInsuranceOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.health_insurance && <p className="text-sm text-red-500">{errors.health_insurance}</p>}
+          </div>
 
                     <div className="flex justify-end pt-4">
                         <Button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white">

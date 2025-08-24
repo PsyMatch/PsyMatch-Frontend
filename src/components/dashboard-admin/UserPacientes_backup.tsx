@@ -15,12 +15,12 @@ interface Paciente {
     birthdate?: string;
     emergency_contact?: string | null;
     is_active?: boolean;
+    // Solo las propiedades que realmente necesitamos
 }
 
 interface UserPacientesProps {
     data: Paciente[];
 }
-
 const UserPacientes = ({ data }: UserPacientesProps) => {
     const [loading, setLoading] = useState<string | null>(null);
     const [confirmAction, setConfirmAction] = useState<{
@@ -37,32 +37,40 @@ const UserPacientes = ({ data }: UserPacientesProps) => {
         try {
             let result;
             
-            if (action === 'promote') {
-                result = await adminService.promoteUser(userId);
-            } else if (action === 'ban') {
-                result = await adminService.banUser(userId);
-            } else if (action === 'unban') {
-                result = await adminService.unbanUser(userId);
+            switch (action) {
+                case 'promote':
+                    result = await adminService.promoteUser(userId);
+                    break;
+                case 'ban':
+                    result = await adminService.banUser(userId);
+                    break;
+                case 'unban':
+                    result = await adminService.unbanUser(userId);
+                    break;
+                default:
+                    return;
             }
-
-            if (result?.success) {
-                alert(`Usuario ${action === 'promote' ? 'promovido' : action === 'ban' ? 'baneado' : 'desbaneado'} exitosamente`);
-                setConfirmAction(null);
-                window.location.reload();
+            
+            if (result.success) {
+                const actionText = action === 'promote' ? 'promovido' : 
+                                action === 'ban' ? 'baneado' : 'desbaneado';
+                alert(`Usuario ${actionText} exitosamente`);
+                window.location.reload(); // Recargar para ver cambios
             } else {
-                alert(result?.message || `Error al ${action === 'promote' ? 'promover' : action === 'ban' ? 'banear' : 'desbanear'} usuario`);
+                alert(`Error: ${result.message}`);
             }
         } catch (error) {
-            console.error(`Error ${action}ing user:`, error);
-            alert(`Error de conexión al ${action === 'promote' ? 'promover' : action === 'ban' ? 'banear' : 'desbanear'} usuario`);
+            console.error('Error en la acción:', error);
+            alert('Error al ejecutar la acción');
         } finally {
             setLoading(null);
+            setConfirmAction(null);
         }
     };
 
     const renderActionButtons = (paciente: Paciente) => {
         return (
-            <div className="flex gap-2">
+            <div className="flex gap-2 mt-4 flex-wrap">
                 <button
                     onClick={() => setConfirmAction({
                         userId: paciente.id,
@@ -75,6 +83,7 @@ const UserPacientes = ({ data }: UserPacientesProps) => {
                     {loading === paciente.id ? 'Procesando...' : 'Promover Usuario'}
                 </button>
                 
+                {/* Botón de Ban/Unban dependiendo del estado is_active */}
                 {paciente.is_active !== false ? (
                     <button
                         onClick={() => setConfirmAction({
@@ -107,27 +116,94 @@ const UserPacientes = ({ data }: UserPacientesProps) => {
     return (
         <div className="w-full min-h-[500px] flex flex-col">
             <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 bg-[#5046E7] rounded-lg flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">👥</span>
+                </div>
                 <h2 className="text-2xl font-bold text-gray-800">Gestión de Pacientes</h2>
                 <div className="ml-auto bg-[#5046E7]/10 text-[#5046E7] px-3 py-1 rounded-full text-sm font-semibold">
-                    {pacientes.length} pacientes
+                    {pacientesFiltrados.length} pacientes
                 </div>
+            </div>
+
+            {/* Filtros de estado */}
+            <div className="flex items-center w-full h-12 gap-2 mb-6">
+                <button
+                    type="button"
+                    className={`flex-1 h-full rounded-md transition-colors font-medium ${
+                        filter === "todos" ? "bg-[#5046E7] text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+                    }`}
+                    onClick={() => setFilter("todos")}
+                >
+                    Todos ({pacientes.length})
+                </button>
+                <button
+                    type="button"
+                    className={`flex-1 h-full rounded-md transition-colors font-medium ${
+                        filter === "activos" ? "bg-green-600 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+                    }`}
+                    onClick={() => setFilter("activos")}
+                >
+                    Activos ({pacientes.filter(p => p.is_active !== false).length})
+                </button>
+                <button
+                    type="button"
+                    className={`flex-1 h-full rounded-md transition-colors font-medium ${
+                        filter === "baneados" ? "bg-red-600 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+                    }`}
+                    onClick={() => setFilter("baneados")}
+                >
+                    Baneados ({pacientes.filter(p => p.is_active === false).length})
+                </button>
             </div>
             
             <div className="flex-1">
-                {pacientes.length === 0 ? (
+                {/* Advertencia especial para filtro de baneados */}
+                {showBannedWarning && (
+                    <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <span className="text-white text-sm font-bold">ℹ</span>
+                            </div>
+                            <div className="flex-1">
+                                <h4 className="text-blue-800 font-semibold mb-1">
+                                    Usuarios Baneados
+                                </h4>
+                                <p className="text-blue-700 text-sm mb-2">
+                                    Los usuarios baneados no aparecen en esta lista debido a limitaciones del backend actual.
+                                    Para ver y gestionar todos los usuarios baneados, utiliza la pestaña dedicada 
+                                    <strong> &ldquo;Usuarios Baneados&rdquo;</strong> en el menú superior.
+                                </p>
+                                <p className="text-blue-600 text-xs">
+                                    💡 Las funciones de banear/desbanear funcionan correctamente desde cualquier pestaña.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                
+                {pacientesFiltrados.length === 0 ? (
                     <div className="bg-gradient-to-r from-[#5046E7]/10 to-[#6366F1]/10 border border-[#5046E7]/20 rounded-lg p-12 text-center">
                         <div className="flex flex-col items-center gap-4">
+                            <div className="w-16 h-16 bg-[#5046E7]/20 rounded-full flex items-center justify-center">
+                                <span className="text-2xl">
+                                    {filter === 'activos' ? '✅' : filter === 'baneados' ? '�' : '�👥'}
+                                </span>
+                            </div>
                             <h3 className="text-xl font-semibold text-gray-700">
-                                No hay pacientes registrados
+                                {filter === 'todos' && 'No hay pacientes registrados'}
+                                {filter === 'activos' && 'No hay pacientes activos'}
+                                {filter === 'baneados' && 'No hay pacientes baneados'}
                             </h3>
                             <p className="text-gray-500 max-w-md">
-                                Los pacientes aparecerán aquí cuando se registren en la plataforma.
+                                {filter === 'todos' && 'Los pacientes aparecerán aquí cuando se registren en la plataforma.'}
+                                {filter === 'activos' && 'Todos los pacientes están baneados o no hay pacientes registrados.'}
+                                {filter === 'baneados' && 'Los usuarios baneados no se muestran debido a limitaciones del backend. Las funciones de ban/unban funcionan correctamente.'}
                             </p>
                         </div>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {pacientes.map((paciente) => (
+                        {pacientesFiltrados.map((paciente) => (
                             <div key={paciente.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all duration-200">
                                 <div className="flex flex-col gap-4">
                                     <div className="flex flex-row gap-4">

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import FlowbiteInit from '@/components/FlowbiteInit';
 import { BotonesRegisterProvider } from '@/context/botonesRegisterContext';
 import { FotoDePerfilProvider } from '@/context/fotoDePerfil';
 import { AuthProfessionalProvider } from '@/context/registerProfessional';
@@ -34,6 +35,7 @@ export default function RootLayout({
     return (
         <html lang="es">
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
+                <FlowbiteInit />
                 <BotonesRegisterProvider>
                     <ModalProvider>
                     <FotoDePerfilProvider>

@@ -1,6 +1,5 @@
 'use client';
 import MenuNavegacionAdmin from '@/components/dashboard-admin/MenuNavegacionAdmin';
-import type { Paciente as PacienteFull } from './page';
 import { envs } from '@/config/envs.config';
 import { useEffect, useState } from 'react';
 import DashboardWidget from '@/components/dashboard-admin/DashboardWidget';
@@ -122,7 +121,7 @@ const AdminDashboard = () => {
                     color="from-[#8B5CF6] to-[#6366F1]"
                 />
                 {/* Aquí puedes agregar más widgets, gráficos o tablas si tienes datos reales */}
-                <MenuNavegacionAdmin data={users?.data?.data as PacienteFull[] ?? []} />
+                <MenuNavegacionAdmin data={users?.data?.data as Paciente[] ?? []} />
             </div>
         </div>
     );
