@@ -1,96 +1,51 @@
 'use client';
 import MenuNavegacionAdmin from '@/components/dashboard-admin/MenuNavegacionAdmin';
-import { envs } from '@/config/envs.config';
 import { useEffect, useState } from 'react';
 import { useAdminDashboardMetrics } from '@/hooks/useAdminDashboardMetrics';
 import DashboardWidget from '@/components/dashboard-admin/DashboardWidget';
-import SimpleLineChart from '@/components/dashboard-admin/SimpleLineChart';
-import SimpleBarChart from '@/components/dashboard-admin/SimpleBarChart';
-import DataTable from '@/components/dashboard-admin/DataTable';
-import SocialTrafficTable from '@/components/dashboard-admin/SocialTrafficTable';
-import Cookies from 'js-cookie';
+import FlowbiteLineChart from '@/components/dashboard-admin/FlowbiteLineChart';
+import FlowbiteBarChart from '@/components/dashboard-admin/FlowbiteBarChart';
+import FlowbitePieChart from '@/components/dashboard-admin/FlowbitePieChart';
+import FlowbitePaymentsChart from '@/components/dashboard-admin/FlowbitePaymentsChart';
+import { adminService } from '@/services/admin';
 
-interface Psicologo {
-    name: string;
-    email: string;
-    role: string;
-}
-
-export interface Paciente {
+interface User {
     id: string;
     name: string;
-    profile_picture: string;
-    phone: string;
-    birthdate: string;
-    dni: number;
-    health_insurance: string;
-    address: string;
     email: string;
-    latitude: number;
-    longitude: number;
     role: string;
-    emergency_contact: string;
-    personal_biography: string;
-    languages: string[];
-    professional_title: string;
-    professional_experience: number;
-    license_number: number;
-    verified: string;
-    office_address: string;
-    specialities: string[];
-    therapy_approaches: string[];
-    session_types: string[];
-    modality: string;
-    insurance_accepted: string[];
-    availability: string[];
-    psychologists: Psicologo[];
-}
-
-interface Meta {
-    hasNext: boolean;
-    hasPrevious: boolean;
-    limit: number;
-    page: number;
-    total: number;
-    totalPages: number;
-}
-
-export interface IPaciente {
-    data: Paciente[];
-    meta: Meta;
-}
-
-export interface PacientesResponse {
-    message: string;
-    data: IPaciente;
+    profile_picture?: string;
+    verified?: string;
+    phone?: string;
+    dni?: number;
+    birthdate?: string;
+    emergency_contact?: string | null;
+    professional_experience?: number;
 }
 
 const AdminDashboard = () => {
-    const [users, setUsers] = useState<PacientesResponse | null>(null);
+    const [users, setUsers] = useState<User[]>([]);
+    const [loadingUsers, setLoadingUsers] = useState(true);
     const { metrics, loading: loadingMetrics, error: errorMetrics } = useAdminDashboardMetrics();
 
     useEffect(() => {
         const fetchUsers = async () => {
-            const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
-            const res = await fetch(`${envs.next_public_api_url}/users?limit=50`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            const result: PacientesResponse = await res.json();
-            setUsers(result);
+            try {
+                const result = await adminService.getUsers({ limit: 50 });
+                if (result.success && result.data) {
+                    setUsers(Array.isArray(result.data) ? result.data : []); // Verificar que sea un array
+                }
+            } catch (error) {
+                console.error('Error fetching users:', error);
+            } finally {
+                setLoadingUsers(false);
+            }
         };
         fetchUsers();
     }, []);
 
-    console.log('Users:', users);
-    console.log('Users.data:', users?.data);
-    console.log('Users:', users);
-    console.log('Users.data:', users?.data);
-
     // Mostrar solo datos reales semanales si existen
     const totalUsers = metrics?.weekly?.users?.at(-1)?.value ?? 0;
-    const totalPacientes = metrics?.weekly?.users?.at(-1)?.value ?? 0; // Ajustar si hay distinción en backend
-    const totalPsicologos = metrics?.weekly?.users?.at(-1)?.value ?? 0; // Ajustar si hay distinción en backend
-    const totalPsicologosAprobacion = 0; // Ajustar si hay distinción en backend
 
         // Datos reales para los gráficos y tablas (ejemplo simple, puedes adaptar según la estructura de tu backend)
                     // Solo datos semanales reales para el gráfico de sesiones de terapias
@@ -116,62 +71,47 @@ const AdminDashboard = () => {
                         { month: 'Día 6', value: 9 },
                     ];
 
-            // Tablas: mostrar citas programadas por día si existen
-            const platformUsageData = metrics?.daily?.appointments
-                ? metrics.daily.appointments.map((item) => ({
-                    pageName: `Citas (${item.day})`,
-                    visitors: item.value,
-                    uniqueUsers: item.value,
-                    bounceRate: 20 + Math.random() * 10, // Simulación
-                    trend: 'up' as const,
-                }))
+            // Datos para el gráfico de torta de páginas más visitadas - DATOS REALES
+            const pagesData = metrics?.pageVisits ? 
+                metrics.pageVisits.map((page, index) => ({
+                    name: page.page,
+                    value: page.visits,
+                    color: ['#5046E7', '#6366F1', '#8B5CF6', '#7C3AED', '#A855F7'][index] || '#5046E7'
+                })) 
                 : [
-                    { pageName: 'Dashboard Principal', visitors: 4235, uniqueUsers: 3892, bounceRate: 23.4, trend: 'up' as const },
-                    { pageName: 'Búsqueda de Psicólogos', visitors: 3825, uniqueUsers: 3201, bounceRate: 18.7, trend: 'up' as const },
-                    { pageName: 'Perfil de Usuario', visitors: 2947, uniqueUsers: 2673, bounceRate: 31.2, trend: 'down' as const },
-                    { pageName: 'Sesiones', visitors: 2186, uniqueUsers: 1947, bounceRate: 25.8, trend: 'up' as const },
-                    { pageName: 'Pagos', visitors: 1829, uniqueUsers: 1652, bounceRate: 42.1, trend: 'down' as const },
+                    { name: 'Dashboard Principal', value: 4235, color: '#5046E7' },
+                    { name: 'Búsqueda de Psicólogos', value: 3825, color: '#6366F1' },
+                    { name: 'Perfil de Usuario', value: 2947, color: '#8B5CF6' },
+                    { name: 'Sesiones', value: 2186, color: '#7C3AED' },
+                    { name: 'Pagos', value: 1829, color: '#A855F7' },
                 ];
 
-            const referralSourcesData = metrics?.weekly
-                ? [
-                        ...(metrics.weekly.appointments?.map((item) => ({
-                            referral: `Citas (${item.week})`,
-                            visitors: item.value,
-                            percentage: Math.round((item.value / (metrics.appointments || 1)) * 100),
-                            color: '#5046E7',
-                        })) || []),
-                        ...(metrics.weekly.users?.map((item) => ({
-                            referral: `Usuarios (${item.week})`,
-                            visitors: item.value,
-                            percentage: Math.round((item.value / (metrics.users || 1)) * 100),
-                            color: '#6366F1',
-                        })) || []),
-                        ...(metrics.weekly.reviews?.map((item) => ({
-                            referral: `Reseñas (${item.week})`,
-                            visitors: item.value,
-                            percentage: Math.round((item.value / (metrics.reviews || 1)) * 100),
-                            color: '#8B5CF6',
-                        })) || []),
-                        ...(metrics.weekly.payments?.map((item) => ({
-                            referral: `Pagos (${item.week})`,
-                            visitors: item.value,
-                            percentage: Math.round((item.value / (metrics.payments || 1)) * 100),
-                            color: '#7C3AED',
-                        })) || []),
-                    ]
+            // Datos para el gráfico de pagos semanales
+            const paymentsData = metrics?.weekly?.payments
+                ? metrics.weekly.payments.map((item: { week: string; value: number }) => ({
+                    date: item.week,
+                    amount: item.value * 50, // Multiplicar por precio promedio por sesión
+                    status: 'completed' as const,
+                    method: 'credit_card'
+                }))
                 : [
-                        { referral: 'Google Ads', visitors: 1480, percentage: 45, color: '#5046E7' },
-                        { referral: 'Recomendaciones', visitors: 2340, percentage: 70, color: '#6366F1' },
-                        { referral: 'Redes Sociales', visitors: 1807, percentage: 35, color: '#8B5CF6' },
-                        { referral: 'Búsqueda Orgánica', visitors: 2100, percentage: 60, color: '#7C3AED' },
-                    ];
+                    { date: 'Sem 1', amount: 2500, status: 'completed' as const, method: 'credit_card' },
+                    { date: 'Sem 2', amount: 3200, status: 'completed' as const, method: 'credit_card' },
+                    { date: 'Sem 3', amount: 2800, status: 'completed' as const, method: 'credit_card' },
+                    { date: 'Sem 4', amount: 4100, status: 'completed' as const, method: 'credit_card' },
+                    { date: 'Sem 5', amount: 3600, status: 'completed' as const, method: 'credit_card' },
+                    { date: 'Sem 6', amount: 3900, status: 'completed' as const, method: 'credit_card' },
+                    { date: 'Sem 7', amount: 4500, status: 'completed' as const, method: 'credit_card' },
+                ];
 
     return (
-    <div className="min-h-screen w-full bg-gradient-to-r from-[#1193d3] via-[#1787c6] to-[#1a6fa3] relative overflow-hidden">
-            {loadingMetrics && (
+    <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 to-indigo-100 relative overflow-hidden">
+            {(loadingMetrics || loadingUsers) && (
                 <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-60 z-50">
-                    <span className="text-xl font-semibold text-[#5046E7]">Cargando métricas...</span>
+                    <span className="text-xl font-semibold text-[#5046E7]">
+                        {loadingMetrics && loadingUsers ? 'Cargando datos...' : 
+                         loadingMetrics ? 'Cargando métricas...' : 'Cargando usuarios...'}
+                    </span>
                 </div>
             )}
             {errorMetrics && (
@@ -245,27 +185,27 @@ const AdminDashboard = () => {
 
                 {/* Gráficos profesionales */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <SimpleLineChart 
+                    <FlowbiteLineChart 
                         data={sessionDataWeek}
                         title="Sesiones de Terapia (por semana)"
                         color="#5046E7"
                     />
-                    <SimpleBarChart 
+                    <FlowbiteBarChart 
                         data={appointmentsData} 
                         title="Citas Programadas (últimos 14 días)" 
                         color="#6366F1"
                     />
                 </div>
 
-                {/* Tablas de análisis */}
+                {/* Gráficos de análisis */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    <DataTable 
+                    <FlowbitePieChart 
                         title="Páginas más visitadas" 
-                        data={platformUsageData}
+                        data={pagesData}
                     />
-                    <SocialTrafficTable 
-                        title="Fuentes de Tráfico" 
-                        data={referralSourcesData}
+                    <FlowbitePaymentsChart 
+                        title="Pagos Semanales" 
+                        data={paymentsData}
                     />
                 </div>
 
@@ -338,7 +278,7 @@ const AdminDashboard = () => {
                         </div>
                     </div>
 
-                    <MenuNavegacionAdmin data={users?.data?.data ?? []} />
+                    <MenuNavegacionAdmin data={users} />
                 </div>
             </div>
         </div>

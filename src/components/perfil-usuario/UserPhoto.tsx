@@ -1,4 +1,4 @@
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar';
 import { User } from 'lucide-react';
 
 interface UserPhotoProps {
@@ -36,7 +36,7 @@ const UserPhoto = ({ photoUrl, name, size = 'lg' }: UserPhotoProps) => {
             <Avatar
                 className={`${sizeClasses[size]} border-4 border-gray-100 group-hover:border-blue-200 transition-all duration-300 shadow-lg group-hover:shadow-xl`}
             >
-                <AvatarImage src={photoUrl || '/placeholder.svg'} alt={`Foto de perfil de ${name}`} className="object-cover" />
+                <AvatarImage src={photoUrl || '/placeholder.svg'} className="object-cover" />
                 <AvatarFallback className={`bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700 font-semibold ${textSizeClasses[size]}`}>
                     {photoUrl ? (
                         getInitials(name)

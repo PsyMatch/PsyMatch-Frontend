@@ -107,6 +107,9 @@ const UserPacientes = ({ data }: UserPacientesProps) => {
     return (
         <div className="w-full min-h-[500px] flex flex-col">
             <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 bg-[#5046E7] rounded-lg flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">👥</span>
+                </div>
                 <h2 className="text-2xl font-bold text-gray-800">Gestión de Pacientes</h2>
                 <div className="ml-auto bg-[#5046E7]/10 text-[#5046E7] px-3 py-1 rounded-full text-sm font-semibold">
                     {pacientes.length} pacientes
@@ -117,6 +120,9 @@ const UserPacientes = ({ data }: UserPacientesProps) => {
                 {pacientes.length === 0 ? (
                     <div className="bg-gradient-to-r from-[#5046E7]/10 to-[#6366F1]/10 border border-[#5046E7]/20 rounded-lg p-12 text-center">
                         <div className="flex flex-col items-center gap-4">
+                            <div className="w-16 h-16 bg-[#5046E7]/20 rounded-full flex items-center justify-center">
+                                <span className="text-2xl">👥</span>
+                            </div>
                             <h3 className="text-xl font-semibold text-gray-700">
                                 No hay pacientes registrados
                             </h3>
