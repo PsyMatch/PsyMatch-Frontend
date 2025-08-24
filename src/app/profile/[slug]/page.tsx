@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import Professional from '../../../components/perfil-profesional/Professional';
 import SobreMi from '../../../components/perfil-profesional/SobreMi';
 import InfoRapida from '../../../components/perfil-profesional/InfoRapida';
-import SesionesPrecios from '../../../components/perfil-profesional/SesionesPrecios';
+import Ubicacion from '../../../components/perfil-profesional/Ubicacion';
 import Contacto from '../../../components/perfil-profesional/Contacto';
 import InfoRapidaUser from '@/components/perfil-usuario/InfoRapidaUser';
 import { getProfessionalById, type IUser } from '@/services/prrofessionalProfile';
@@ -45,7 +45,7 @@ function ProfessionalLayout({ professional }: { professional: IProfessional }) {
                         <Reseñas data={professional} />
                     </div>
                     <div>
-                        <SesionesPrecios data={professional} />
+                        <Ubicacion data={professional} />
                         <Contacto data={professional} />
                         <CrearReseñas psychologistId={professional.id} psychologistName={professional.name} />
                     </div>

@@ -55,18 +55,6 @@ export default function RootLayout({
                         </AuthProfessionalProvider>
                     </FotoDePerfilProvider>
                 </BotonesRegisterProvider>
-                    <BotonesRegisterProvider>
-                    <ModalProvider>
-                    <FotoDePerfilProvider>
-                    <AuthProfessionalProvider>
-                    <Navbar />
-                    {children}
-                    <Footer />
-                    </AuthProfessionalProvider>
-                    </FotoDePerfilProvider>
-                    </ModalProvider>
-                    </BotonesRegisterProvider>
-                
             </body>
         </html>
     );

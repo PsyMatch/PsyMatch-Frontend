@@ -4,6 +4,7 @@ import Terapeutas from "./Terapeutas"
 import CitasUser from "./CitasUser"
 import PerfilUser from "./PerfilUser"
 import Finanzas from "./Finanzas"
+import ReviewsUser from "./ReviewsUser"
 
 const MenuNavegacionUser = () => {
     const [pestanaActiva, setPestanaActiva] = useState("terapeutas")
@@ -11,13 +12,14 @@ const MenuNavegacionUser = () => {
     const pestanas = [
         { id: "terapeutas", label: "Terapeutas", component: <Terapeutas /> },
         { id: "citas", label: "Turnos", component: <CitasUser /> },
+        { id: "reseñas", label: "Reseñas", component: <ReviewsUser /> },
         { id: "perfil", label: "Perfil", component: <PerfilUser /> },
         { id: "finanzas", label: "Finanzas", component: <Finanzas /> },
     ]
 
     return (
         <>
-            <div className="grid items-center w-full h-10 grid-cols-4 gap-3 px-1 mt-6 bg-white rounded-md">
+            <div className="grid items-center w-full h-10 grid-cols-5 gap-3 px-1 mt-6 bg-white rounded-md">
                 {pestanas.map((pestana) => (
                     <button
                         key={pestana.id}
