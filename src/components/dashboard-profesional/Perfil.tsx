@@ -1,14 +1,30 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Field, Formik } from 'formik';
 import { Form } from 'formik';
 import { envs } from '@/config/envs.config';
 import Cookies from 'js-cookie';
 import Image from 'next/image';
-import { Camera } from 'lucide-react';
+import { Camera, MapPinIcon } from 'lucide-react';
 import ModalContraseña from './ModalContraseña';
 import { useModalContext } from '@/context/modalContraseña';
 import { toast } from 'react-toastify';
+
+interface MapboxSuggestion {
+    id: string;
+    place_name: string;
+    center: [number, number]; // [lng, lat]
+    place_type: string[];
+    relevance: number;
+    context?: Array<{
+        id: string;
+        text: string;
+        short_code?: string;
+    }>;
+    properties?: {
+        address?: string;
+    };
+}
 
 interface ResponseDataProfile {
     name?: string;
@@ -49,7 +65,16 @@ const Perfil = () => {
 
     const [cambios, setCambios] = useState<Partial<ResponseDataProfile>>({});
 
-    const {modal, abrirModal} = useModalContext()
+    const { modal, abrirModal } = useModalContext();
+
+    // Estados para autocompletado de direcciones
+    const [addressSuggestions, setAddressSuggestions] = useState<MapboxSuggestion[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [selectedCoordinates, setSelectedCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+    const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+    const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+    const addressInputRef = useRef<HTMLInputElement>(null);
+    const suggestionsRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const token = Cookies.get('auth_token');
@@ -80,6 +105,71 @@ const Perfil = () => {
         }
     };
 
+    const searchAddresses = async (query: string) => {
+        if (query.length < 3) {
+            setAddressSuggestions([]);
+            setShowSuggestions(false);
+            return;
+        }
+
+        const MAPBOX_TOKEN = envs.next_public_mapbox_token;
+        if (!MAPBOX_TOKEN) {
+            console.error('Mapbox access token no configurado');
+            return;
+        }
+
+        setIsLoadingSuggestions(true);
+        try {
+            const response = await fetch(
+                `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?` +
+                    `access_token=${MAPBOX_TOKEN}&` +
+                    `country=AR&` +
+                    `language=es&` +
+                    `limit=8&` +
+                    `types=address,poi,place&`
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+                setAddressSuggestions(data.features || []);
+                setShowSuggestions(true);
+            } else {
+                setAddressSuggestions([]);
+            }
+        } catch (error) {
+            setAddressSuggestions([]);
+        } finally {
+            setIsLoadingSuggestions(false);
+        }
+    };
+
+    const selectAddress = (suggestion: MapboxSuggestion, setFieldValue: (field: string, value: string) => void) => {
+        setFieldValue('office_address', suggestion.place_name);
+        setShowSuggestions(false);
+        setAddressSuggestions([]);
+
+        setSelectedCoordinates({
+            lat: suggestion.center[1],
+            lng: suggestion.center[0],
+        });
+        setSelectedPlaceId(suggestion.id);
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                suggestionsRef.current &&
+                !suggestionsRef.current.contains(event.target as Node) &&
+                !addressInputRef.current?.contains(event.target as Node)
+            ) {
+                setShowSuggestions(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     const handleUpdateProfile = (cambios: Partial<ResponseDataProfile>, original: ResponseDataProfile) => {
         const token = Cookies.get('auth_token');
         if (!token) return;
@@ -94,12 +184,12 @@ const Perfil = () => {
         console.log('Cuerpo de la solicitud:', bodySend);
 
         fetch(`${envs.next_public_api_url}/psychologist/me`, {
-            method: 'PUT', 
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify(bodySend)
+            body: JSON.stringify(bodySend),
         })
             .then((res) => res.json())
             .then((response) => {
@@ -127,7 +217,6 @@ const Perfil = () => {
     };
     console.log('Enviando cambios:', cambios);
 
-    
     const [editable, setEditable] = useState<boolean>(false);
 
     const [menuEnfoques, setMenuEnfoques] = useState<boolean>(false);
@@ -140,9 +229,7 @@ const Perfil = () => {
 
     return (
         <div className="flex flex-col w-full gap-8 px-2 py-8 md:flex-row bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl">
-            {modal  && 
-                <ModalContraseña />
-            }
+            {modal && <ModalContraseña />}
             {/* Panel imagen */}
             <div className="flex flex-col items-center w-full md:w-1/2">
                 <div className="flex flex-col items-center w-full p-8 bg-white rounded-lg shadow">
@@ -181,7 +268,9 @@ const Perfil = () => {
                     <div className="mb-2 text-sm text-gray-400">{perfil?.phone}</div>
                     <div className="text-xs text-gray-400">Idiomas: {perfil?.languages || 'No especificados'}</div>
                     <div>
-                        <button onClick={abrirModal} className='px-4 mt-6 text-violet-600 hover:underline'>¿Quieres cambiar tu contraseña?</button>
+                        <button onClick={abrirModal} className="px-4 mt-6 text-violet-600 hover:underline">
+                            ¿Quieres cambiar tu contraseña?
+                        </button>
                     </div>
                 </div>
             </div>
@@ -239,14 +328,62 @@ const Perfil = () => {
                                             disabled={!editable}
                                         />
                                     </div>
-                                    <div className="md:col-span-2">
+                                    <div className="md:col-span-2 relative">
                                         <label className="block mb-1 text-sm font-medium">Dirección del consultorio</label>
-                                        <Field
-                                            type="textarea"
-                                            name="office_address"
-                                            className="w-full px-3 py-2 border rounded resize-none"
-                                            disabled={!editable}
-                                        />
+                                        <div ref={addressInputRef}>
+                                            <input
+                                                name="office_address"
+                                                type="text"
+                                                placeholder="Av. Corrientes 123, Buenos Aires, Argentina"
+                                                value={values.office_address || ''}
+                                                disabled={!editable}
+                                                onChange={(e) => {
+                                                    setFieldValue('office_address', e.target.value);
+                                                    setSelectedCoordinates(null);
+                                                    setSelectedPlaceId(null);
+                                                    setTimeout(() => {
+                                                        if (e.target.value && !selectedPlaceId && editable) {
+                                                            searchAddresses(e.target.value);
+                                                        }
+                                                    }, 300);
+                                                }}
+                                                className="w-full px-3 py-2 border rounded resize-none"
+                                                autoComplete="off"
+                                            />
+                                        </div>
+                                        {showSuggestions && editable && (
+                                            <div
+                                                ref={suggestionsRef}
+                                                className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto mt-1"
+                                            >
+                                                {isLoadingSuggestions ? (
+                                                    <div className="p-3 text-sm font-medium flex items-center gap-2">
+                                                        <div className="w-4 h-4 border-2 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
+                                                        Buscando direcciones en Argentina...
+                                                    </div>
+                                                ) : addressSuggestions.length > 0 ? (
+                                                    addressSuggestions.map((suggestion) => (
+                                                        <button
+                                                            key={suggestion.id}
+                                                            type="button"
+                                                            className="w-full text-left p-3 hover:bg-gray-50 text-sm border-b border-gray-200 last:border-b-0 transition-colors"
+                                                            onClick={() => selectAddress(suggestion, setFieldValue)}
+                                                        >
+                                                            <div className="flex items-center gap-2">
+                                                                <MapPinIcon className="w-4 h-4 text-violet-500 mt-0.5 flex-shrink-0" />
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="text-sm flex items-center gap-2">{suggestion.place_name}</div>
+                                                                </div>
+                                                            </div>
+                                                        </button>
+                                                    ))
+                                                ) : (
+                                                    <div className="p-3 text-sm text-gray-600 text-center">
+                                                        No se encontraron direcciones en Argentina. Intente con una búsqueda más específica.
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="md:col-span-2">
                                         <label className="block mb-1 text-sm font-medium">Valor de las Sesiones</label>
