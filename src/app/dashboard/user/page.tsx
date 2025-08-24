@@ -10,11 +10,10 @@ import { toast } from 'react-toastify';
 const DashboardUser = () => {
     const { user, loading, checkMissingData, updateUserProfile, refetchUser } = useAuth();
     const [showMissingDataModal, setShowMissingDataModal] = useState(false);
-    const [dataCompleted, setDataCompleted] = useState(false); // Nuevo estado para controlar la completitud
+    const [dataCompleted, setDataCompleted] = useState(false);
 
     useEffect(() => {
         if (!loading && user && !dataCompleted) {
-            // Verificar si faltan datos obligatorios
             const hasMissingData = checkMissingData();
             console.log('Dashboard - Verificando datos faltantes:', {
                 hasMissingData,
@@ -35,18 +34,13 @@ const DashboardUser = () => {
     const handleSaveMissingData = async (data: UpdateUserData) => {
         try {
             await updateUserProfile(data);
-            
-            // Refrescar los datos del usuario desde el backend
             await refetchUser();
-            
-            // Marcar como completado y cerrar modal
             setDataCompleted(true);
             setShowMissingDataModal(false);
-            
             toast.success('¡Perfil completado exitosamente! Ahora puedes usar la aplicación.');
         } catch (error) {
             console.error('Error al actualizar perfil:', error);
-            throw error; // Re-lanzar el error para que el modal lo maneje
+            throw error;
         }
     };
 

@@ -28,6 +28,8 @@ const UserPacientes = ({ data }: UserPacientesProps) => {
         action: 'promote' | 'ban' | 'unban';
         userName: string;
     } | null>(null);
+    const [filter, setFilter] = useState<'todos' | 'activos' | 'baneados'>('todos');
+    const [showBannedWarning, setShowBannedWarning] = useState(false);
 
     const pacientes = data.filter((u) => u.role === 'Paciente');
 
@@ -121,7 +123,7 @@ const UserPacientes = ({ data }: UserPacientesProps) => {
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800">Gestión de Pacientes</h2>
                 <div className="ml-auto bg-[#5046E7]/10 text-[#5046E7] px-3 py-1 rounded-full text-sm font-semibold">
-                    {pacientesFiltrados.length} pacientes
+                    {pacientes.length} pacientes
                 </div>
             </div>
 
@@ -181,7 +183,7 @@ const UserPacientes = ({ data }: UserPacientesProps) => {
                     </div>
                 )}
                 
-                {pacientesFiltrados.length === 0 ? (
+                {pacientes.length === 0 ? (
                     <div className="bg-gradient-to-r from-[#5046E7]/10 to-[#6366F1]/10 border border-[#5046E7]/20 rounded-lg p-12 text-center">
                         <div className="flex flex-col items-center gap-4">
                             <div className="w-16 h-16 bg-[#5046E7]/20 rounded-full flex items-center justify-center">
@@ -203,7 +205,7 @@ const UserPacientes = ({ data }: UserPacientesProps) => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {pacientesFiltrados.map((paciente) => (
+                        {pacientes.map((paciente) => (
                             <div key={paciente.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all duration-200">
                                 <div className="flex flex-col gap-4">
                                     <div className="flex flex-row gap-4">
