@@ -1,21 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { 
-    Users, 
-    Calendar, 
-    FileText, 
-    BarChart3, 
-    Video, 
-    Shield, 
-    Clock, 
+import {
+    Users,
+    Calendar,
+    FileText,
+    BarChart3,
+    Video,
+    Shield,
+    Clock,
     ExternalLink,
     ChevronRight,
     MessageSquare,
     Stethoscope,
     CreditCard,
     Bell,
-    Settings
+    Settings,
 } from 'lucide-react';
 
 export default function PanelProfesionalPage() {
@@ -28,8 +28,8 @@ export default function PanelProfesionalPage() {
                 'Lista completa de pacientes activos e inactivos',
                 'Historiales médicos protegidos con encriptación',
                 'Sistema de mensajería integrado y seguro',
-                'Notas de sesión y seguimiento personalizado'
-            ]
+                'Notas de sesión y seguimiento personalizado',
+            ],
         },
         {
             icon: Calendar,
@@ -39,8 +39,8 @@ export default function PanelProfesionalPage() {
                 'Calendario interactivo con vista mensual y semanal',
                 'Recordatorios automáticos para pacientes',
                 'Gestión de disponibilidad y horarios',
-                'Integración con Google Calendar y Outlook'
-            ]
+                'Integración con Google Calendar y Outlook',
+            ],
         },
         {
             icon: Video,
@@ -50,8 +50,8 @@ export default function PanelProfesionalPage() {
                 'Plataforma de videollamadas con encriptación end-to-end',
                 'Grabación de sesiones con consentimiento',
                 'Calidad HD garantizada y audio cristalino',
-                'Sala de espera virtual para pacientes'
-            ]
+                'Sala de espera virtual para pacientes',
+            ],
         },
         {
             icon: BarChart3,
@@ -61,8 +61,8 @@ export default function PanelProfesionalPage() {
                 'Dashboard personalizado con métricas clave',
                 'Reportes de productividad y eficiencia',
                 'Análisis financiero y de ingresos',
-                'Estadísticas de satisfacción del paciente'
-            ]
+                'Estadísticas de satisfacción del paciente',
+            ],
         },
         {
             icon: FileText,
@@ -72,8 +72,8 @@ export default function PanelProfesionalPage() {
                 'Plantillas personalizables para diferentes tipos de sesión',
                 'Almacenamiento seguro en la nube',
                 'Firma digital válida legalmente',
-                'Exportación a PDF y otros formatos'
-            ]
+                'Exportación a PDF y otros formatos',
+            ],
         },
         {
             icon: CreditCard,
@@ -83,8 +83,8 @@ export default function PanelProfesionalPage() {
                 'Procesamiento automático de pagos',
                 'Generación de facturas digitales',
                 'Reportes financieros detallados',
-                'Integración con sistemas contables'
-            ]
+                'Integración con sistemas contables',
+            ],
         },
         {
             icon: Bell,
@@ -94,8 +94,8 @@ export default function PanelProfesionalPage() {
                 'Recordatorios de citas próximas',
                 'Alertas de pagos pendientes',
                 'Notificaciones de mensajes de pacientes',
-                'Resúmenes diarios y semanales'
-            ]
+                'Resúmenes diarios y semanales',
+            ],
         },
         {
             icon: Shield,
@@ -105,37 +105,37 @@ export default function PanelProfesionalPage() {
                 'Encriptación end-to-end de toda la información',
                 'Cumplimiento total con GDPR y HIPAA',
                 'Backups automáticos y seguros',
-                'Autenticación de dos factores'
-            ]
-        }
+                'Autenticación de dos factores',
+            ],
+        },
     ];
 
     const estadisticas = [
         { numero: '500+', texto: 'Profesionales Activos' },
         { numero: '10,000+', texto: 'Sesiones Completadas' },
         { numero: '98%', texto: 'Satisfacción del Cliente' },
-        { numero: '24/7', texto: 'Soporte Técnico' }
+        { numero: '24/7', texto: 'Soporte Técnico' },
     ];
 
     const testimonios = [
         {
-            nombre: "Dra. María González",
-            especialidad: "Psicóloga Clínica",
-            testimonio: "El panel de PsyMatch ha revolucionado mi práctica. La gestión de pacientes es increíblemente eficiente.",
-            rating: 5
+            nombre: 'Dra. María González',
+            especialidad: 'Psicóloga Clínica',
+            testimonio: 'El panel de PsyMatch ha revolucionado mi práctica. La gestión de pacientes es increíblemente eficiente.',
+            rating: 5,
         },
         {
-            nombre: "Dr. Carlos Mendoza",
-            especialidad: "Psiquiatra",
-            testimonio: "Las videoconsultas son de excelente calidad y mis pacientes se sienten cómodos con la plataforma.",
-            rating: 5
+            nombre: 'Dr. Carlos Mendoza',
+            especialidad: 'Psiquiatra',
+            testimonio: 'Las videoconsultas son de excelente calidad y mis pacientes se sienten cómodos con la plataforma.',
+            rating: 5,
         },
         {
-            nombre: "Lic. Ana Torres",
-            especialidad: "Terapia Familiar",
-            testimonio: "Los reportes me ayudan a analizar mi práctica y mejorar constantemente la atención.",
-            rating: 5
-        }
+            nombre: 'Lic. Ana Torres',
+            especialidad: 'Terapia Familiar',
+            testimonio: 'Los reportes me ayudan a analizar mi práctica y mejorar constantemente la atención.',
+            rating: 5,
+        },
     ];
 
     return (
@@ -149,10 +149,10 @@ export default function PanelProfesionalPage() {
                             <span className="block text-blue-600">PsyMatch</span>
                         </h1>
                         <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-                            La plataforma más completa y segura para profesionales de salud mental. 
-                            Gestiona tu práctica, conecta con pacientes y haz crecer tu negocio con herramientas de última generación.
+                            La plataforma más completa y segura para profesionales de salud mental. Gestiona tu práctica, conecta con pacientes y haz
+                            crecer tu negocio con herramientas de última generación.
                         </p>
-                        
+
                         <Link
                             href="/register-professional"
                             className="inline-flex items-center px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1"
@@ -178,9 +178,7 @@ export default function PanelProfesionalPage() {
             <section className="py-16 px-6 md:px-12">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-12">
-                        <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                            Herramientas Profesionales Completas
-                        </h2>
+                        <h2 className="text-3xl font-bold text-gray-900 mb-4">Herramientas Profesionales Completas</h2>
                         <p className="text-gray-600 max-w-2xl mx-auto">
                             Todo lo que necesitas para manejar tu práctica profesional en una sola plataforma
                         </p>
@@ -195,9 +193,9 @@ export default function PanelProfesionalPage() {
                                     </div>
                                     <h3 className="text-xl font-semibold text-gray-900 ml-4">{feature.title}</h3>
                                 </div>
-                                
+
                                 <p className="text-gray-600 mb-6">{feature.description}</p>
-                                
+
                                 <ul className="space-y-2">
                                     {feature.features.map((item, idx) => (
                                         <li key={idx} className="flex items-start text-sm text-gray-700">
@@ -216,12 +214,8 @@ export default function PanelProfesionalPage() {
             <section className="py-16 px-6 md:px-12 bg-gray-50">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-12">
-                        <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                            Lo que dicen nuestros profesionales
-                        </h2>
-                        <p className="text-gray-600">
-                            Más de 500 profesionales confían en PsyMatch para su práctica diaria
-                        </p>
+                        <h2 className="text-3xl font-bold text-gray-900 mb-4">Lo que dicen nuestros profesionales</h2>
+                        <p className="text-gray-600">Más de 500 profesionales confían en PsyMatch para su práctica diaria</p>
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-8">
@@ -229,7 +223,9 @@ export default function PanelProfesionalPage() {
                             <div key={index} className="bg-white rounded-xl p-6 shadow-lg">
                                 <div className="flex mb-4">
                                     {[...Array(testimonio.rating)].map((_, i) => (
-                                        <span key={i} className="text-yellow-400 text-xl">★</span>
+                                        <span key={i} className="text-yellow-400 text-xl">
+                                            ★
+                                        </span>
                                     ))}
                                 </div>
                                 <p className="text-gray-700 mb-4 italic">&ldquo;{testimonio.testimonio}&rdquo;</p>
@@ -247,14 +243,12 @@ export default function PanelProfesionalPage() {
             <section className="py-16 px-6 md:px-12 bg-gradient-to-r from-blue-600 to-blue-700">
                 <div className="max-w-4xl mx-auto text-center text-white">
                     <Stethoscope className="w-16 h-16 mx-auto mb-6 opacity-80" />
-                    <h2 className="text-3xl font-bold mb-4">
-                        Únete a la Red de Profesionales PsyMatch
-                    </h2>
+                    <h2 className="text-3xl font-bold mb-4">Únete a la Red de Profesionales PsyMatch</h2>
                     <p className="text-blue-100 mb-8 text-lg max-w-2xl mx-auto">
-                        Accede al panel profesional más avanzado del mercado. Comienza gratis y escala tu práctica 
-                        con las herramientas que necesitas para ofrecer el mejor cuidado a tus pacientes.
+                        Accede al panel profesional más avanzado del mercado. Comienza gratis y escala tu práctica con las herramientas que necesitas
+                        para ofrecer el mejor cuidado a tus pacientes.
                     </p>
-                    
+
                     <div className="grid md:grid-cols-3 gap-6 mb-8">
                         <div className="bg-white/10 rounded-xl p-6 backdrop-blur-sm">
                             <Clock className="w-8 h-8 mx-auto mb-3 opacity-80" />
@@ -272,7 +266,7 @@ export default function PanelProfesionalPage() {
                             <p className="text-blue-100 text-sm">Ayuda cuando la necesites</p>
                         </div>
                     </div>
-                    
+
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Link
                             href="/register-professional"
@@ -296,14 +290,12 @@ export default function PanelProfesionalPage() {
             <section className="py-16 px-6 md:px-12 bg-gray-50">
                 <div className="max-w-4xl mx-auto text-center">
                     <MessageSquare className="w-12 h-12 text-blue-600 mx-auto mb-6" />
-                    <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                        ¿Tienes preguntas sobre el panel?
-                    </h2>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">¿Tienes preguntas sobre el panel?</h2>
                     <p className="text-gray-600 mb-8">
-                        Nuestro equipo de soporte está disponible para ayudarte con cualquier consulta 
-                        sobre las funcionalidades del panel profesional.
+                        Nuestro equipo de soporte está disponible para ayudarte con cualquier consulta sobre las funcionalidades del panel
+                        profesional.
                     </p>
-                    
+
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Link
                             href="/soporte"
