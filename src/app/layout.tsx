@@ -9,6 +9,8 @@ import { FotoDePerfilProvider } from '@/context/fotoDePerfil';
 import { AuthProfessionalProvider } from '@/context/registerProfessional';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { ModalProvider } from '@/context/modalContraseña';
+
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -35,6 +37,7 @@ export default function RootLayout({
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
                 <FlowbiteInit />
                 <BotonesRegisterProvider>
+                    <ModalProvider>
                     <FotoDePerfilProvider>
                         <AuthProfessionalProvider>
                             <Navbar />
@@ -54,7 +57,8 @@ export default function RootLayout({
                             />
                         </AuthProfessionalProvider>
                     </FotoDePerfilProvider>
-                </BotonesRegisterProvider>
+                    </ModalProvider>
+                </BotonesRegisterProvider>             
             </body>
         </html>
     );

@@ -1,4 +1,4 @@
-import { MessageCircle, Calendar, MapPin, Clock, Star } from 'lucide-react';
+import { MessageCircle, Calendar, MapPin, Clock } from 'lucide-react';
 import type { IProfessional } from '@/services/prrofessionalProfile';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -44,13 +44,7 @@ const Professional = ({ data }: { data: IProfessional }) => {
                     </div>
                 )}
 
-                <div className="flex flex-col md:flex-row gap-4 text-sm font-medium text-gray-600">
-                    {data.office_address && (
-                        <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-gray-500" aria-hidden="true" />
-                            <span>{data.office_address}</span>
-                        </div>
-                    )}
+                <div className="flex flex-col mt-20 gap-4 text-sm font-medium text-gray-600">
                     {data.availability && data.availability.length > 0 && (
                         <div className="flex items-center gap-2">
                             <Clock className="w-4 h-4 text-green-600" aria-hidden="true" />
@@ -77,11 +71,6 @@ const Professional = ({ data }: { data: IProfessional }) => {
                     <MessageCircle className="w-4 h-4" aria-hidden="true" />
                     Enviar mensaje
                 </button>
-
-                <div className="flex items-center gap-1 mt-2 opacity-75">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" aria-hidden="true" />
-                    <span className="text-sm text-gray-600">4.8 (24 reseñas)</span>
-                </div>
             </div>
         </article>
     );

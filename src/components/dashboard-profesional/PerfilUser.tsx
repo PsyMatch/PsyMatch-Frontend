@@ -1,12 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Input from '../ui/input';
-import { Camera } from 'lucide-react';
+import { Camera, MapPinIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { envs } from '@/config/envs.config';
 import Cookies from 'js-cookie';
+
+interface MapboxSuggestion {
+    id: string;
+    place_name: string;
+    center: [number, number]; // [lng, lat]
+    place_type: string[];
+    relevance: number;
+    context?: Array<{
+        id: string;
+        text: string;
+        short_code?: string;
+    }>;
+    properties?: {
+        address?: string;
+    };
+}
 
 type UserProfile = {
     id?: string;
@@ -85,7 +101,93 @@ const PerfilUser = () => {
     const [successMsg, setSuccessMsg] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
 
+    // Estados para autocompletado de direcciones
+    const [addressSuggestions, setAddressSuggestions] = useState<MapboxSuggestion[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [selectedCoordinates, setSelectedCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+    const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+    const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+    const addressInputRef = useRef<HTMLInputElement>(null);
+    const suggestionsRef = useRef<HTMLDivElement>(null);
+
     const router = useRouter();
+
+    const searchAddresses = async (query: string) => {
+        if (query.length < 3) {
+            setAddressSuggestions([]);
+            setShowSuggestions(false);
+            return;
+        }
+
+        const MAPBOX_TOKEN = envs.next_public_mapbox_token;
+        if (!MAPBOX_TOKEN) {
+            console.error('Mapbox access token no configurado');
+            return;
+        }
+
+        setIsLoadingSuggestions(true);
+        try {
+            const response = await fetch(
+                `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?` +
+                    `access_token=${MAPBOX_TOKEN}&` +
+                    `country=AR&` +
+                    `language=es&` +
+                    `limit=8&` +
+                    `types=address,poi,place&`
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+                setAddressSuggestions(data.features || []);
+                setShowSuggestions(true);
+            } else {
+                setAddressSuggestions([]);
+            }
+        } catch (error) {
+            setAddressSuggestions([]);
+        } finally {
+            setIsLoadingSuggestions(false);
+        }
+    };
+
+    const selectAddress = (suggestion: MapboxSuggestion) => {
+        setUser((prev) => ({ ...prev, address: suggestion.place_name }));
+        setShowSuggestions(false);
+        setAddressSuggestions([]);
+
+        setSelectedCoordinates({
+            lat: suggestion.center[1],
+            lng: suggestion.center[0],
+        });
+        setSelectedPlaceId(suggestion.id);
+    };
+
+    const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { value } = e.target;
+        setUser((prev) => ({ ...prev, address: value }));
+        setSelectedCoordinates(null);
+        setSelectedPlaceId(null);
+        setTimeout(() => {
+            if (value && !selectedPlaceId) {
+                searchAddresses(value);
+            }
+        }, 300);
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                suggestionsRef.current &&
+                !suggestionsRef.current.contains(event.target as Node) &&
+                !addressInputRef.current?.contains(event.target as Node)
+            ) {
+                setShowSuggestions(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     // --- Cargar datos del usuario desde cookies ---
     useEffect(() => {
@@ -116,21 +218,19 @@ const PerfilUser = () => {
                 const userFromToken = extractUserFromToken(token); //token de oAuth
                 setUser({
                     id: userData.id || userFromToken.id || '',
-                    fullName: userData.fullName || userData.name ||  '',
+                    fullName: userData.fullName || userData.name || '',
                     alias: userData.alias || '',
                     phone: userData.phone || '',
                     address: userData.address || '',
                     email: userData.email || userFromToken.email || '',
-                    socialWork: userData.socialWork || userData.social_security_number || '',
+                    socialWork: userData.health_insurance || '',
                     emergencyContact: userData.emergencyContact || userData.emergency_contact || '',
                     profileImage: userData.profileImage || userData.profile_picture || '',
                 });
                 setProfileImage(
                     userData.profileImage ||
                         userData.profile_picture ||
-                        `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                            userData.fullName || userData.name || 'Usuario'
-                        )}`
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.fullName || userData.name || 'Usuario')}`
                 );
             } catch (err) {
                 setErrorMsg(`${err}, Error al obtener usuario`);
@@ -219,7 +319,7 @@ const PerfilUser = () => {
                 alias: userData.alias ?? prev.alias,
                 phone: userData.phone ?? prev.phone,
                 address: userData.address ?? prev.address,
-                socialWork: userData.socialWork ?? userData.social_security_number ?? prev.socialWork,
+                socialWork: userData.health_insurance ?? prev.socialWork,
                 emergencyContact: userData.emergencyContact ?? userData.emergency_contact ?? prev.emergencyContact,
                 profileImage: userData.profileImage ?? userData.profile_picture ?? prev.profileImage,
             }));
@@ -240,10 +340,10 @@ const PerfilUser = () => {
     };
 
     return (
-        <div className="flex flex-col md:flex-row gap-8 w-full bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-2">
+        <div className="flex flex-col w-full gap-8 px-2 py-8 md:flex-row bg-gradient-to-br from-blue-50 to-indigo-100">
             {/* Panel imagen */}
-            <div className="w-full md:w-1/2 flex flex-col items-center">
-                <div className="bg-white rounded-lg shadow p-8 flex flex-col items-center w-full">
+            <div className="flex flex-col items-center w-full md:w-1/2">
+                <div className="flex flex-col items-center w-full p-8 bg-white rounded-lg shadow">
                     <div className="relative mb-4">
                         <Image
                             src={
@@ -254,7 +354,7 @@ const PerfilUser = () => {
                             alt="profile"
                             width={128}
                             height={128}
-                            className="w-32 h-32 rounded-full object-cover bg-gray-200"
+                            className="object-cover w-32 h-32 bg-gray-200 rounded-full"
                             onError={(e) => {
                                 const target = e.target as HTMLImageElement;
                                 if (!target.src.includes('ui-avatars.com')) {
@@ -267,23 +367,24 @@ const PerfilUser = () => {
                                 <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="profile-upload" />
                                 <label
                                     htmlFor="profile-upload"
-                                    className="absolute bottom-2 right-2 bg-gray-200 hover:bg-gray-300 p-2 rounded-full cursor-pointer shadow"
+                                    className="absolute p-2 bg-gray-200 rounded-full shadow cursor-pointer bottom-2 right-2 hover:bg-gray-300"
                                 >
                                     <Camera className="w-5 h-5 text-gray-600" />
                                 </label>
                             </>
                         )}
                     </div>
-                    <h3 className="text-xl font-semibold mb-1">{user.fullName}</h3>
-                    <div className="text-sm text-gray-400 mb-2">{user.phone}</div>
+                    <h3 className="mb-1 text-xl font-semibold">{user.fullName}</h3>
+                    <p className="mb-2 text-gray-500">{user.email}</p>
+                    <div className="mb-2 text-sm text-gray-400">{user.phone}</div>
                     <div className="text-xs text-gray-400">Obra Social: {user.socialWork || 'No especificada'}</div>
                 </div>
             </div>
 
             {/* Panel edición */}
-            <div className="w-full md:w-1/2 flex flex-col">
-                <div className="bg-white rounded-lg shadow-md p-8">
-                    <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col w-full md:w-1/2">
+                <div className="p-8 bg-white rounded-lg shadow-md">
+                    <div className="flex items-center justify-between mb-6">
                         <h2 className="text-2xl font-bold">Mi cuenta</h2>
                         <button
                             onClick={() => setEditable((e) => !e)}
@@ -294,32 +395,84 @@ const PerfilUser = () => {
                         </button>
                     </div>
                     {/* Mensajes de éxito o error */}
-                    {successMsg && <div className="mb-4 text-green-600 bg-green-100 px-4 py-2 rounded">{successMsg}</div>}
-                    {errorMsg && <div className="mb-4 text-red-600 bg-red-100 px-4 py-2 rounded">{errorMsg}</div>}
+                    {successMsg && <div className="px-4 py-2 mb-4 text-green-600 bg-green-100 rounded">{successMsg}</div>}
+                    {errorMsg && <div className="px-4 py-2 mb-4 text-red-600 bg-red-100 rounded">{errorMsg}</div>}
                     <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             {fields.map(({ label, field, type }) => (
-                                <div key={field}>
-                                    <label className="block text-sm font-medium mb-1">{label}</label>
-                                    <Input
-                                        name={field}
-                                        type={type || 'text'}
-                                        className="border rounded px-3 py-2 w-full"
-                                        value={user[field] || ''}
-                                        disabled={!editable || loading}
-                                        onChange={handleChange}
-                                    />
+                                <div key={field} className={field === 'address' ? 'relative' : ''}>
+                                    <label className="block mb-1 text-sm font-medium">{label}</label>
+                                    {field === 'address' ? (
+                                        <>
+                                            <div ref={addressInputRef}>
+                                                <input
+                                                    name={field}
+                                                    type={type || 'text'}
+                                                    className="w-full px-3 py-2 border rounded"
+                                                    value={user[field] || ''}
+                                                    disabled={!editable || loading}
+                                                    onChange={handleAddressChange}
+                                                    placeholder="Av. Corrientes 123, Buenos Aires, Argentina"
+                                                    autoComplete="off"
+                                                />
+                                            </div>
+                                            {showSuggestions && editable && (
+                                                <div
+                                                    ref={suggestionsRef}
+                                                    className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto mt-1"
+                                                >
+                                                    {isLoadingSuggestions ? (
+                                                        <div className="p-3 text-sm font-medium flex items-center gap-2">
+                                                            <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                                            Buscando direcciones en Argentina...
+                                                        </div>
+                                                    ) : addressSuggestions.length > 0 ? (
+                                                        addressSuggestions.map((suggestion) => (
+                                                            <button
+                                                                key={suggestion.id}
+                                                                type="button"
+                                                                className="w-full text-left p-3 hover:bg-gray-50 text-sm border-b border-gray-200 last:border-b-0 transition-colors"
+                                                                onClick={() => selectAddress(suggestion)}
+                                                            >
+                                                                <div className="flex items-center gap-2">
+                                                                    <MapPinIcon className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="text-sm flex items-center gap-2">{suggestion.place_name}</div>
+                                                                    </div>
+                                                                </div>
+                                                            </button>
+                                                        ))
+                                                    ) : (
+                                                        <div className="p-3 text-sm text-gray-600 text-center">
+                                                            No se encontraron direcciones en Argentina. Intente con una búsqueda más específica.
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <Input
+                                            name={field}
+                                            type={type || 'text'}
+                                            className="w-full px-3 py-2 border rounded"
+                                            value={user[field] || ''}
+                                            disabled={!editable || loading}
+                                            onChange={handleChange}
+                                        />
+                                    )}
                                 </div>
                             ))}
                             {/* Select para Obra Social */}
                             <div>
-                                <label className="block text-sm font-medium mb-1">Obra Social</label>
+                                <label className="block mb-1 text-sm font-medium">Obra Social</label>
                                 <select
                                     name="socialWork"
-                                    className="border rounded px-3 py-2 w-full bg-white"
+                                    className="w-full px-3 py-2 bg-white border rounded"
                                     value={user.socialWork || ''}
                                     disabled={!editable || loading}
-                                    onChange={(e) => handleChange({ target: { name: 'socialWork', value: e.target.value } } as React.ChangeEvent<HTMLInputElement>)}
+                                    onChange={(e) =>
+                                        handleChange({ target: { name: 'socialWork', value: e.target.value } } as React.ChangeEvent<HTMLInputElement>)
+                                    }
                                 >
                                     <option value="">Seleccionar obra social</option>
                                     {socialWorkOptions.map((option) => (
@@ -351,6 +504,3 @@ const PerfilUser = () => {
     );
 };
 export default PerfilUser;
-
-
-

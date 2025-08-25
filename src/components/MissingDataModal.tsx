@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UpdateUserData } from '@/services/users';
 import { toast } from 'react-toastify';
+import { MapPinIcon } from 'lucide-react';
+import { envs } from '@/config/envs.config';
 
 interface MissingDataModalProps {
     open: boolean;
@@ -35,6 +37,22 @@ const healthInsuranceOptions = [
     { value: 'OSPIP', label: 'OSPIP' },
 ];
 
+interface MapboxSuggestion {
+    id: string;
+    place_name: string;
+    center: [number, number]; // [lng, lat]
+    place_type: string[];
+    relevance: number;
+    context?: Array<{
+        id: string;
+        text: string;
+        short_code?: string;
+    }>;
+    properties?: {
+        address?: string;
+    };
+}
+
 export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave, onClose }) => {
     const [formData, setFormData] = useState<UpdateUserData>({
         alias: '',
@@ -46,6 +64,15 @@ export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave
     });
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    // Estados para autocompletado de direcciones
+    const [addressSuggestions, setAddressSuggestions] = useState<MapboxSuggestion[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [selectedCoordinates, setSelectedCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+    const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+    const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+    const addressInputRef = useRef<HTMLInputElement>(null);
+    const suggestionsRef = useRef<HTMLDivElement>(null);
 
     const validateForm = (): boolean => {
         const newErrors: Record<string, string> = {};
@@ -92,6 +119,71 @@ export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave
             setErrors((prev) => ({ ...prev, [field]: '' }));
         }
     };
+
+    const searchAddresses = async (query: string) => {
+        if (query.length < 3) {
+            setAddressSuggestions([]);
+            setShowSuggestions(false);
+            return;
+        }
+
+        const MAPBOX_TOKEN = envs.next_public_mapbox_token;
+        if (!MAPBOX_TOKEN) {
+            console.error('Mapbox access token no configurado');
+            return;
+        }
+
+        setIsLoadingSuggestions(true);
+        try {
+            const response = await fetch(
+                `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?` +
+                    `access_token=${MAPBOX_TOKEN}&` +
+                    `country=AR&` +
+                    `language=es&` +
+                    `limit=8&` +
+                    `types=address,poi,place&`
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+                setAddressSuggestions(data.features || []);
+                setShowSuggestions(true);
+            } else {
+                setAddressSuggestions([]);
+            }
+        } catch (error) {
+            setAddressSuggestions([]);
+        } finally {
+            setIsLoadingSuggestions(false);
+        }
+    };
+
+    const selectAddress = (suggestion: MapboxSuggestion) => {
+        handleInputChange('address', suggestion.place_name);
+        setShowSuggestions(false);
+        setAddressSuggestions([]);
+
+        setSelectedCoordinates({
+            lat: suggestion.center[1],
+            lng: suggestion.center[0],
+        });
+        setSelectedPlaceId(suggestion.id);
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                suggestionsRef.current &&
+                !suggestionsRef.current.contains(event.target as Node) &&
+                !addressInputRef.current?.contains(event.target as Node)
+            ) {
+                setShowSuggestions(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -191,18 +283,65 @@ export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave
                     </div>
 
                     {/* Dirección */}
-                    <div className="space-y-2">
+                    <div className="space-y-2 relative">
                         <Label htmlFor="address" className="text-sm font-medium text-gray-700">
                             Dirección *
                         </Label>
-                        <Input
-                            id="address"
-                            type="text"
-                            placeholder="Ej: Av. Corrientes 1234, Buenos Aires"
-                            value={formData.address || ''}
-                            onChange={(e) => handleInputChange('address', e.target.value)}
-                            className={errors.address ? 'border-red-500' : ''}
-                        />
+                        <div ref={addressInputRef}>
+                            <Input
+                                id="address"
+                                name="address"
+                                type="text"
+                                placeholder="Av. Corrientes 123, Buenos Aires, Argentina"
+                                value={formData.address || ''}
+                                onChange={(e) => {
+                                    handleInputChange('address', e.target.value);
+                                    setSelectedCoordinates(null);
+                                    setSelectedPlaceId(null);
+                                    setTimeout(() => {
+                                        if (e.target.value && !selectedPlaceId) {
+                                            searchAddresses(e.target.value);
+                                        }
+                                    }, 300);
+                                }}
+                                className={errors.address ? 'border-red-500' : ''}
+                                autoComplete="off"
+                            />
+                        </div>
+
+                        {showSuggestions && (
+                            <div
+                                ref={suggestionsRef}
+                                className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto mt-1"
+                            >
+                                {isLoadingSuggestions ? (
+                                    <div className="p-3 text-sm font-medium flex items-center gap-2">
+                                        <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                        Buscando direcciones en Argentina...
+                                    </div>
+                                ) : addressSuggestions.length > 0 ? (
+                                    addressSuggestions.map((suggestion) => (
+                                        <button
+                                            key={suggestion.id}
+                                            type="button"
+                                            className="w-full text-left p-3 hover:bg-gray-50 text-sm border-b border-gray-200 last:border-b-0 transition-colors"
+                                            onClick={() => selectAddress(suggestion)}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <MapPinIcon className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-sm flex items-center gap-2">{suggestion.place_name}</div>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    ))
+                                ) : (
+                                    <div className="p-3 text-sm text-gray-600 text-center">
+                                        No se encontraron direcciones en Argentina. Intente con una búsqueda más específica.
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
                     </div>
 
