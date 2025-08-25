@@ -1,11 +1,11 @@
 "use client"
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Cookies from "js-cookie";
 import { ErrorMessage, Field, Form, Formik } from "formik";
-import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
+import { useRouter, useSearchParams } from "next/navigation";
 
 
 const ChangePassword = () => {
@@ -31,10 +31,10 @@ const ChangePassword = () => {
                     }
                     return errors;
                 }}
-                onSubmit={async (values) => {
+                onSubmit={async (values, { setSubmitting }) => {
                     try{   
                         setBoton(true)
-                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password`, {
+                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password/:token`, {
                             method: 'POST',
                             headers: {
                                 "Content-Type": "application/json",
@@ -62,7 +62,9 @@ const ChangePassword = () => {
 
                     }catch(err){
                         console.log("Error", err)
-                    }finally {}
+                    }finally {
+                        setSubmitting(false);
+                    }
                 }}
             >
                 {({ isSubmitting }) => (
@@ -93,7 +95,7 @@ const ChangePassword = () => {
                             <ErrorMessage name="confirmPassword" component="div" className="text-xs text-red-500" />
                         </div>
                         <span className="text-xs text-center">Una vez hecho el cambio te redirigiremos a iniciar sesión</span>
-                        <Button type="submit" className="mt-2 text-black w-fit bg-violet-300" disabled={boton}>
+                        <Button type="submit" className="mt-2 text-black w-fit bg-violet-300" disabled={isSubmitting}>
                             Guardar nueva contraseña
                         </Button>
                     </Form>
