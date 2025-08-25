@@ -33,6 +33,7 @@ const ChangePassword = () => {
                 }}
                 onSubmit={async (values) => {
                     try{   
+                        setBoton(true)
                         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password`, {
                             method: 'POST',
                             headers: {
@@ -54,7 +55,6 @@ const ChangePassword = () => {
                             draggable: true,
                         });
 
-                        setBoton(true)
 
                         setTimeout(() => {
                             router.push("/login")
