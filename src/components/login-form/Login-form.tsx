@@ -42,7 +42,6 @@ export default function LoginForm() {
             
             const data = await response.json();
             console.log('Response data:', data);
-            console.log("Valor que viene del back:", data.data.verified);
 
             if (response.ok) {
                 console.log('Login exitoso:', data);

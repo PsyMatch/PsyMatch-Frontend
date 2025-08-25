@@ -4,12 +4,17 @@ import Input from "@/components/ui/input";
 import { useState } from "react";
 import Cookies from "js-cookie";
 import { ErrorMessage, Field, Form, Formik } from "formik";
+import { toast } from "react-toastify";
+import { useRouter, useSearchParams } from "next/navigation";
 
 
 const ChangePassword = () => {
-    const token = Cookies.get('authToken');
+    const router = useRouter();
+    const searchParams = useSearchParams()
+    const token = searchParams?.get("token");
 
-
+    const [boton, setBoton] = useState(false);
+  
     return (
         <div className="flex flex-col items-center min-h-screen gap-4 pt-16 bg-gradient-to-br from-blue-50 to-indigo-100">
             <Formik
@@ -28,6 +33,7 @@ const ChangePassword = () => {
                 }}
                 onSubmit={async (values, { setSubmitting }) => {
                     try{   
+                        setBoton(true)
                         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password/:token`, {
                             method: 'POST',
                             headers: {
@@ -39,8 +45,21 @@ const ChangePassword = () => {
                             })
                         });
 
-                        const response = await res.text();
-                        console.log("Respuesta", response)
+                        const response = await res.json();
+                        toast.success(`${response.message}`, {
+                            position: "top-center",
+                            type: 'success',
+                            isLoading: false,
+                            autoClose: 2500,
+                            closeOnClick: true,
+                            draggable: true,
+                        });
+
+
+                        setTimeout(() => {
+                            router.push("/login")
+                        },3300)
+
                     }catch(err){
                         console.log("Error", err)
                     }finally {
