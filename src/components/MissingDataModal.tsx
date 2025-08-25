@@ -230,7 +230,7 @@ export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave
                 <DialogHeader>
                     <DialogTitle className="text-xl font-bold text-gray-900">Completa tu perfil</DialogTitle>
                     <DialogDescription className="text-gray-600">
-                        Para continuar, necesitamos que completes algunos datos adicionales de tu perfil.
+                        ¡Bienvenido! Como te registraste con Google, necesitamos algunos datos adicionales para completar tu perfil y brindarte la mejor experiencia.
                     </DialogDescription>
                 </DialogHeader>
 

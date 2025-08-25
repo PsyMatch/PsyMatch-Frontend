@@ -1,25 +1,25 @@
 export const infoCards = [
   {
     id: 1,
-    titulo: "Describe tus Síntomas",
+    titulo: "Describe tus Necesidades",
     descripcion:
-      "Cuéntanos qué estás experimentando usando nuestro formulario inteligente o chat con IA",
+      "Cuéntanos qué estás buscando usando nuestro formulario detallado o comunícate directamente con nosotros",
     items: [
-      "Describe tus síntomas en tus propias palabras",
-      "Selecciona de síntomas comunes predefinidos",
-      "Nuestro chatbot de IA te guía con preguntas relevantes",
+      "Describe tus síntomas y preocupaciones",
+      "Selecciona de opciones predefinidas",
+      "Especifica tus preferencias de tratamiento",
       "Información completamente confidencial y segura"
     ],
   },
   {
     id: 2,
-    titulo: "IA Analiza y Empareja",
-    descripcion: "Nuestra IA avanzada analiza tus necesidades y encuentra los mejores terapeutas para ti",
+    titulo: "Encuentra tu Terapeuta Ideal",
+    descripcion: "Nuestro sistema te conecta con los mejores terapeutas según tus necesidades específicas",
     items: [
-      "Algoritmo de emparejamiento basado en síntomas ",
-      "Considera tu ubicación, presupuesto y preferencias",
-      "Analiza especialidades y enfoques terapéuticos",
-      "Puntuación de compatibilidad personalizada"
+      "Búsqueda personalizada basada en tus criterios",
+      "Considera ubicación, presupuesto y especialidades",
+      "Accede a perfiles detallados de profesionales",
+      "Sistema de puntuación de compatibilidad"
     ],
   },
   {
