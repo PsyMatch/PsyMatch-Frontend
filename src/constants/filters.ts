@@ -70,4 +70,6 @@ export const opcionesOrdenamiento = [
     { label: 'Precio: Mayor a Menor', value: 'price_desc' },
     { label: 'Más Experiencia', value: 'experience' },
     { label: 'Disponibilidad', value: 'availability' },
+    { label: 'Distancia: Menor a Mayor', value: 'distance_asc' },
+    { label: 'Distancia: Mayor a Menor', value: 'distance_desc' },
 ];

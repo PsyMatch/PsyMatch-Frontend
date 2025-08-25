@@ -1,42 +1,54 @@
 'use client';
 import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthProfessionalContext } from '@/context/registerProfessional';
 import { useAuth } from '@/hooks/useAuth';
 import Cookies from 'js-cookie';
 
-interface NavButton {
+interface NavItem {
     href: string;
     label: string;
     isPrimary?: boolean;
     onClick?: () => void;
+    requiresAuth?: boolean;
+    requiresGuest?: boolean;
+    allowedRoles?: string[];
+    description?: string;
 }
 
 const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [, setUserData] = useState<object | null>(null);
     const [token, setToken] = useState<string | null>(null);
+    const [userRole, setUserRole] = useState<string | null>(null);
+    const [alertMessage, setAlertMessage] = useState('');
 
     const { isAuth, resetUserData } = useAuthProfessionalContext();
     const { logout } = useAuth();
     const pathname = usePathname();
-    const id = pathname?.split('/')[2] || '';
+
+    const updateAuthState = useCallback(() => {
+        const authToken = Cookies.get('auth_token');
+        const role = Cookies.get('role');
+        setToken(authToken ?? null);
+        setUserRole(role ?? null);
+    }, []);
 
     useEffect(() => {
-        const cookies = Cookies.get('responseData');
-        if (cookies) {
-            try {
-                // setUserData no se usa, pero mantenemos la lógica por si se necesita después
-                JSON.parse(cookies);
-            } catch {
-                // Error parsing, continuar
-            }
-        }
-        setToken(Cookies.get('auth_token') ?? null);
-    }, []);
+        updateAuthState();
+
+        const handleAuthChange = () => {
+            updateAuthState();
+        };
+
+        window.addEventListener('authStateChange', handleAuthChange);
+
+        return () => {
+            window.removeEventListener('authStateChange', handleAuthChange);
+        };
+    }, [updateAuthState]);
 
     useEffect(() => {
         setIsMenuOpen(false);
@@ -44,14 +56,11 @@ const Navbar = () => {
 
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                setIsMenuOpen(false);
-            }
+            if (e.key === 'Escape') setIsMenuOpen(false);
         };
 
         if (isMenuOpen) {
             document.addEventListener('keydown', handleEscape);
-            // Prevent body scroll when menu is open
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'unset';
@@ -63,252 +72,256 @@ const Navbar = () => {
         };
     }, [isMenuOpen]);
 
-    const rolGuardado = Cookies.get('role');
+    const handleLogout = useCallback(async () => {
+        try {
+            await logout();
+            resetUserData();
+            Cookies.remove('auth_token');
+            Cookies.remove('role');
+            Cookies.remove('responseData');
 
-    const navigationConfig = useMemo(() => {
-        const getDashboardUrl = () => {
-            switch (rolGuardado) {
-                case 'Psicólogo':
-                    return '/dashboard/professional';
-                case 'Paciente':
-                    return '/dashboard/user';
-                case 'Administrador':
-                    return '/dashboard/admin';
-                default:
-                    return '/';
+            setToken(null);
+            setUserRole(null);
+            window.dispatchEvent(new CustomEvent('authStateChange'));
+        } catch (error) {
+            console.error('Error al cerrar sesión:', error);
+        }
+    }, [logout, resetUserData]);
+
+    const getDashboardUrl = useCallback(() => {
+        switch (userRole) {
+            case 'Psicólogo':
+                return '/dashboard/professional';
+            case 'Paciente':
+                return '/dashboard/user';
+            case 'Administrador':
+                return '/dashboard/admin';
+            default:
+                return '/dashboard/user';
+        }
+    }, [userRole]);
+
+    const getAllNavItems = (): NavItem[] => [
+        {
+            href: '/search-professionals',
+            label: 'Buscar Terapeutas',
+            requiresAuth: true,
+            description: 'Encuentra el terapeuta ideal para ti',
+        },
+        {
+            href: '/how-does-it-work',
+            label: 'Cómo Funciona',
+            description: 'Conoce nuestro proceso',
+        },
+        {
+            href: '/login',
+            label: 'Iniciar Sesión',
+            requiresGuest: true,
+            description: 'Accede a tu cuenta',
+        },
+        {
+            href: '/register-user',
+            label: 'Registrarse',
+            requiresGuest: true,
+            isPrimary: true,
+            description: 'Crea tu cuenta de paciente',
+        },
+        {
+            href: '/register-professional',
+            label: 'Únete como Profesional',
+            requiresGuest: true,
+            description: 'Regístrate como terapeuta',
+        },
+        {
+            href: getDashboardUrl(),
+            label: 'Mi Perfil',
+            requiresAuth: true,
+            isPrimary: true,
+            description: 'Accede a tu panel personal',
+        },
+        {
+            href: '#',
+            label: 'Cerrar Sesión',
+            requiresAuth: true,
+            onClick: handleLogout,
+            description: 'Salir de tu cuenta',
+        },
+    ];
+
+    const getVisibleNavItems = useCallback((): NavItem[] => {
+        const allItems = getAllNavItems();
+
+        return allItems.filter((item) => {
+            if (item.requiresAuth && !token) {
+                return false;
             }
-        };
 
-        return {
-            homeLoggedIn: [
-                { href: '/search-professionals', label: 'Buscar Terapeutas' },
-                { href: '/how-does-it-work', label: 'Como Funciona' },
-                { href: '/how-does-it-work', label: 'Como Funciona' },
-                { href: getDashboardUrl(), label: 'Perfil', isPrimary: true },
-            ] as NavButton[],
+            if (item.requiresGuest && token) {
+                return false;
+            }
 
-            searchProfessionals: [
-                { href: '/how-does-it-work', label: 'Como funciona' },
-                { href: '/how-does-it-work', label: 'Como funciona' },
-                { href: '/dashboard/user', label: 'Perfil', isPrimary: true },
-            ] as NavButton[],
+            if (item.allowedRoles && item.allowedRoles.length > 0 && !item.allowedRoles.includes(userRole || '')) {
+                return false;
+            }
 
-            homeGuest: [
-                { href: isAuth ? '/search-professionals' : '/register-user', label: 'Buscar Terapeutas' },
-                { href: '/how-does-it-work', label: 'Como Funciona' },
-                { href: '/login', label: 'Iniciar Sesión' },
-                { href: '/register-user', label: 'Comenzar', isPrimary: true },
-            ] as NavButton[],
+            return true;
+        });
+    }, [token, userRole, getDashboardUrl, handleLogout]);
 
-            howDoesItWork: [
-                { href: '/search-professionals', label: 'Buscar Terapeutas' },
-                { href: '/login', label: 'Iniciar Sesión' },
-                { href: '/register-user', label: 'Comenzar', isPrimary: true },
-            ] as NavButton[],
+    const navItems = getVisibleNavItems();
 
-            precios: [
-                { href: '/search-professionals', label: 'Buscar Terapeutas' },
-                { href: '/how-does-it-work', label: 'Como Funciona' },
-                { href: '/login', label: 'Iniciar Sesión' },
-                { href: '/register-user', label: 'Comenzar', isPrimary: true },
-            ] as NavButton[],
+    const displayAlert = useCallback((message: string) => {
+        setAlertMessage(message);
+        setTimeout(() => setAlertMessage(''), 3000);
+    }, []);
 
-            soporte: [
-                { href: '/search-professionals', label: 'Buscar Terapeutas' },
-                { href: '/how-does-it-work', label: 'Como Funciona' },
-                { href: '/login', label: 'Iniciar Sesión' },
-                { href: '/register-user', label: 'Comenzar', isPrimary: true },
-            ] as NavButton[],
+    const isItemAvailable = useCallback((item: NavItem): { available: boolean; reason?: string } => {
+        return { available: true };
+    }, []);
 
-            panelProfesional: [
-                { href: '/search-professionals', label: 'Buscar Terapeutas' },
-                { href: '/how-does-it-work', label: 'Como Funciona' },
-                { href: '/login', label: 'Iniciar Sesión' },
-                { href: '/register-professional', label: 'Únete como Profesional', isPrimary: true },
-            ] as NavButton[],
+    const handleItemClick = useCallback(
+        (item: NavItem, e: React.MouseEvent) => {
+            const { available, reason } = isItemAvailable(item);
 
-            recursos: [
-                { href: '/search-professionals', label: 'Buscar Terapeutas' },
-                { href: '/panel-profesional', label: 'Panel Profesional' },
-                { href: '/login', label: 'Iniciar Sesión' },
-                { href: '/register-professional', label: 'Únete como Profesional', isPrimary: true },
-            ] as NavButton[],
+            if (!available && reason) {
+                e.preventDefault();
+                displayAlert(reason);
+                return;
+            }
 
-            about: [
-                { href: '/search-professionals', label: 'Buscar Terapeutas' },
-                { href: '/how-does-it-work', label: 'Como Funciona' },
-                { href: '/login', label: 'Iniciar Sesión' },
-                { href: '/register-user', label: 'Comenzar', isPrimary: true },
-            ] as NavButton[],
-
-            termsOfService: [
-                { href: '/search-professionals', label: 'Buscar Terapeutas' },
-                { href: '/how-does-it-work', label: 'Como Funciona' },
-                { href: '/login', label: 'Iniciar Sesión' },
-                { href: '/register-user', label: 'Comenzar', isPrimary: true },
-            ] as NavButton[],
-
-            privacyPolicy: [
-                { href: '/search-professionals', label: 'Buscar Terapeutas' },
-                { href: '/how-does-it-work', label: 'Como Funciona' },
-                { href: '/login', label: 'Iniciar Sesión' },
-                { href: '/register-user', label: 'Comenzar', isPrimary: true },
-            ] as NavButton[],
-
-            dashboard: [{ href: '/', label: 'Cerrar Sesión', isPrimary: true, onClick: resetUserData }] as NavButton[],
-        };
-    }, [isAuth, rolGuardado, resetUserData]);
-
-    const currentNavButtons = useMemo(() => {
-        if (pathname === '/') {
-            return !token ? navigationConfig.homeGuest : navigationConfig.homeLoggedIn;
-        }
-
-        if (pathname === '/search-professionals') {
-            return navigationConfig.searchProfessionals;
-        }
-
-        if (pathname === '/how-does-it-work') {
-            return navigationConfig.howDoesItWork;
-        }
-
-        if (pathname === '/precios') {
-            return navigationConfig.precios;
-        }
-
-        if (pathname === '/soporte') {
-            return navigationConfig.soporte;
-        }
-
-        if (pathname === '/panel-profesional') {
-            return navigationConfig.panelProfesional;
-        }
-
-        if (pathname === '/recursos') {
-            return navigationConfig.recursos;
-        }
-
-        if (pathname === '/about') {
-            return navigationConfig.about;
-        }
-
-        if (pathname === '/terms-of-service') {
-            return navigationConfig.termsOfService;
-        }
-
-        if (pathname === '/privacy-policy') {
-            return navigationConfig.privacyPolicy;
-        }
-
-        if (
-            pathname === '/dashboard/admin' ||
-            pathname === `/professionalProfile/${id}` ||
-            pathname === '/dashboard/user' ||
-            pathname === '/dashboard/professional'
-        ) {
-            return navigationConfig.dashboard;
-        }
-
-        return [];
-    }, [pathname, token, navigationConfig, id]);
+            if (item.onClick) {
+                e.preventDefault();
+                item.onClick();
+            }
+        },
+        [isItemAvailable, displayAlert]
+    );
 
     const toggleMenu = useCallback(() => {
         setIsMenuOpen((prev) => !prev);
     }, []);
 
-    const NavButton = ({ href, label, isPrimary, onClick }: NavButton) => {
-        const baseClasses = 'relative transition-all duration-200 ease-in-out focus:ring-2 focus:ring-white focus:ring-offset-2 rounded-md';
+    const NavButton = ({ item }: { item: NavItem }) => {
+        const { available } = isItemAvailable(item);
+
+        const baseClasses = 'relative transition-all duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 rounded-md focus:ring-blue-500';
+
         const primaryClasses =
-            'px-4 py-2 text-white bg-black hover:bg-black/85 hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0';
-        const secondaryClasses = 'text-gray-700 hover:text-black';
+            'px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0';
+        const secondaryClasses = 'text-gray-700 hover:text-blue-600 hover:bg-gray-50 px-2 py-1';
 
-        const content = <span className={`${baseClasses} ${isPrimary ? primaryClasses : secondaryClasses}`}>{label}</span>;
+        const content = (
+            <span className={`${baseClasses} ${item.isPrimary ? primaryClasses : secondaryClasses} flex items-center gap-2`} title={item.description}>
+                {item.label}
+            </span>
+        );
 
-        if (onClick) {
+        if (item.onClick) {
             return (
-                <button onClick={onClick} className="block w-full text-left">
+                <button onClick={(e) => handleItemClick(item, e)} className="block w-full text-left">
                     {content}
                 </button>
             );
         }
 
         return (
-            <Link href={href} className="block">
+            <Link href={item.href} className="block" onClick={(e) => handleItemClick(item, e)}>
                 {content}
             </Link>
         );
     };
 
     return (
-        <nav className="sticky top-0 z-50 bg-gray-100 shadow-sm border-b border-gray-300">
-            <div className="flex items-center justify-between w-full h-20 px-6 md:px-36">
-                <Link
-                    href="/"
-                    className="flex items-center gap-2 transition-transform duration-200 hover:scale-105"
-                    aria-label="PsyMatch - Ir al inicio"
-                >
-                    <Image
-                        src="https://res.cloudinary.com/dibnkd72j/image/upload/v1755747168/logoCabeza_mb8k7q.svg"
-                        alt="PsyMatch logo"
-                        width={40}
-                        height={40}
-                    />
-                    <h1 className="text-xl font-bold text-gray-900">PsyMatch</h1>
-                </Link>
+        <>
+            {alertMessage && (
+                <div className="fixed top-4 right-4 z-[60] bg-red-500 text-white px-4 py-2 rounded-md shadow-lg animate-in slide-in-from-right-2">
+                    <span>{alertMessage}</span>
+                </div>
+            )}
 
-                <button
-                    onClick={toggleMenu}
-                    className="md:hidden p-2 rounded-md transition-colors duration-200 hover:bg-gray-300"
-                    aria-expanded={isMenuOpen}
-                    aria-controls="mobile-menu"
-                    aria-label={isMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
-                >
-                    <div className="relative w-6 h-6">
-                        <Menu
-                            className={`absolute inset-0 transition-all duration-300 ${isMenuOpen ? 'opacity-0 rotate-180' : 'opacity-100 rotate-0'}`}
-                            size={24}
+            <nav className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
+                <div className="flex items-center justify-between w-full h-16 px-4 md:px-8 lg:px-12">
+                    <Link
+                        href="/"
+                        className="flex items-center gap-2 transition-transform duration-200 hover:scale-105"
+                        aria-label="PsyMatch - Ir al inicio"
+                    >
+                        <Image
+                            src="https://res.cloudinary.com/dibnkd72j/image/upload/v1755747168/logoCabeza_mb8k7q.svg"
+                            alt="PsyMatch logo"
+                            width={32}
+                            height={32}
+                            className="md:w-10 md:h-10"
                         />
-                        <X
-                            className={`absolute inset-0 transition-all duration-300 ${
-                                isMenuOpen ? 'opacity-100 rotate-0' : 'opacity-0 -rotate-180'
-                            }`}
-                            size={24}
-                        />
+                        <h1 className="text-lg md:text-xl font-bold text-gray-900">PsyMatch</h1>
+                    </Link>
+
+                    <div className="hidden lg:block">
+                        <ul className="flex items-center space-x-1" role="menubar">
+                            {navItems.map((item, index) => (
+                                <li key={`${item.href}-${index}`} role="menuitem">
+                                    <NavButton item={item} />
+                                </li>
+                            ))}
+                        </ul>
                     </div>
-                </button>
+
+                    <button
+                        onClick={toggleMenu}
+                        className="lg:hidden p-2 rounded-md transition-colors duration-200 hover:bg-gray-100"
+                        aria-expanded={isMenuOpen}
+                        aria-controls="mobile-menu"
+                        aria-label={isMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
+                    >
+                        <div className="relative w-6 h-6">
+                            <Menu
+                                className={`absolute inset-0 transition-all duration-300 ${
+                                    isMenuOpen ? 'opacity-0 rotate-180' : 'opacity-100 rotate-0'
+                                }`}
+                                size={24}
+                            />
+                            <X
+                                className={`absolute inset-0 transition-all duration-300 ${
+                                    isMenuOpen ? 'opacity-100 rotate-0' : 'opacity-0 -rotate-180'
+                                }`}
+                                size={24}
+                            />
+                        </div>
+                    </button>
+                </div>
 
                 {isMenuOpen && (
                     <>
-                        {/* Backdrop */}
-                        <div className="fixed inset-0 z-40 bg-black bg-opacity-25 md:hidden" onClick={toggleMenu} aria-hidden="true" />
+                        <div className="fixed inset-0 z-40 bg-black bg-opacity-25 lg:hidden" onClick={toggleMenu} aria-hidden="true" />
 
-                        {/* Mobile menu */}
                         <div
                             id="mobile-menu"
-                            className="absolute left-0 right-0 z-50 duration-300 bg-white border-t border-gray-100 shadow-lg top-full md:hidden animate-in slide-in-from-top-2"
+                            className="absolute left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg top-full lg:hidden animate-in slide-in-from-top-2 duration-300"
                         >
-                            <ul className="flex flex-col p-4 space-y-3" role="menu">
-                                {currentNavButtons.map((button, index) => (
-                                    <li key={index} role="menuitem">
-                                        <NavButton {...button} />
+                            <ul className="flex flex-col p-4 space-y-2 max-h-[70vh] overflow-y-auto" role="menu">
+                                {navItems.map((item, index) => (
+                                    <li key={`mobile-${item.href}-${index}`} role="menuitem">
+                                        <NavButton item={item} />
                                     </li>
                                 ))}
                             </ul>
+
+                            <div className="px-4 pb-4 pt-2 border-t border-gray-100 text-sm text-gray-600">
+                                {token ? (
+                                    <div>
+                                        <p>
+                                            Sesión activa como: <span className="font-medium">{userRole || 'Usuario'}</span>
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <p>No has iniciado sesión</p>
+                                )}
+                            </div>
                         </div>
                     </>
                 )}
-
-                <div className="hidden md:block">
-                    <ul className="flex items-center space-x-6" role="menubar">
-                        {currentNavButtons.map((button, index) => (
-                            <li key={index} role="menuitem">
-                                <NavButton {...button} />
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            </div>
-        </nav>
+            </nav>
+        </>
     );
 };
 

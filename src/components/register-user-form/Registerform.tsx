@@ -15,6 +15,7 @@ import Link from 'next/link';
 import Cookies from 'js-cookie';
 import { envs } from '@/config/envs.config';
 import { useNotifications } from '@/hooks/useNotifications';
+import { triggerAuthStateChange } from '@/utils/auth';
 
 const RegisterSchema = Yup.object().shape({
     fullName: Yup.string().min(2, 'El nombre debe tener al menos 2 caracteres').required('El nombre completo es requerido'),
@@ -62,7 +63,7 @@ export interface RegisterFormValues {
 interface MapboxSuggestion {
     id: string;
     place_name: string;
-    center: [number, number]; // [lng, lat]
+    center: [number, number];
     place_type: string[];
     relevance: number;
     context?: Array<{
@@ -83,7 +84,6 @@ export default function RegisterForm() {
     const [registerError, setRegisterError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    // Estados para autocompletado de direcciones
     const [addressSuggestions, setAddressSuggestions] = useState<MapboxSuggestion[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [selectedCoordinates, setSelectedCoordinates] = useState<{ lat: number; lng: number } | null>(null);
@@ -122,13 +122,9 @@ export default function RegisterForm() {
                 formData.append('emergency_contact', values.emergencyContact);
             }
 
-            // El backend maneja la foto de perfil de dos maneras:
-            // 1. Como archivo (usando FileInterceptor) - cuando se sube un archivo
-            // 2. Como string en el DTO - cuando no se sube archivo
             if (profileImageFile) {
                 formData.append('profile_picture', profileImageFile);
             } else {
-                // Si no hay archivo, enviamos una URL por defecto como string
                 formData.append(
                     'profile_picture',
                     'https://res.cloudinary.com/dibnkd72j/image/upload/v1755495603/default-pacient-profile-picture_kqpobf.webp'
@@ -144,13 +140,11 @@ export default function RegisterForm() {
 
             if (response.ok) {
                 notifications.success('¡Cuenta creada exitosamente! Bienvenido a PsyMatch');
-                
-                // Hacer login automático después del registro exitoso
+
                 await handleAutoLogin(values.email, values.password);
             } else {
                 setRegisterError(data.message || 'Error al crear la cuenta');
             }
-
         } catch (_error) {
             setRegisterError('Error de conexión. Intenta nuevamente.');
         } finally {
@@ -174,7 +168,6 @@ export default function RegisterForm() {
             const data = await response.json();
 
             if (response.ok) {
-                // Guardar token en Cookies
                 if (data.token) {
                     Cookies.set('auth_token', data.token);
                 }
@@ -187,15 +180,14 @@ export default function RegisterForm() {
                     Cookies.set('verified', data.data.verified);
                 }
 
-                // Redirigir al dashboard del usuario (todos los nuevos registros son pacientes)
+                triggerAuthStateChange();
+
                 router.push('/dashboard/user');
             } else {
-                // Si falla el login automático, redirigir a login manual
                 notifications.warning('Cuenta creada exitosamente. Por favor inicia sesión.');
                 router.push('/login');
             }
         } catch (_error) {
-            // Si falla el login automático, redirigir a login manual
             notifications.warning('Cuenta creada exitosamente. Por favor inicia sesión.');
             router.push('/login');
         }

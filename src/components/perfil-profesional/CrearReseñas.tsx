@@ -5,6 +5,8 @@ import type React from 'react';
 import { useState } from 'react';
 import { Star, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useCreateReview } from '@/hooks/useCreateReview';
+import { useCanReview } from '@/hooks/useCanReview';
 
 interface CrearReseñasProps {
     psychologistId: string;
@@ -23,9 +25,16 @@ const CrearReseñas = ({ psychologistId, psychologistName, onReviewCreated }: Cr
         comment: '',
     });
     const [hoveredRating, setHoveredRating] = useState(0);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [errors, setErrors] = useState<Partial<ReviewFormData>>({});
+
+    const { createReview, isSubmitting, submitStatus, error: submitError, resetStatus } = useCreateReview();
+    const {
+        canReview,
+        loading: canReviewLoading,
+        error: canReviewError,
+        hasAlreadyReviewed,
+        hasCompletedAppointments,
+    } = useCanReview(psychologistId);
 
     const validateForm = (): boolean => {
         const newErrors: Partial<ReviewFormData> = {};
@@ -69,38 +78,41 @@ const CrearReseñas = ({ psychologistId, psychologistName, onReviewCreated }: Cr
             return;
         }
 
-        setIsSubmitting(true);
-        setSubmitStatus('idle');
-
         try {
-            // Simular llamada a API
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-
-            // Aquí iría la lógica real para guardar la reseña
-            console.log('Creating review:', {
+            await createReview({
                 psychologistId,
                 rating: formData.rating,
                 comment: formData.comment.trim(),
-                review_date: new Date(),
             });
 
-            setSubmitStatus('success');
+            // Limpiar el formulario tras el éxito
             setFormData({ rating: 0, comment: '' });
             onReviewCreated?.();
-
         } catch (error) {
+            // El error se maneja en el hook
             console.error('Error creating review:', error);
-            setSubmitStatus('error');
-        } finally {
-            setIsSubmitting(false);
         }
     };
 
     const resetForm = () => {
         setFormData({ rating: 0, comment: '' });
         setErrors({});
-        setSubmitStatus('idle');
+        resetStatus();
     };
+
+    if (canReviewLoading) {
+        return (
+            <section className="w-full p-6 sm:p-8 mb-10 bg-white border border-gray-200 rounded-xl shadow-sm">
+                <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                        <AlertCircle className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Verificando elegibilidad...</h3>
+                    <p className="text-gray-600">Verificando si puedes escribir una reseña.</p>
+                </div>
+            </section>
+        );
+    }
 
     if (submitStatus === 'success') {
         return (
@@ -111,6 +123,39 @@ const CrearReseñas = ({ psychologistId, psychologistName, onReviewCreated }: Cr
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">¡Reseña enviada!</h3>
                     <p className="text-gray-600 mb-4">Tu reseña ha sido enviada correctamente.</p>
+                </div>
+            </section>
+        );
+    }
+
+    if (!canReview || canReviewError) {
+        // Determinar el mensaje específico según el motivo
+        let title = 'No se puede enviar la reseña';
+        let message = '';
+
+        if (canReviewError) {
+            message = canReviewError;
+        } else if (hasAlreadyReviewed) {
+            title = 'Ya has dejado una reseña';
+            message = 'Ya has enviado una reseña para este psicólogo. Solo puedes dejar una reseña por profesional.';
+        } else if (!hasCompletedAppointments) {
+            message = 'No puedes enviar una reseña porque no has tenido sesiones completadas con este psicólogo aún.';
+        } else {
+            message = 'No puedes enviar una reseña en este momento.';
+        }
+
+        return (
+            <section className="w-full p-6 sm:p-8 mb-10 bg-white border border-gray-200 rounded-xl shadow-sm">
+                <div className="text-center py-8">
+                    <div
+                        className={`w-16 h-16 ${
+                            hasAlreadyReviewed ? 'bg-blue-100' : 'bg-red-100'
+                        } rounded-full flex items-center justify-center mx-auto mb-4`}
+                    >
+                        {hasAlreadyReviewed ? <CheckCircle className="w-8 h-8 text-blue-600" /> : <AlertCircle className="w-8 h-8 text-red-600" />}
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+                    <p className="text-gray-600 mb-4">{message}</p>
                 </div>
             </section>
         );
@@ -233,7 +278,7 @@ const CrearReseñas = ({ psychologistId, psychologistName, onReviewCreated }: Cr
                     <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                         <p className="text-sm text-red-700 flex items-center gap-2">
                             <AlertCircle className="w-4 h-4" />
-                            Hubo un error al enviar tu reseña. Por favor, inténtalo de nuevo.
+                            {submitError || 'Hubo un error al enviar tu reseña. Por favor, inténtalo de nuevo.'}
                         </p>
                     </div>
                 )}
