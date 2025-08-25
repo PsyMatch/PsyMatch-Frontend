@@ -1,18 +1,15 @@
 'use client';
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
-import { useState } from 'react';
-import Cookies from 'js-cookie';
+import { useState, Suspense } from 'react';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import { toast } from 'react-toastify';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-const ChangePassword = () => {
+const ChangePasswordForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams?.get('token');
-
-  const [boton, setBoton] = useState(false);
 
   return (
     <div className="flex flex-col items-center min-h-screen gap-4 pt-16 bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -104,6 +101,14 @@ const ChangePassword = () => {
         )}
       </Formik>
     </div>
+  );
+};
+
+const ChangePassword = () => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ChangePasswordForm />
+    </Suspense>
   );
 };
 

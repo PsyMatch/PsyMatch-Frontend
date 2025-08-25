@@ -232,7 +232,7 @@ export default function PanelProfesionalPage() {
                                         <span key={i} className="text-yellow-400 text-xl">★</span>
                                     ))}
                                 </div>
-                                <p className="text-gray-700 mb-4 italic">"{testimonio.testimonio}"</p>
+                                <p className="text-gray-700 mb-4 italic">&ldquo;{testimonio.testimonio}&rdquo;</p>
                                 <div>
                                     <p className="font-semibold text-gray-900">{testimonio.nombre}</p>
                                     <p className="text-blue-600 text-sm">{testimonio.especialidad}</p>
