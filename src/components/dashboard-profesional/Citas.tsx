@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { appointmentsService, AppointmentResponse, UpdateAppointmentRequest } from '@/services/appointments';
+import { appointmentsService, AppointmentResponse } from '@/services/appointments';
 
 const Citas = () => {
     const [citas, setCitas] = useState<AppointmentResponse[]>([]);
@@ -33,26 +33,71 @@ const Citas = () => {
         loadAppointments();
     }, []);
 
-    // Función para actualizar estado de cita
-    const updateAppointmentStatus = async (id: string, newStatus: 'confirmed' | 'cancelled') => {
+    // Función para confirmar cita
+    const confirmAppointment = async (id: string) => {
         try {
-            const updateData: UpdateAppointmentRequest = { status: newStatus };
-            await appointmentsService.updateAppointment(id, updateData);
+            await appointmentsService.confirmAppointment(id);
 
             // Actualizar la lista local
-            setCitas((prev) => prev.map((cita) => (cita.id === id ? { ...cita, status: newStatus } : cita)));
+            setCitas((prev) => prev.map((cita) => (cita.id === id ? { ...cita, status: 'confirmed' } : cita)));
 
-            const statusText = newStatus === 'confirmed' ? 'confirmada' : 'cancelada';
-            alert(`Cita ${statusText} exitosamente.`);
+            alert('Cita confirmada exitosamente.');
         } catch (error) {
-            console.error('Error updating appointment status:', error);
+            console.error('Error confirming appointment:', error);
 
             const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
             if (errorMessage.includes('Authentication failed')) {
                 alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
                 window.location.href = '/login';
             } else {
-                alert('Ocurrió un error al actualizar la cita. Intenta nuevamente.');
+                alert(errorMessage || 'Ocurrió un error al confirmar la cita. Intenta nuevamente.');
+            }
+        }
+    };
+
+    // Función para completar cita
+    const completeAppointment = async (id: string) => {
+        try {
+            await appointmentsService.completeAppointment(id);
+
+            // Actualizar la lista local
+            setCitas((prev) => prev.map((cita) => (cita.id === id ? { ...cita, status: 'completed' } : cita)));
+
+            alert('Cita completada exitosamente.');
+        } catch (error) {
+            console.error('Error completing appointment:', error);
+
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+            if (errorMessage.includes('Authentication failed')) {
+                alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                window.location.href = '/login';
+            } else {
+                alert(errorMessage || 'Ocurrió un error al completar la cita. Intenta nuevamente.');
+            }
+        }
+    };
+
+    // Función para cancelar cita
+    const cancelAppointment = async (id: string) => {
+        try {
+            const confirmCancel = window.confirm('¿Estás seguro de que deseas cancelar esta cita?');
+            if (!confirmCancel) return;
+
+            await appointmentsService.cancelAppointment(id);
+
+            // Actualizar la lista local
+            setCitas((prev) => prev.map((cita) => (cita.id === id ? { ...cita, status: 'cancelled', isActive: false } : cita)));
+
+            alert('Cita cancelada exitosamente.');
+        } catch (error) {
+            console.error('Error cancelling appointment:', error);
+
+            const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+            if (errorMessage.includes('Authentication failed')) {
+                alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                window.location.href = '/login';
+            } else {
+                alert(errorMessage || 'Ocurrió un error al cancelar la cita. Intenta nuevamente.');
             }
         }
     };
@@ -187,30 +232,49 @@ const Citas = () => {
                                             {formatStatus(cita.status)}
                                         </span>
 
+                                        {/* Botones según el estado de la cita */}
                                         {cita.status === 'pending' && (
                                             <div className="flex gap-2">
                                                 <button
                                                     className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm font-medium"
-                                                    onClick={() => updateAppointmentStatus(cita.id, 'confirmed')}
+                                                    onClick={() => confirmAppointment(cita.id)}
+                                                    title="Confirmar cita"
                                                 >
                                                     Confirmar
                                                 </button>
                                                 <button
                                                     className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm font-medium"
-                                                    onClick={() => updateAppointmentStatus(cita.id, 'cancelled')}
+                                                    onClick={() => cancelAppointment(cita.id)}
+                                                    title="Cancelar cita"
                                                 >
-                                                    Rechazar
+                                                    Cancelar
                                                 </button>
                                             </div>
                                         )}
 
                                         {cita.status === 'confirmed' && (
-                                            <button
-                                                className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm font-medium"
-                                                onClick={() => updateAppointmentStatus(cita.id, 'cancelled')}
-                                            >
-                                                Cancelar
-                                            </button>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm font-medium"
+                                                    onClick={() => completeAppointment(cita.id)}
+                                                    title="Marcar cita como completada"
+                                                >
+                                                    Completar
+                                                </button>
+                                                <button
+                                                    className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm font-medium"
+                                                    onClick={() => cancelAppointment(cita.id)}
+                                                    title="Cancelar cita"
+                                                >
+                                                    Cancelar
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {(cita.status === 'cancelled' || cita.status === 'completed') && (
+                                            <div className="text-xs text-gray-500 mt-1">
+                                                {cita.status === 'cancelled' ? 'Cita cancelada' : 'Cita completada'}
+                                            </div>
                                         )}
                                     </div>
                                 </div>
