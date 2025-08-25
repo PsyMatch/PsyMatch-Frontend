@@ -408,7 +408,7 @@ const PerfilUser = () => {
                                                 <input
                                                     name={field}
                                                     type={type || 'text'}
-                                                    className="w-full px-3 py-2 border rounded"
+                                                    className="w-full px-3 py-2 border rounded placeholder:text-gray-400"
                                                     value={user[field] || ''}
                                                     disabled={!editable || loading}
                                                     onChange={handleAddressChange}

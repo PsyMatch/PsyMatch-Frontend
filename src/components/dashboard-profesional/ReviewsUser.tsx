@@ -209,7 +209,7 @@ function ReviewsUser() {
                         <textarea
                           value={editForm.comment}
                           onChange={(e) => setEditForm((prev) => ({ ...prev, comment: e.target.value }))}
-                          className="w-full p-3 border border-input rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                          className="w-full p-3 border border-input rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-gray-400"
                           rows={4}
                           placeholder="Escribe tu comentario sobre la sesión..."
                         />
