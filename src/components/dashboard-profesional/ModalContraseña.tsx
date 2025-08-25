@@ -113,7 +113,7 @@ const ModalContraseña = () => {
                                 name="newPassword"
                                 type="password"
                                 id="newPassword"
-                                className="h-8 mb-4"
+                                className="h-8 mb-4 placeholder:text-gray-400"
                                 placeholder="nueva contraseña"
                             />
                             <ErrorMessage name="newPassword" component="div" className="text-xs text-red-500" />
@@ -125,7 +125,7 @@ const ModalContraseña = () => {
                                 name="confirmPassword"
                                 type="password"
                                 id="confirmPassword"
-                                className="h-8 mb-4"
+                                className="h-8 mb-4 placeholder:text-gray-400"
                                 placeholder="confirmar nueva contraseña"
                             />
                             <ErrorMessage name="confirmPassword" component="div" className="text-xs text-red-500" />

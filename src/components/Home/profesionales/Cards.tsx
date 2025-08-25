@@ -172,7 +172,7 @@ const Cards = () => {
               )}
             </div>
 
-            <footer className="flex gap-3">
+            <footer className="flex gap-3 flex-col md:flex-row">
               <Link
                 href={`/profile/${profesional.id}`}
                 className="flex-1 text-center px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
