@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import { adminService } from '@/services/admin';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface Paciente {
     id: string;
@@ -22,6 +23,7 @@ interface UserPacientesProps {
 }
 
 const UserPacientes = ({ data }: UserPacientesProps) => {
+    const notifications = useNotifications();
     const [loading, setLoading] = useState<string | null>(null);
     const [confirmAction, setConfirmAction] = useState<{
         userId: string;
@@ -46,15 +48,15 @@ const UserPacientes = ({ data }: UserPacientesProps) => {
             }
 
             if (result?.success) {
-                alert(`Usuario ${action === 'promote' ? 'promovido' : action === 'ban' ? 'baneado' : 'desbaneado'} exitosamente`);
+                notifications.success(`Usuario ${action === 'promote' ? 'promovido' : action === 'ban' ? 'baneado' : 'desbaneado'} exitosamente`);
                 setConfirmAction(null);
                 window.location.reload();
             } else {
-                alert(result?.message || `Error al ${action === 'promote' ? 'promover' : action === 'ban' ? 'banear' : 'desbanear'} usuario`);
+                notifications.error(result?.message || `Error al ${action === 'promote' ? 'promover' : action === 'ban' ? 'banear' : 'desbanear'} usuario`);
             }
         } catch (error) {
             console.error(`Error ${action}ing user:`, error);
-            alert(`Error de conexión al ${action === 'promote' ? 'promover' : action === 'ban' ? 'banear' : 'desbanear'} usuario`);
+            notifications.error(`Error de conexión al ${action === 'promote' ? 'promover' : action === 'ban' ? 'banear' : 'desbanear'} usuario`);
         } finally {
             setLoading(null);
         }

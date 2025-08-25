@@ -14,6 +14,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
 import { envs } from '@/config/envs.config';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const RegisterSchema = Yup.object().shape({
     fullName: Yup.string().min(2, 'El nombre debe tener al menos 2 caracteres').required('El nombre completo es requerido'),
@@ -76,6 +77,7 @@ interface MapboxSuggestion {
 
 export default function RegisterForm() {
     const router = useRouter();
+    const notifications = useNotifications();
     const [profileImage, setProfileImage] = useState<string | null>(null);
     const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
     const [registerError, setRegisterError] = useState('');
@@ -141,16 +143,61 @@ export default function RegisterForm() {
             const data = await response.json();
 
             if (response.ok) {
-                router.push('/login');
-                alert('Registro exitoso. Por favor inicia sesión.');
+                notifications.success('¡Cuenta creada exitosamente! Bienvenido a PsyMatch');
+                
+                // Hacer login automático después del registro exitoso
+                await handleAutoLogin(values.email, values.password);
             } else {
                 setRegisterError(data.message || 'Error al crear la cuenta');
             }
 
-        } catch (error) {
+        } catch (_error) {
             setRegisterError('Error de conexión. Intenta nuevamente.');
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleAutoLogin = async (email: string, password: string) => {
+        try {
+            const response = await fetch(`${envs.next_public_api_url}/auth/signin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Guardar token en Cookies
+                if (data.token) {
+                    Cookies.set('auth_token', data.token);
+                }
+
+                if (data.data.role) {
+                    Cookies.set('role', data.data.role);
+                }
+
+                if (data.data.verified) {
+                    Cookies.set('verified', data.data.verified);
+                }
+
+                // Redirigir al dashboard del usuario (todos los nuevos registros son pacientes)
+                router.push('/dashboard/user');
+            } else {
+                // Si falla el login automático, redirigir a login manual
+                notifications.warning('Cuenta creada exitosamente. Por favor inicia sesión.');
+                router.push('/login');
+            }
+        } catch (_error) {
+            // Si falla el login automático, redirigir a login manual
+            notifications.warning('Cuenta creada exitosamente. Por favor inicia sesión.');
+            router.push('/login');
         }
     };
 
@@ -197,7 +244,7 @@ export default function RegisterForm() {
             } else {
                 setAddressSuggestions([]);
             }
-        } catch (error) {
+        } catch (_error) {
             setAddressSuggestions([]);
         } finally {
             setIsLoadingSuggestions(false);

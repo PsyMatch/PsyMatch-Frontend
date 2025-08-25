@@ -9,6 +9,7 @@ import Image from 'next/image';
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
+import { useNotifications } from '@/hooks/useNotifications';
 
 // Horarios disponibles (constante fuera del componente)
 const AVAILABLE_TIMES = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM'];
@@ -16,6 +17,7 @@ const AVAILABLE_TIMES = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 
 const SessionPage = () => {
     const params = useParams();
     const router = useRouter();
+    const notifications = useNotifications();
     const psychologistId = (params?.slug as string) || '';
 
     const [psychologist, setPsychologist] = useState<PsychologistResponse | null>(null);
@@ -190,7 +192,7 @@ const SessionPage = () => {
             const interval = setInterval(() => {
                 if (!isTimeAvailable(selectedTime)) {
                     setSelectedTime('');
-                    alert('El horario seleccionado ya no está disponible. Por favor, selecciona otro horario.');
+                    notifications.warning('El horario seleccionado ya no está disponible. Por favor, selecciona otro horario.');
                 }
             }, 60000); // Verificar cada minuto
 
@@ -208,7 +210,7 @@ const SessionPage = () => {
         if (isTimeAvailable(time)) {
             setSelectedTime(time);
         } else {
-            alert('Este horario ya no está disponible. Por favor, selecciona otro horario.');
+            notifications.warning('Este horario ya no está disponible. Por favor, selecciona otro horario.');
         }
     };
 
@@ -230,7 +232,7 @@ const SessionPage = () => {
     const handleSubmitAppointment = async () => {
         // Validación de campos requeridos
         if (!selectedDate || !selectedTime || !sessionType || !therapyApproach || !modality || !psychologist || !userId) {
-            alert('Por favor, completa todos los campos requeridos');
+            notifications.warning('Por favor, completa todos los campos requeridos');
             return;
         }
 
@@ -239,7 +241,7 @@ const SessionPage = () => {
         // Verificar autenticación justo antes de enviar
         const authToken = getAuthToken();
         if (!authToken) {
-            alert('No estás autenticado. Por favor, inicia sesión para continuar.');
+            notifications.error('No estás autenticado. Por favor, inicia sesión para continuar.');
             setLoading(false);
             redirectToLogin();
             return;
@@ -280,14 +282,14 @@ const SessionPage = () => {
             // Manejo específico de errores
             const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
             if (errorMessage.includes('Authentication failed')) {
-                alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                notifications.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
                 redirectToLogin();
             } else if (errorMessage.includes('Bad request') || errorMessage.includes('Ese horario ya está reservado')) {
-                alert('Ya existe una cita en ese horario. Por favor, elige otro horario.');
+                notifications.error('Ya existe una cita en ese horario. Por favor, elige otro horario.');
             } else if (errorMessage.includes('not found')) {
-                alert('Error: No se pudo encontrar el psicólogo o tu perfil de paciente. Verifica tu información.');
+                notifications.error('Error: No se pudo encontrar el psicólogo o tu perfil de paciente. Verifica tu información.');
             } else {
-                alert('Error al crear la cita. Por favor, intenta nuevamente.');
+                notifications.error('Error al crear la cita. Por favor, intenta nuevamente.');
             }
         } finally {
             setLoading(false);
@@ -304,7 +306,7 @@ const SessionPage = () => {
     // Manejar error del pago
     const handlePaymentError = (error: string) => {
         console.error('Error en el pago:', error);
-        alert(`Error al procesar el pago: ${error}`);
+        notifications.error(`Error al procesar el pago: ${error}`);
         setShowPayment(false);
         // Opcionalmente, podrías cancelar la cita aquí si es necesario
     };
@@ -321,14 +323,14 @@ const SessionPage = () => {
                 status: 'confirmed'
             });
 
-            alert('¡Turno confirmado exitosamente! Te hemos enviado un email con los detalles.');
+            notifications.success('¡Turno confirmado exitosamente! Te hemos enviado un email con los detalles.');
             
             // Redirigir al dashboard del usuario
             router.push('/dashboard/user');
             
         } catch (error) {
             console.error('Error confirmando la cita:', error);
-            alert('Hubo un error al confirmar el turno. Contacta con soporte.');
+            notifications.error('Hubo un error al confirmar el turno. Contacta con soporte.');
         } finally {
             setLoading(false);
         }
