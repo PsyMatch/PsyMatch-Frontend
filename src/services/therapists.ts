@@ -2,9 +2,8 @@ import { envs } from '@/config/envs.config';
 import Cookies from 'js-cookie';
 
 export interface ITherapist {
+    name: string;
     id: string;
-    first_name: string;
-    last_name: string;
     email: string;
     phone?: string;
     profile_picture?: string;
@@ -27,9 +26,8 @@ interface IAppointmentWithRelations {
     status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
     notes?: string;
     psychologist: {
+        name: string;
         id: string;
-        first_name: string;
-        last_name: string;
         email: string;
         phone?: string;
         profile_picture?: string;
@@ -41,15 +39,14 @@ interface IAppointmentWithRelations {
     };
     patient: {
         id: string;
-        first_name: string;
-        last_name: string;
+        name: string;
         email: string;
     };
 }
 
 class TherapistsService {
     private async getAuthHeaders() {
-        const token = Cookies.get('authToken') || Cookies.get('auth-token');
+        const token = Cookies.get('auth_token');
 
         if (!token) {
             throw new Error('No authentication token found');
@@ -59,14 +56,12 @@ class TherapistsService {
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
             if (payload.exp * 1000 < Date.now()) {
-                Cookies.remove('authToken');
-                Cookies.remove('auth-token');
+                Cookies.remove('auth_token');
                 throw new Error('Token expired');
             }
         } catch (tokenError) {
             console.error('Error verificando token:', tokenError);
-            Cookies.remove('authToken');
-            Cookies.remove('auth-token');
+            Cookies.remove('auth_token');
             throw new Error('Invalid token');
         }
 
@@ -88,8 +83,7 @@ class TherapistsService {
             if (!response.ok) {
                 if (response.status === 401) {
                     // Token expirado o inválido
-                    Cookies.remove('authToken');
-                    Cookies.remove('auth-token');
+                    Cookies.remove('auth_token');
                     window.location.href = '/login';
                     return [];
                 }
@@ -118,10 +112,56 @@ class TherapistsService {
                     // Encontrar la próxima sesión programada
                     const nextSession = upcomingSessions.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0];
 
+                    // Función para crear fecha válida combinando date y start_time
+                    const createValidDateTime = (session: IAppointmentWithRelations | undefined): string | undefined => {
+                        if (!session || !session.date) return undefined;
+                        
+                        try {
+                            // Si el campo date ya incluye la hora (formato ISO completo)
+                            if (session.date.includes('T') && session.date.includes(':')) {
+                                // Remover la 'Z' para evitar conversión de zona horaria
+                                // y tratar la fecha como hora local
+                                return session.date.replace('Z', '');
+                            }
+                            
+                            // Si no hay start_time, usar solo la fecha
+                            if (!session.start_time) {
+                                return session.date;
+                            }
+                            
+                            // Extraer solo la parte de fecha (sin tiempo) si viene en formato ISO
+                            const datePart = session.date.includes('T') ? session.date.split('T')[0] : session.date;
+                            
+                            // Asegurar que start_time tenga el formato correcto (HH:MM:SS)
+                            let timeStr = session.start_time;
+                            if (timeStr && !timeStr.includes(':')) {
+                                return session.date;
+                            }
+                            
+                            // Si start_time solo tiene HH:MM, agregar :00
+                            if (timeStr && timeStr.split(':').length === 2) {
+                                timeStr += ':00';
+                            }
+                            
+                            // Crear la fecha combinada
+                            const combinedDateTime = `${datePart}T${timeStr}`;
+                            
+                            // Validar que la fecha es parseable
+                            const testDate = new Date(combinedDateTime);
+                            if (isNaN(testDate.getTime())) {
+                                return session.date;
+                            }
+                            
+                            return combinedDateTime;
+                        } catch (error) {
+                            console.error('Error creando fecha válida:', error);
+                            return session.date;
+                        }
+                    };
+
                     therapistsMap.set(psychologist.id, {
+                        name: psychologist.name,
                         id: psychologist.id,
-                        first_name: psychologist.first_name,
-                        last_name: psychologist.last_name,
                         email: psychologist.email,
                         phone: psychologist.phone,
                         profile_picture: psychologist.profile_picture,
@@ -131,8 +171,8 @@ class TherapistsService {
                         location: psychologist.location,
                         hourly_rate: psychologist.hourly_rate,
                         total_sessions: completedSessions.length,
-                        last_session: lastCompletedSession ? `${lastCompletedSession.date} ${lastCompletedSession.start_time}` : undefined,
-                        upcoming_session: nextSession ? `${nextSession.date} ${nextSession.start_time}` : undefined,
+                        last_session: createValidDateTime(lastCompletedSession),
+                        upcoming_session: createValidDateTime(nextSession),
                         status: therapistAppointments.some((a) => a.status === 'confirmed' || a.status === 'pending') ? 'active' : 'inactive',
                     });
                 }

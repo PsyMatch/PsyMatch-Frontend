@@ -63,7 +63,7 @@ export const appointmentsService = {
     // Crear una nueva cita
     createAppointment: async (appointmentData: CreateAppointmentRequest): Promise<AppointmentResponse> => {
         try {
-            const token = Cookies.get('authToken') || Cookies.get('auth-token');
+            const token = Cookies.get('auth_token');
 
             if (!token) {
                 throw new Error('No authentication token found');
@@ -73,14 +73,12 @@ export const appointmentsService = {
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 if (payload.exp && payload.exp * 1000 < Date.now()) {
-                    Cookies.remove('authToken');
-                    Cookies.remove('auth-token');
+                    Cookies.remove('auth_token');
                     throw new Error('Token expired');
                 }
             } catch (tokenError) {
                 console.error('Error verificando token:', tokenError);
-                Cookies.remove('authToken');
-                Cookies.remove('auth-token');
+                Cookies.remove('auth_token');
                 throw new Error('Invalid token');
             }
 
@@ -95,8 +93,7 @@ export const appointmentsService = {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    Cookies.remove('authToken');
-                    Cookies.remove('auth-token');
+                    Cookies.remove('auth_token');
                     throw new Error('Authentication failed - please login again');
                 } else if (response.status === 400) {
                     const errorData = await response.json();
@@ -117,7 +114,7 @@ export const appointmentsService = {
     // Obtener todas las citas del usuario autenticado
     getMyAppointments: async (): Promise<AppointmentResponse[]> => {
         try {
-            const token = Cookies.get('authToken') || Cookies.get('auth-token');
+            const token = Cookies.get('auth_token');
 
             if (!token) {
                 throw new Error('No authentication token found');
@@ -127,14 +124,12 @@ export const appointmentsService = {
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 if (payload.exp && payload.exp * 1000 < Date.now()) {
-                    Cookies.remove('authToken');
-                    Cookies.remove('auth-token');
+                    Cookies.remove('auth_token');
                     throw new Error('Token expired');
                 }
             } catch (tokenError) {
                 console.error('Error verificando token:', tokenError);
-                Cookies.remove('authToken');
-                Cookies.remove('auth-token');
+                Cookies.remove('auth_token');
                 throw new Error('Invalid token');
             }
 
@@ -147,12 +142,15 @@ export const appointmentsService = {
             });
 
             if (!response.ok) {
+                console.error('Response status:', response.status);
+                console.error('Response statusText:', response.statusText);
+                console.error('Response headers:', response.headers);
+
                 if (response.status === 401) {
-                    Cookies.remove('authToken');
-                    Cookies.remove('auth-token');
+                    Cookies.remove('auth_token');
                     throw new Error('Authentication failed - please login again');
                 }
-                throw new Error(`Error fetching appointments: ${response.statusText}`);
+                throw new Error(`Error fetching appointments: Status ${response.status} - ${response.statusText}`);
             }
 
             const result = await response.json();
@@ -172,7 +170,7 @@ export const appointmentsService = {
         slotMinutes = 30
     ): Promise<{ date: string; hour: string; available: boolean }[]> => {
         try {
-            const token = Cookies.get('authToken') || Cookies.get('auth-token');
+            const token = Cookies.get('auth_token');
 
             if (!token) {
                 throw new Error('No authentication token found');
@@ -191,8 +189,7 @@ export const appointmentsService = {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    Cookies.remove('authToken');
-                    Cookies.remove('auth-token');
+                    Cookies.remove('auth_token');
                     throw new Error('Authentication failed - please login again');
                 }
                 throw new Error(`Error fetching available slots: ${response.statusText}`);
@@ -209,7 +206,7 @@ export const appointmentsService = {
     // Cancelar una cita
     cancelAppointment: async (appointmentId: string): Promise<{ message: string; appointment_id: string }> => {
         try {
-            const token = Cookies.get('authToken') || Cookies.get('auth-token');
+            const token = Cookies.get('auth_token');
 
             if (!token) {
                 throw new Error('No authentication token found');
@@ -225,8 +222,7 @@ export const appointmentsService = {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    Cookies.remove('authToken');
-                    Cookies.remove('auth-token');
+                    Cookies.remove('auth_token');
                     throw new Error('Authentication failed - please login again');
                 }
                 throw new Error(`Error cancelling appointment: ${response.statusText}`);
@@ -243,7 +239,7 @@ export const appointmentsService = {
     // Actualizar una cita
     updateAppointment: async (appointmentId: string, updateData: UpdateAppointmentRequest): Promise<AppointmentResponse> => {
         try {
-            const token = Cookies.get('authToken') || Cookies.get('auth-token');
+            const token = Cookies.get('auth_token');
 
             if (!token) {
                 throw new Error('No authentication token found');
@@ -260,8 +256,7 @@ export const appointmentsService = {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    Cookies.remove('authToken');
-                    Cookies.remove('auth-token');
+                    Cookies.remove('auth_token');
                     throw new Error('Authentication failed - please login again');
                 }
                 throw new Error(`Error updating appointment: ${response.statusText}`);
@@ -272,6 +267,23 @@ export const appointmentsService = {
         } catch (error) {
             console.error('Error updating appointment:', error);
             throw error;
+        }
+    },
+
+    // Verificar si el usuario tiene citas completadas con un psicólogo específico
+    hasCompletedAppointmentsWith: async (psychologistId: string): Promise<boolean> => {
+        try {
+            const appointments = await appointmentsService.getMyAppointments();
+
+            // Buscar si hay alguna cita completada con este psicólogo
+            const hasCompleted = appointments.some(
+                (appointment) => appointment.psychologist?.id === psychologistId && appointment.status === 'completed'
+            );
+
+            return hasCompleted;
+        } catch (error) {
+            console.error('Error checking completed appointments:', error);
+            return false;
         }
     },
 };

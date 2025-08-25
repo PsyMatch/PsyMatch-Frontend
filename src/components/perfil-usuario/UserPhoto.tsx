@@ -1,17 +1,57 @@
-import React from 'react';
-import Image from 'next/image';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar';
+import { User } from 'lucide-react';
 
 interface UserPhotoProps {
     photoUrl?: string;
     name: string;
+    size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-const UserPhoto: React.FC<UserPhotoProps> = ({ photoUrl, name }) => (
-    <div className="flex justify-center mt-10">
-        <div className="w-20 h-20 md:w-32 md:h-32 bg-gray-400 rounded-full overflow-hidden flex items-center justify-center relative">
-            {photoUrl ? <Image src={photoUrl} alt={name} fill className="object-cover" /> : <span className="text-white text-2xl">{name[0]}</span>}
+const UserPhoto = ({ photoUrl, name, size = 'lg' }: UserPhotoProps) => {
+    const getInitials = (fullName: string) => {
+        return fullName
+            .split(' ')
+            .map((word) => word.charAt(0))
+            .join('')
+            .toUpperCase()
+            .slice(0, 2);
+    };
+
+    const sizeClasses = {
+        sm: 'size-8',
+        md: 'size-12',
+        lg: 'size-20',
+        xl: 'size-32',
+    };
+
+    const textSizeClasses = {
+        sm: 'text-xs',
+        md: 'text-sm',
+        lg: 'text-lg',
+        xl: 'text-2xl',
+    };
+
+    return (
+        <div className="relative group">
+            <Avatar
+                className={`${sizeClasses[size]} border-4 border-gray-100 group-hover:border-blue-200 transition-all duration-300 shadow-lg group-hover:shadow-xl`}
+            >
+                <AvatarImage src={photoUrl || '/placeholder.svg'} className="object-cover" />
+                <AvatarFallback className={`bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700 font-semibold ${textSizeClasses[size]}`}>
+                    {photoUrl ? (
+                        getInitials(name)
+                    ) : (
+                        <User
+                            className={`${
+                                size === 'sm' ? 'w-3 h-3' : size === 'md' ? 'w-4 h-4' : size === 'lg' ? 'w-6 h-6' : 'w-8 h-8'
+                            } text-blue-600`}
+                        />
+                    )}
+                </AvatarFallback>
+            </Avatar>
+            <div className="absolute inset-0 rounded-full bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         </div>
-    </div>
-);
+    );
+};
 
 export default UserPhoto;

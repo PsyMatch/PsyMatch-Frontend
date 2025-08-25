@@ -39,21 +39,24 @@ export default function LoginForm() {
 
             console.log('Response status:', response.status);
             console.log('Response ok:', response.ok);
-
+            
             const data = await response.json();
             console.log('Response data:', data);
 
             if (response.ok) {
                 console.log('Login exitoso:', data);
 
-                // Guardar token en localStorage si viene en la respuesta
+                // Guardar token en Cookies si viene en la respuesta
                 if (data.token) {
-                    localStorage.setItem('authToken', data.token);
-                    Cookies.set('authToken', data.token);
+                    Cookies.set('auth_token', data.token);
                 }
 
                 if (data.data.role) {
                     Cookies.set('role', data.data.role);
+                }
+
+                if(data.data.verified) {
+                    Cookies.set('verified', data.data.verified);
                 }
 
                 const traerRole = Cookies.get('role');
@@ -176,7 +179,7 @@ export default function LoginForm() {
 
             <div className="text-xs text-center text-gray-600 sm:text-sm">
                 ¿Eres un profesional de salud mental?{' '}
-                <Link href="/professional/register" className="text-blue-600 hover:underline">
+                <Link href="/register-professional" className="text-blue-600 hover:underline">
                     Únete a Nuestra Red
                 </Link>
             </div>

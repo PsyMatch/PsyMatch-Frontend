@@ -2,12 +2,14 @@
 
 import Calendario from '@/components/session/Calendar';
 import { psychologistsService, PsychologistResponse } from '@/services/psychologists';
-import { appointmentsService, CreateAppointmentRequest } from '@/services/appointments';
+import { appointmentsService, CreateAppointmentRequest, AppointmentResponse } from '@/services/appointments';
+import MercadoPagoPayment from '@/components/payments/MercadoPagoPayment';
 import { Calendar, Clock, MapPin } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
+import { useNotifications } from '@/hooks/useNotifications';
 
 // Horarios disponibles (constante fuera del componente)
 const AVAILABLE_TIMES = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM'];
@@ -15,6 +17,7 @@ const AVAILABLE_TIMES = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 
 const SessionPage = () => {
     const params = useParams();
     const router = useRouter();
+    const notifications = useNotifications();
     const psychologistId = (params?.slug as string) || '';
 
     const [psychologist, setPsychologist] = useState<PsychologistResponse | null>(null);
@@ -27,6 +30,11 @@ const SessionPage = () => {
     const [modality, setModality] = useState('');
     const [userId, setUserId] = useState<string>('');
     const [isClient, setIsClient] = useState(false);
+    
+    // Estados para el flujo de pago
+    const [showPayment, setShowPayment] = useState(false);
+    const [createdAppointment, setCreatedAppointment] = useState<AppointmentResponse | null>(null);
+    const [paymentCompleted, setPaymentCompleted] = useState(false);
 
     // Función para obtener user_id del token en cookies
     const getUserIdFromToken = () => {
@@ -35,7 +43,7 @@ const SessionPage = () => {
 
         try {
             // Obtener token de las cookies
-            const token = Cookies.get('authToken');
+            const token = Cookies.get('auth_token');
 
             if (token) {
                 // Decodificar JWT payload (parte central del token)
@@ -44,7 +52,7 @@ const SessionPage = () => {
                 // Verificar si el token ha expirado
                 if (payload.exp && payload.exp * 1000 < Date.now()) {
                     // Limpiar cookie expirada
-                    Cookies.remove('authToken');
+                    Cookies.remove('auth_token');
                     return '';
                 }
 
@@ -64,7 +72,7 @@ const SessionPage = () => {
         // Solo ejecutar en el cliente
         if (typeof window === 'undefined') return null;
 
-        const token = Cookies.get('authToken');
+        const token = Cookies.get('auth_token');
 
         if (token) {
             try {
@@ -72,14 +80,14 @@ const SessionPage = () => {
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 if (payload.exp && payload.exp * 1000 < Date.now()) {
                     // Limpiar cookie expirada
-                    Cookies.remove('authToken');
+                    Cookies.remove('auth_token');
                     return null;
                 }
                 return token;
             } catch (error) {
                 console.error('Error verificando token:', error);
                 // Si hay error decodificando, limpiar cookie
-                Cookies.remove('authToken');
+                Cookies.remove('auth_token');
                 return null;
             }
         }
@@ -184,7 +192,7 @@ const SessionPage = () => {
             const interval = setInterval(() => {
                 if (!isTimeAvailable(selectedTime)) {
                     setSelectedTime('');
-                    alert('El horario seleccionado ya no está disponible. Por favor, selecciona otro horario.');
+                    notifications.warning('El horario seleccionado ya no está disponible. Por favor, selecciona otro horario.');
                 }
             }, 60000); // Verificar cada minuto
 
@@ -202,7 +210,7 @@ const SessionPage = () => {
         if (isTimeAvailable(time)) {
             setSelectedTime(time);
         } else {
-            alert('Este horario ya no está disponible. Por favor, selecciona otro horario.');
+            notifications.warning('Este horario ya no está disponible. Por favor, selecciona otro horario.');
         }
     };
 
@@ -224,7 +232,7 @@ const SessionPage = () => {
     const handleSubmitAppointment = async () => {
         // Validación de campos requeridos
         if (!selectedDate || !selectedTime || !sessionType || !therapyApproach || !modality || !psychologist || !userId) {
-            alert('Por favor, completa todos los campos requeridos');
+            notifications.warning('Por favor, completa todos los campos requeridos');
             return;
         }
 
@@ -233,7 +241,7 @@ const SessionPage = () => {
         // Verificar autenticación justo antes de enviar
         const authToken = getAuthToken();
         if (!authToken) {
-            alert('No estás autenticado. Por favor, inicia sesión para continuar.');
+            notifications.error('No estás autenticado. Por favor, inicia sesión para continuar.');
             setLoading(false);
             redirectToLogin();
             return;
@@ -253,7 +261,7 @@ const SessionPage = () => {
                 session_type: sessionType,
                 therapy_approach: therapyApproach,
                 insurance: insurance || undefined,
-                price: 50000, // Precio fijo por ahora
+                price: psychologist.consultation_fee || 50000,
                 notes: `Cita agendada desde el frontend. Modalidad: ${modality}, Tipo: ${sessionType}, Enfoque: ${therapyApproach}${
                     insurance ? `, Obra Social: ${insurance}` : ''
                 }`,
@@ -263,44 +271,72 @@ const SessionPage = () => {
             const newAppointment = await appointmentsService.createAppointment(appointmentData);
 
             console.log('Cita creada exitosamente:', newAppointment);
-            alert('¡Cita creada exitosamente!');
-
-            // Llamar al backend para obtener el init_point de Mercado Pago
-            const mpRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments/mercadopago-preference`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`,
-                },
-            });
-            if (!mpRes.ok) {
-                throw new Error('No se pudo iniciar el pago con Mercado Pago');
-            }
-            const mpData = await mpRes.json();
-            if (mpData.init_point) {
-                window.location.href = mpData.init_point;
-            } else {
-                alert('No se pudo obtener el link de pago. Intenta nuevamente.');
-            }
+            
+            // Guardar la cita creada y mostrar el componente de pago
+            setCreatedAppointment(newAppointment);
+            setShowPayment(true);
+            
         } catch (error: unknown) {
-            console.error('Error al crear la cita o iniciar el pago:', error);
+            console.error('Error al crear la cita:', error);
 
             // Manejo específico de errores
             const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
             if (errorMessage.includes('Authentication failed')) {
-                alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                notifications.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
                 redirectToLogin();
             } else if (errorMessage.includes('Bad request') || errorMessage.includes('Ese horario ya está reservado')) {
-                alert('Ya existe una cita en ese horario. Por favor, elige otro horario.');
+                notifications.error('Ya existe una cita en ese horario. Por favor, elige otro horario.');
             } else if (errorMessage.includes('not found')) {
-                alert('Error: No se pudo encontrar el psicólogo o tu perfil de paciente. Verifica tu información.');
+                notifications.error('Error: No se pudo encontrar el psicólogo o tu perfil de paciente. Verifica tu información.');
             } else {
-                alert('Error al crear la cita o iniciar el pago. Por favor, intenta nuevamente.');
+                notifications.error('Error al crear la cita. Por favor, intenta nuevamente.');
             }
         } finally {
             setLoading(false);
         }
-    }; // Función para obtener horarios filtrados
+    };
+
+    // Manejar éxito del pago
+    const handlePaymentSuccess = () => {
+        setPaymentCompleted(true);
+        console.log('Pago completado, redirigiendo a MercadoPago...');
+        // El componente MercadoPagoPayment ya maneja la redirección automáticamente
+    };
+
+    // Manejar error del pago
+    const handlePaymentError = (error: string) => {
+        console.error('Error en el pago:', error);
+        notifications.error(`Error al procesar el pago: ${error}`);
+        setShowPayment(false);
+        // Opcionalmente, podrías cancelar la cita aquí si es necesario
+    };
+
+    // Función para confirmar el turno después del pago exitoso
+    const handleConfirmAppointment = async () => {
+        if (!createdAppointment) return;
+
+        try {
+            setLoading(true);
+            
+            // Actualizar el estado de la cita a CONFIRMED
+            await appointmentsService.updateAppointment(createdAppointment.id, {
+                status: 'confirmed'
+            });
+
+            notifications.success('¡Turno confirmado exitosamente! Te hemos enviado un email con los detalles.');
+            
+            // Redirigir al dashboard del usuario
+            router.push('/dashboard/user');
+            
+        } catch (error) {
+            console.error('Error confirmando la cita:', error);
+            notifications.error('Hubo un error al confirmar el turno. Contacta con soporte.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Función para obtener horarios filtrados
     const getFilteredTimes = useCallback((): string[] => {
         return AVAILABLE_TIMES.filter((time) => isTimeAvailable(time));
     }, [isTimeAvailable]);
@@ -350,6 +386,58 @@ const SessionPage = () => {
                         </button>
                     </div>
                 </div>
+            ) : showPayment && createdAppointment ? (
+                // Mostrar componente de pago
+                <div className="text-center py-8">
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+                        <h2 className="text-2xl font-bold text-green-800 mb-2">¡Cita Creada Exitosamente!</h2>
+                        <p className="text-green-700 mb-4">
+                            Tu cita con {psychologist.name} para el {formatDisplayDate(selectedDate)} a las {selectedTime} ha sido creada.
+                        </p>
+                        <p className="text-green-600 text-sm">
+                            Ahora necesitas completar el pago para confirmar tu turno.
+                        </p>
+                    </div>
+                    
+                    <MercadoPagoPayment
+                        amount={psychologist.consultation_fee || 5000}
+                        appointmentId={createdAppointment.id}
+                        onSuccess={handlePaymentSuccess}
+                        onError={handlePaymentError}
+                        disabled={loading}
+                    />
+                    
+                    {paymentCompleted && (
+                        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-6">
+                            <h3 className="text-lg font-semibold text-blue-800 mb-3">
+                                ¡Pago Procesado!
+                            </h3>
+                            <p className="text-blue-700 mb-4">
+                                Una vez que MercadoPago confirme tu pago, podrás confirmar definitivamente tu turno.
+                            </p>
+                            <button
+                                onClick={handleConfirmAppointment}
+                                disabled={loading}
+                                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+                            >
+                                {loading ? 'Confirmando...' : 'Confirmar Turno'}
+                            </button>
+                        </div>
+                    )}
+                    
+                    <div className="mt-4">
+                        <button
+                            onClick={() => {
+                                setShowPayment(false);
+                                setCreatedAppointment(null);
+                                setPaymentCompleted(false);
+                            }}
+                            className="text-gray-600 hover:text-gray-800 text-sm underline"
+                        >
+                            Volver a la selección de horario
+                        </button>
+                    </div>
+                </div>
             ) : (
                 <>
                     <div className="rounded-lg border bg-white text-gray-900 shadow-sm mb-8">
@@ -385,7 +473,7 @@ const SessionPage = () => {
 
                                     <div className="flex items-center gap-4 mt-2">
                                         <span className="text-sm text-gray-600">⭐ 4.8 (Reviews próximamente)</span>
-                                        <span className="text-sm font-semibold text-green-600">💰 $50.000</span>
+                                        <span className="text-sm font-semibold text-green-600">💰 {psychologist.consultation_fee || 50000}</span>
                                         {psychologist.verified && (
                                             <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
                                                 ✓ Verificado
@@ -698,8 +786,13 @@ const SessionPage = () => {
                                             required
                                         >
                                             <option value="">Selecciona modalidad</option>
-                                            {/* Usar modalidad única del psicólogo o opciones por defecto */}
-                                            {psychologist?.modality ? (
+                                            {/* Si el psicólogo ofrece modalidad híbrida, permitir elegir entre presencial y en línea */}
+                                            {psychologist?.modality === 'Híbrido' ? (
+                                                <>
+                                                    <option value="Presencial">Presencial</option>
+                                                    <option value="En línea">En línea</option>
+                                                </>
+                                            ) : psychologist?.modality ? (
                                                 <option value={psychologist.modality}>{psychologist.modality}</option>
                                             ) : (
                                                 // Opciones por defecto si no hay datos específicos
@@ -722,7 +815,9 @@ const SessionPage = () => {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Precio de la Sesión</label>
-                                            <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600">$50.000</div>
+                                            <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600">
+                                                {psychologist.consultation_fee || 50000}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -761,7 +856,7 @@ const SessionPage = () => {
                                             </p>
                                         )}
                                         <p className="text-sm text-gray-600">
-                                            <strong>Precio:</strong> $50.000
+                                            <strong>Precio:</strong> {psychologist.consultation_fee || 50000}
                                         </p>
                                     </div>
                                     <button

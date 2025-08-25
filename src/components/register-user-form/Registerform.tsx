@@ -2,24 +2,25 @@
 
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
-import { Camera } from 'lucide-react';
-import { useState } from 'react';
+import { Camera, MapPinIcon } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import CustomInput from '@/components/ui/Custom-input';
+import CustomPasswordInput from '@/components/ui/Custom-password-input';
+import CustomPhoneInput from '@/components/ui/Custom-phone-input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
 import { envs } from '@/config/envs.config';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const RegisterSchema = Yup.object().shape({
     fullName: Yup.string().min(2, 'El nombre debe tener al menos 2 caracteres').required('El nombre completo es requerido'),
-    alias: Yup.string().min(2, 'El alias debe tener al menos 2 caracteres').required('El alias es requerido'),
+    alias: Yup.string().min(2, 'El alias debe tener al menos 2 caracteres'),
     birthDate: Yup.date().max(new Date(), 'La fecha de nacimiento no puede ser futura').required('La fecha de nacimiento es requerida'),
-    phone: Yup.string()
-        .matches(/^[0-9+\-\s()]+$/, 'Número de teléfono inválido')
-        .required('El número de teléfono es requerido'),
+    phone: Yup.string().min(10, 'Número de teléfono demasiado corto').required('El número de teléfono es requerido'),
     email: Yup.string().email('Correo electrónico inválido').required('El correo electrónico es requerido'),
     password: Yup.string()
         .min(8, 'La contraseña debe tener al menos 8 caracteres')
@@ -58,12 +59,38 @@ export interface RegisterFormValues {
     emergencyContact: string;
 }
 
+interface MapboxSuggestion {
+    id: string;
+    place_name: string;
+    center: [number, number]; // [lng, lat]
+    place_type: string[];
+    relevance: number;
+    context?: Array<{
+        id: string;
+        text: string;
+        short_code?: string;
+    }>;
+    properties?: {
+        address?: string;
+    };
+}
+
 export default function RegisterForm() {
     const router = useRouter();
+    const notifications = useNotifications();
     const [profileImage, setProfileImage] = useState<string | null>(null);
     const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
     const [registerError, setRegisterError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+
+    // Estados para autocompletado de direcciones
+    const [addressSuggestions, setAddressSuggestions] = useState<MapboxSuggestion[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [selectedCoordinates, setSelectedCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+    const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+    const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+    const addressInputRef = useRef<HTMLInputElement>(null);
+    const suggestionsRef = useRef<HTMLDivElement>(null);
 
     const handleSubmit = async (values: RegisterFormValues) => {
         setIsLoading(true);
@@ -116,32 +143,61 @@ export default function RegisterForm() {
             const data = await response.json();
 
             if (response.ok) {
-                router.push('/login');
-                alert('Registro exitoso. Por favor inicia sesión.');
+                notifications.success('¡Cuenta creada exitosamente! Bienvenido a PsyMatch');
+                
+                // Hacer login automático después del registro exitoso
+                await handleAutoLogin(values.email, values.password);
             } else {
                 setRegisterError(data.message || 'Error al crear la cuenta');
             }
 
-            if (data.data.role) {
-                Cookies.set('role', data.data.role);
-            }
-
-            const traerRole = Cookies.get('role');
-
-            // Redirigir según el tipo de usuario
-            if (traerRole === 'Psicólogo') {
-                router.push('/dashboard/professional');
-            }
-            if (traerRole === 'Administrador') {
-                router.push('/dashboard/admin');
-            } else {
-                router.push('/dashboard/user');
-            }
-        } catch (error) {
-            console.error('Error en registro:', error);
+        } catch (_error) {
             setRegisterError('Error de conexión. Intenta nuevamente.');
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleAutoLogin = async (email: string, password: string) => {
+        try {
+            const response = await fetch(`${envs.next_public_api_url}/auth/signin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Guardar token en Cookies
+                if (data.token) {
+                    Cookies.set('auth_token', data.token);
+                }
+
+                if (data.data.role) {
+                    Cookies.set('role', data.data.role);
+                }
+
+                if (data.data.verified) {
+                    Cookies.set('verified', data.data.verified);
+                }
+
+                // Redirigir al dashboard del usuario (todos los nuevos registros son pacientes)
+                router.push('/dashboard/user');
+            } else {
+                // Si falla el login automático, redirigir a login manual
+                notifications.warning('Cuenta creada exitosamente. Por favor inicia sesión.');
+                router.push('/login');
+            }
+        } catch (_error) {
+            // Si falla el login automático, redirigir a login manual
+            notifications.warning('Cuenta creada exitosamente. Por favor inicia sesión.');
+            router.push('/login');
         }
     };
 
@@ -156,6 +212,71 @@ export default function RegisterForm() {
             reader.readAsDataURL(file);
         }
     };
+
+    const searchAddresses = async (query: string) => {
+        if (query.length < 3) {
+            setAddressSuggestions([]);
+            setShowSuggestions(false);
+            return;
+        }
+
+        const MAPBOX_TOKEN = envs.next_public_mapbox_token;
+        if (!MAPBOX_TOKEN) {
+            console.error('Mapbox access token no configurado');
+            return;
+        }
+
+        setIsLoadingSuggestions(true);
+        try {
+            const response = await fetch(
+                `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?` +
+                    `access_token=${MAPBOX_TOKEN}&` +
+                    `country=AR&` +
+                    `language=es&` +
+                    `limit=8&` +
+                    `types=address,poi,place&`
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+                setAddressSuggestions(data.features || []);
+                setShowSuggestions(true);
+            } else {
+                setAddressSuggestions([]);
+            }
+        } catch (_error) {
+            setAddressSuggestions([]);
+        } finally {
+            setIsLoadingSuggestions(false);
+        }
+    };
+
+    const selectAddress = async (suggestion: MapboxSuggestion, setFieldValue: (field: string, value: string) => void) => {
+        setFieldValue('address', suggestion.place_name);
+        setShowSuggestions(false);
+        setAddressSuggestions([]);
+
+        setSelectedCoordinates({
+            lat: suggestion.center[1],
+            lng: suggestion.center[0],
+        });
+        setSelectedPlaceId(suggestion.id);
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                suggestionsRef.current &&
+                !suggestionsRef.current.contains(event.target as Node) &&
+                !addressInputRef.current?.contains(event.target as Node)
+            ) {
+                setShowSuggestions(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     return (
         <div className="w-full max-w-sm space-y-4 sm:max-w-md sm:space-y-6">
@@ -181,14 +302,14 @@ export default function RegisterForm() {
                 validationSchema={RegisterSchema}
                 onSubmit={handleSubmit}
             >
-                {({ isSubmitting, errors, touched, handleChange, handleBlur, values }) => (
+                {({ isSubmitting, errors, touched, handleChange, handleBlur, values, setFieldValue }) => (
                     <Form className="space-y-3 sm:space-y-4">
                         {registerError && (
                             <div className="px-3 py-2 text-sm text-red-700 border border-red-200 rounded-md bg-red-50">{registerError}</div>
                         )}
 
                         <div className="md:grid md:grid-cols-2 md:gap-4">
-                            <div className="md:col-span-1">
+                            <div className="mt-2 md:col-span-1">
                                 <CustomInput
                                     label="Nombre Completo *"
                                     id="fullName"
@@ -200,7 +321,7 @@ export default function RegisterForm() {
                                 />
                             </div>
 
-                            <div className="md:col-span-1">
+                            <div className="mt-2 md:col-span-1">
                                 <CustomInput
                                     label="Alias"
                                     id="alias"
@@ -212,7 +333,7 @@ export default function RegisterForm() {
                                 />
                             </div>
 
-                            <div className="md:col-span-1">
+                            <div className="mt-2 md:col-span-1">
                                 <CustomInput
                                     label="Fecha de Nacimiento *"
                                     id="birthDate"
@@ -225,7 +346,7 @@ export default function RegisterForm() {
                                 />
                             </div>
 
-                            <div className="md:col-span-1">
+                            <div className="mt-2 md:col-span-1">
                                 <CustomInput
                                     label="Correo electrónico *"
                                     id="email"
@@ -238,7 +359,7 @@ export default function RegisterForm() {
                                 />
                             </div>
 
-                            <div className="md:col-span-1">
+                            <div className="mt-2 md:col-span-1">
                                 <CustomInput
                                     label="DNI *"
                                     id="dni"
@@ -251,68 +372,94 @@ export default function RegisterForm() {
                                 />
                             </div>
 
-                            <div className="md:col-span-1">
-                                <CustomInput
+                            <div className="mt-2 md:col-span-1">
+                                <CustomPhoneInput
                                     label="Número de teléfono *"
                                     id="phone"
-                                    type="tel"
                                     name="phone"
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
                                     value={values.phone}
+                                    onChange={(phone) => handleChange({ target: { name: 'phone', value: phone } })}
+                                    onBlur={() => handleBlur({ target: { name: 'phone' } })}
                                     error={errors.phone && touched.phone && errors.phone}
                                 />
                             </div>
+                        </div>
 
-                            <div className="md:col-span-1">
-                                <CustomInput
-                                    label="Dirección *"
-                                    id="address"
-                                    name="address"
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                    value={values.address}
-                                    error={errors.address && touched.address && errors.address}
-                                    placeholder="Calle, número, ciudad"
-                                />
+                        <div className="mt-2 md:col-span-1">
+                            <div className="space-y-2 relative">
+                                <Label htmlFor="address" className="text-sm font-medium flex items-center gap-2">
+                                    Dirección *
+                                </Label>
+                                <div ref={addressInputRef}>
+                                    <input
+                                        id="address"
+                                        name="address"
+                                        type="text"
+                                        placeholder="Av. Corrientes 123, Buenos Aires, Argentina"
+                                        value={values.address}
+                                        onChange={(e) => {
+                                            handleChange(e);
+                                            setSelectedCoordinates(null);
+                                            setSelectedPlaceId(null);
+                                            setTimeout(() => {
+                                                if (e.target.value && !selectedPlaceId) {
+                                                    searchAddresses(e.target.value);
+                                                }
+                                            }, 300);
+                                        }}
+                                        onBlur={handleBlur}
+                                        className={`w-full px-3 py-2 text-sm bg-white border rounded-md shadow-sm focus:outline-none focus:ring-1 ${
+                                            errors.address && touched.address
+                                                ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                                                : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                                        }`}
+                                        autoComplete="off"
+                                    />
+                                </div>
+
+                                {showSuggestions && (
+                                    <div
+                                        ref={suggestionsRef}
+                                        className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto mt-1"
+                                    >
+                                        {isLoadingSuggestions ? (
+                                            <div className="text-sm font-medium flex items-center gap-2">
+                                                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                                Buscando direcciones en Argentina...
+                                            </div>
+                                        ) : addressSuggestions.length > 0 ? (
+                                            addressSuggestions.map((suggestion) => (
+                                                <button
+                                                    key={suggestion.id}
+                                                    type="button"
+                                                    className="w-full text-left p-3 hover:bg-gray-50 text-sm border-b border-gray-200 last:border-b-0 transition-colors"
+                                                    onClick={() => selectAddress(suggestion, setFieldValue)}
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <MapPinIcon className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="text-sm flex items-center gap-2">{suggestion.place_name}</div>
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            ))
+                                        ) : (
+                                            <div className="p-3 text-sm text-gray-600 text-center">
+                                                No se encontraron direcciones en Argentina. Intente con una búsqueda más específica.
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {errors.address && touched.address && <p className="text-sm text-red-600">{errors.address}</p>}
                             </div>
+                        </div>
 
-                            <div className="space-y-1">
-                                <Label htmlFor="socialWork">Obra Social</Label>
-                                <select
-                                    id="socialWork"
-                                    name="socialWork"
-                                    value={values.socialWork}
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                    className="w-full px-2 py-3 text-sm bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                >
-                                    <option value="">Selecciona tu obra social (opcional)</option>
-                                    <option value="OSDE">OSDE</option>
-                                    <option value="Swiss Medical">Swiss Medical</option>
-                                    <option value="IOMA">IOMA</option>
-                                    <option value="Unión Personal">Union Personal</option>
-                                    <option value="PAMI">PAMI</option>
-                                    <option value="OSDEPYM">OSDEPYM</option>
-                                    <option value="Luis Pasteur">Luis Pasteur</option>
-                                    <option value="Jerárquicos Salud">Jerarquicos Salud</option>
-                                    <option value="Sancor Salud">Sancor Salud</option>
-                                    <option value="OSECAC">Osecac</option>
-                                    <option value="OSMECON Salud">OSMECON Salud</option>
-                                    <option value="Apross">Apross</option>
-                                    <option value="OSPRERA">OSPRERA</option>
-                                    <option value="OSPAT">OSPAT</option>
-                                    <option value="ASE Nacional">ASE nacional</option>
-                                    <option value="OSPIP">OSPIP</option>
-                                </select>
-                                {errors.socialWork && touched.socialWork && <p className="mt-1 text-sm text-red-600">{errors.socialWork}</p>}
-                            </div>
-
-                            <div className="md:col-span-1">
-                                <CustomInput
+                        <div className="md:grid md:grid-cols-2 md:gap-4">
+                            <div className="mt-2 md:col-span-1">
+                                <CustomPasswordInput
                                     label="Contraseña"
                                     id="password"
-                                    type="password"
                                     name="password"
                                     onChange={handleChange}
                                     onBlur={handleBlur}
@@ -321,11 +468,10 @@ export default function RegisterForm() {
                                 />
                             </div>
 
-                            <div className="md:col-span-1">
-                                <CustomInput
+                            <div className="mt-2 md:col-span-1">
+                                <CustomPasswordInput
                                     label="Confirmar Contraseña"
                                     id="confirmPassword"
-                                    type="password"
                                     name="confirmPassword"
                                     onChange={handleChange}
                                     onBlur={handleBlur}
@@ -334,18 +480,52 @@ export default function RegisterForm() {
                                 />
                             </div>
 
-                            <div className="md:col-span-1">
-                                <CustomInput
+                            <div className="mt-2 md:col-span-1">
+                                <CustomPhoneInput
                                     label="Contacto de Emergencia"
                                     id="emergencyContact"
-                                    type="tel"
                                     name="emergencyContact"
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
                                     value={values.emergencyContact}
+                                    onChange={(phone) => handleChange({ target: { name: 'emergencyContact', value: phone } })}
+                                    onBlur={() => handleBlur({ target: { name: 'emergencyContact' } })}
                                     error={errors.emergencyContact && touched.emergencyContact && errors.emergencyContact}
                                 />
                                 <p className="mt-1 text-xs text-grey-500">¨* Este número no puede coincidir con el de teléfono principal.</p>
+                            </div>
+
+                            <div className="mt-2 md:col-span-1">
+                                <div className="space-y-2">
+                                    <Label htmlFor="socialWork" className="text-sm font-medium text-gray-700">
+                                        Obra Social
+                                    </Label>
+                                    <select
+                                        id="socialWork"
+                                        name="socialWork"
+                                        value={values.socialWork}
+                                        onChange={handleChange}
+                                        onBlur={handleBlur}
+                                        className="w-full px-2 py-3 text-sm bg-white border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    >
+                                        <option value="">Selecciona tu obra social (opcional)</option>
+                                        <option value="OSDE">OSDE</option>
+                                        <option value="Swiss Medical">Swiss Medical</option>
+                                        <option value="IOMA">IOMA</option>
+                                        <option value="Unión Personal">Union Personal</option>
+                                        <option value="PAMI">PAMI</option>
+                                        <option value="OSDEPYM">OSDEPYM</option>
+                                        <option value="Luis Pasteur">Luis Pasteur</option>
+                                        <option value="Jerárquicos Salud">Jerarquicos Salud</option>
+                                        <option value="Sancor Salud">Sancor Salud</option>
+                                        <option value="OSECAC">Osecac</option>
+                                        <option value="OSMECON Salud">OSMECON Salud</option>
+                                        <option value="Apross">Apross</option>
+                                        <option value="OSPRERA">OSPRERA</option>
+                                        <option value="OSPAT">OSPAT</option>
+                                        <option value="ASE Nacional">ASE nacional</option>
+                                        <option value="OSPIP">OSPIP</option>
+                                    </select>
+                                    {errors.socialWork && touched.socialWork && <p className="mt-1 text-sm text-red-600">{errors.socialWork}</p>}
+                                </div>
                             </div>
                         </div>
 
@@ -387,7 +567,7 @@ export default function RegisterForm() {
 
             <div className="text-xs text-center text-gray-600 sm:text-sm">
                 ¿Eres un profesional de salud mental?{' '}
-                <Link href="/professional/register" className="text-blue-600 hover:underline">
+                <Link href="/register-professional" className="text-blue-600 hover:underline">
                     Únete a Nuestra Red
                 </Link>
             </div>

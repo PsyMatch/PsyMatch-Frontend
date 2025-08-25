@@ -1,6 +1,7 @@
-import { envs } from "@/config/envs.config";
+import { envs } from '@/config/envs.config';
 
 export interface IProfessional {
+    id: string;
     name: string;
     birthdate: string;
     phone: string;
@@ -46,7 +47,7 @@ export const getProfessionalById = async (id: string, token?: string): Promise<I
 
         const data = await res.json();
         if (!data) {
-            console.warn('Invalid product data format', data);
+            console.warn('Invalid user data format', data);
             return null;
         }
 
@@ -56,7 +57,7 @@ export const getProfessionalById = async (id: string, token?: string): Promise<I
         }
         return data.data;
     } catch (error) {
-        console.warn('Error fetching product', error);
+        console.warn('Error fetching user data', error);
         return null;
     }
 };
