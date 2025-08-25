@@ -16,6 +16,8 @@ export interface User {
   alias?: string;
   created_at: string;
   updated_at: string;
+  provider?: string;
+  provider_id?: string;
 }
 
 export interface UpdateUserData {
@@ -107,6 +109,11 @@ export const usersApi = {
   checkMissingData: (user: User): boolean => {
     if (!user) return false;
     
+    // Solo mostrar el modal si el usuario se registró con Google
+    if (user.provider !== 'google') {
+      return false;
+    }
+    
     const requiredFields = ['alias', 'phone', 'birthdate', 'address', 'emergency_contact', 'health_insurance'];
     
     const missingFields = requiredFields.filter(field => {
@@ -117,8 +124,9 @@ export const usersApi = {
     
     // Debug: log para verificar qué campos faltan
     if (missingFields.length > 0) {
-      console.log('Campos faltantes:', missingFields);
+      console.log('Usuario registrado con Google - Campos faltantes:', missingFields);
       console.log('Datos del usuario:', {
+        provider: user.provider,
         alias: user.alias,
         phone: user.phone,
         birthdate: user.birthdate,

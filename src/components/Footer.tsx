@@ -1,44 +1,45 @@
 import { Brain } from 'lucide-react';
+import Link from 'next/link';
 
 const botonesPacientes = [
-    <a key={1} href="">
+    <Link key={1} href="/search-professionals" className="hover:text-blue-400 transition-colors">
         Buscar Terapeutas
-    </a>,
-    <a key={2} href="">
+    </Link>,
+    <Link key={2} href="/how-does-it-work" className="hover:text-blue-400 transition-colors">
         Cómo Funciona
-    </a>,
-    <a key={3} href="">
+    </Link>,
+    <Link key={3} href="/precios" className="hover:text-blue-400 transition-colors">
         Precios
-    </a>,
-    <a key={4} href="">
+    </Link>,
+    <Link key={4} href="/soporte" className="hover:text-blue-400 transition-colors">
         Soporte
-    </a>,
+    </Link>,
 ];
 
 const botonesProfesionales = [
-    <a key={1} href="">
+    <Link key={1} href="/register-professional" className="hover:text-blue-400 transition-colors">
         Únete a Nuestra Red
-    </a>,
-    <a key={2} href="">
+    </Link>,
+    <Link key={2} href="/panel-profesional" className="hover:text-blue-400 transition-colors">
         Panel Profesional
-    </a>,
-    <a key={3} href="">
+    </Link>,
+    <Link key={3} href="/recursos" className="hover:text-blue-400 transition-colors">
         Recursos
-    </a>,
+    </Link>,
 ];
 const botonesEmpresa = [
-    <a key={1} href="">
+    <Link key={1} href="/about" className="hover:text-blue-400 transition-colors">
         Acerca de Nosotros
-    </a>,
-    <a key={2} href="">
+    </Link>,
+    <Link key={2} href="/privacy-policy" className="hover:text-blue-400 transition-colors">
         Política de Privacidad
-    </a>,
-    <a key={3} href="">
+    </Link>,
+    <Link key={3} href="/terms-of-service" className="hover:text-blue-400 transition-colors">
         Términos de Servicio
-    </a>,
-    <a key={4} href="">
+    </Link>,
+    <Link key={4} href="/soporte" className="hover:text-blue-400 transition-colors">
         Contacto
-    </a>,
+    </Link>,
 ];
 
 const Footer = () => {

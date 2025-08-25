@@ -20,25 +20,25 @@ const paraTerapeutas = [
 
 const Cards_Beneficios = () => {
     return (
-        <div className="grid w-full grid-cols-2 gap-20 px-40 mt-10 mb-20 justify-items-center">
-            <div className="flex flex-col items-start gap-2 p-8 text-center bg-white border-2 border-gray-300 rounded-lg h-fit w-[90%]">
-                <div className="ml-6 text-[24px] font-bold">Para Pacientes</div>
-                <ul className="flex flex-col justify-between mt-2 h-44">
+        <div className="grid w-full grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-20 px-4 sm:px-6 lg:px-40 mt-6 lg:mt-10 mb-12 lg:mb-20 justify-items-center max-w-7xl mx-auto">
+            <div className="flex flex-col items-start gap-2 p-6 lg:p-8 text-left bg-white border-2 border-gray-300 rounded-lg h-fit w-full max-w-lg">
+                <div className="text-lg sm:text-xl lg:text-2xl font-bold mb-2">Para Pacientes</div>
+                <ul className="flex flex-col gap-2 lg:gap-3 w-full">
                     {paraPacientes.map((info, index) => (
-                        <div key={index} className="flex flex-row items-center gap-2">
-                            <CheckCircle className="w-4 h-4 text-violet-950" />
-                            <li className="text-sm text-gray-700">{info}</li>
+                        <div key={index} className="flex flex-row items-start gap-2">
+                            <CheckCircle className="w-4 h-4 text-violet-950 flex-shrink-0 mt-0.5" />
+                            <li className="text-xs sm:text-sm lg:text-base text-gray-700">{info}</li>
                         </div>
                     ))}
                 </ul>
             </div>
-            <div className="flex flex-col items-start gap-2 p-8 text-center bg-white border-2 border-gray-300 rounded-lg h-fit w-[90%]">
-                <div className="ml-6 text-[24px] font-bold">Para Terapeutas</div>
-                <ul className="flex flex-col justify-between mt-2 h-44">
+            <div className="flex flex-col items-start gap-2 p-6 lg:p-8 text-left bg-white border-2 border-gray-300 rounded-lg h-fit w-full max-w-lg">
+                <div className="text-lg sm:text-xl lg:text-2xl font-bold mb-2">Para Terapeutas</div>
+                <ul className="flex flex-col gap-2 lg:gap-3 w-full">
                     {paraTerapeutas.map((info, index) => (
-                        <div key={index} className="flex flex-row items-center gap-2">
-                            <CheckCircle className="w-4 h-4 text-violet-950" />
-                            <li className="text-sm text-gray-700">{info}</li>
+                        <div key={index} className="flex flex-row items-start gap-2">
+                            <CheckCircle className="w-4 h-4 text-violet-950 flex-shrink-0 mt-0.5" />
+                            <li className="text-xs sm:text-sm lg:text-base text-gray-700">{info}</li>
                         </div>
                     ))}
                 </ul>

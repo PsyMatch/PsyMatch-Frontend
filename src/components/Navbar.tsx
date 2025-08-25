@@ -82,18 +82,73 @@ const Navbar = () => {
         return {
             homeLoggedIn: [
                 { href: '/search-professionals', label: 'Buscar Terapeutas' },
-                { href: '/como-funciona', label: 'Como Funciona' },
+                { href: '/how-does-it-work', label: 'Como Funciona' },
                 { href: getDashboardUrl(), label: 'Perfil', isPrimary: true },
             ] as NavButton[],
 
             searchProfessionals: [
-                { href: '/como-funciona', label: 'Como funciona' },
+                { href: '/how-does-it-work', label: 'Como funciona' },
                 { href: '/dashboard/user', label: 'Perfil', isPrimary: true },
             ] as NavButton[],
 
             homeGuest: [
                 { href: isAuth ? '/search-professionals' : '/register-user', label: 'Buscar Terapeutas' },
-                { href: '/como-funciona', label: 'Como Funciona' },
+                { href: '/how-does-it-work', label: 'Como Funciona' },
+                { href: '/login', label: 'Iniciar Sesión' },
+                { href: '/register-user', label: 'Comenzar', isPrimary: true },
+            ] as NavButton[],
+
+            howDoesItWork: [
+                { href: '/search-professionals', label: 'Buscar Terapeutas' },
+                { href: '/login', label: 'Iniciar Sesión' },
+                { href: '/register-user', label: 'Comenzar', isPrimary: true },
+            ] as NavButton[],
+
+            precios: [
+                { href: '/search-professionals', label: 'Buscar Terapeutas' },
+                { href: '/how-does-it-work', label: 'Como Funciona' },
+                { href: '/login', label: 'Iniciar Sesión' },
+                { href: '/register-user', label: 'Comenzar', isPrimary: true },
+            ] as NavButton[],
+
+            soporte: [
+                { href: '/search-professionals', label: 'Buscar Terapeutas' },
+                { href: '/how-does-it-work', label: 'Como Funciona' },
+                { href: '/login', label: 'Iniciar Sesión' },
+                { href: '/register-user', label: 'Comenzar', isPrimary: true },
+            ] as NavButton[],
+
+            panelProfesional: [
+                { href: '/search-professionals', label: 'Buscar Terapeutas' },
+                { href: '/how-does-it-work', label: 'Como Funciona' },
+                { href: '/login', label: 'Iniciar Sesión' },
+                { href: '/register-professional', label: 'Únete como Profesional', isPrimary: true },
+            ] as NavButton[],
+
+            recursos: [
+                { href: '/search-professionals', label: 'Buscar Terapeutas' },
+                { href: '/panel-profesional', label: 'Panel Profesional' },
+                { href: '/login', label: 'Iniciar Sesión' },
+                { href: '/register-professional', label: 'Únete como Profesional', isPrimary: true },
+            ] as NavButton[],
+
+            about: [
+                { href: '/search-professionals', label: 'Buscar Terapeutas' },
+                { href: '/how-does-it-work', label: 'Como Funciona' },
+                { href: '/login', label: 'Iniciar Sesión' },
+                { href: '/register-user', label: 'Comenzar', isPrimary: true },
+            ] as NavButton[],
+
+            termsOfService: [
+                { href: '/search-professionals', label: 'Buscar Terapeutas' },
+                { href: '/how-does-it-work', label: 'Como Funciona' },
+                { href: '/login', label: 'Iniciar Sesión' },
+                { href: '/register-user', label: 'Comenzar', isPrimary: true },
+            ] as NavButton[],
+
+            privacyPolicy: [
+                { href: '/search-professionals', label: 'Buscar Terapeutas' },
+                { href: '/how-does-it-work', label: 'Como Funciona' },
                 { href: '/login', label: 'Iniciar Sesión' },
                 { href: '/register-user', label: 'Comenzar', isPrimary: true },
             ] as NavButton[],
@@ -109,6 +164,38 @@ const Navbar = () => {
 
         if (pathname === '/search-professionals') {
             return navigationConfig.searchProfessionals;
+        }
+
+        if (pathname === '/how-does-it-work') {
+            return navigationConfig.howDoesItWork;
+        }
+
+        if (pathname === '/precios') {
+            return navigationConfig.precios;
+        }
+
+        if (pathname === '/soporte') {
+            return navigationConfig.soporte;
+        }
+
+        if (pathname === '/panel-profesional') {
+            return navigationConfig.panelProfesional;
+        }
+
+        if (pathname === '/recursos') {
+            return navigationConfig.recursos;
+        }
+
+        if (pathname === '/about') {
+            return navigationConfig.about;
+        }
+
+        if (pathname === '/terms-of-service') {
+            return navigationConfig.termsOfService;
+        }
+
+        if (pathname === '/privacy-policy') {
+            return navigationConfig.privacyPolicy;
         }
 
         if (
@@ -151,7 +238,7 @@ const Navbar = () => {
     };
 
     return (
-        <nav className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
+        <nav className="sticky top-0 z-50 bg-gray-100 shadow-sm border-b border-gray-300">
             <div className="flex items-center justify-between w-full h-20 px-6 md:px-36">
                 <Link
                     href="/"
@@ -169,7 +256,7 @@ const Navbar = () => {
 
                 <button
                     onClick={toggleMenu}
-                    className="md:hidden p-2 rounded-md transition-colors duration-200 hover:bg-gray-100"
+                    className="md:hidden p-2 rounded-md transition-colors duration-200 hover:bg-gray-300"
                     aria-expanded={isMenuOpen}
                     aria-controls="mobile-menu"
                     aria-label={isMenuOpen ? 'Cerrar menú' : 'Abrir menú'}

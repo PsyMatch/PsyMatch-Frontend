@@ -18,6 +18,8 @@ const DashboardUser = () => {
             console.log('Dashboard - Verificando datos faltantes:', {
                 hasMissingData,
                 dataCompleted,
+                provider: user.provider,
+                isGoogleUser: user.provider === 'google',
                 user: {
                     alias: user.alias,
                     phone: user.phone,
