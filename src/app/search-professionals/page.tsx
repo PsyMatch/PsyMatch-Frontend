@@ -4,6 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { Search, ChevronDown, Funnel, Star, MapPin, Users, Video, Calendar } from 'lucide-react';
 import { psychologistsService, PsychologistResponse } from '@/services/psychologists';
+import { mapsService } from '@/services/maps';
+import { usersApi } from '@/services/users';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import {
@@ -21,9 +23,15 @@ const Filter = () => {
     const router = useRouter();
 
     const [psychologists, setPsychologists] = useState<PsychologistResponse[]>([]);
+    const [psychologistsWithDistance, setPsychologistsWithDistance] = useState<PsychologistResponse[]>([]);
+    const [isLoadingDistances, setIsLoadingDistances] = useState(false);
+    const [distanceError, setDistanceError] = useState<string>('');
+    const [isDistanceInputPending, setIsDistanceInputPending] = useState(false);
 
     const [precioMin, setPrecioMin] = useState('');
     const [precioMax, setPrecioMax] = useState('');
+    const [distanciaMax, setDistanciaMax] = useState('');
+    const [distanciaMaxInput, setDistanciaMaxInput] = useState(''); // Valor interno del input
     const [modalidadSeleccionada, setModalidadSeleccionada] = useState('');
     const [idiomaSeleccionado, setIdiomaSeleccionado] = useState('');
     const [obraSocialSeleccionada, setObraSocialSeleccionada] = useState('');
@@ -32,17 +40,39 @@ const Filter = () => {
     const [enfoquesTerapiaSeleccionados, setEnfoquesTerapiaSeleccionados] = useState<string[]>([]);
     const [especialidadesSeleccionadas, setEspecialidadesSeleccionadas] = useState<string[]>([]);
 
-    const getAuthToken = () => {
+    const getAuthToken = useCallback(() => {
         if (typeof window === 'undefined') return null;
 
         const authToken = Cookies.get('auth_token');
 
         return authToken;
-    };
+    }, []);
 
     const redirectToLogin = useCallback(() => {
         router.push('/login');
     }, [router]);
+
+    // Función para obtener la dirección del usuario
+    const getUserAddress = useCallback(async (): Promise<string> => {
+        try {
+            const authToken = getAuthToken();
+            if (!authToken) {
+                throw new Error('No authentication token found');
+            }
+
+            const userResponse = await usersApi.getMe(authToken);
+            const address = userResponse.data.address;
+
+            if (!address) {
+                throw new Error('Usuario no tiene dirección configurada');
+            }
+
+            return address;
+        } catch (error) {
+            console.error('Error getting user address:', error);
+            throw error;
+        }
+    }, [getAuthToken]);
 
     const calcularPrecio = useCallback((psicologo: PsychologistResponse): number => {
         const precioDB = psicologo.consultation_fee;
@@ -53,6 +83,130 @@ const Filter = () => {
 
         return 50000;
     }, []);
+
+    // Función para cargar distancias de psicólogos para filtrado
+    const loadPsychologistsWithDistances = useCallback(async () => {
+        if (!distanciaMax || parseFloat(distanciaMax) === 0) {
+            setPsychologistsWithDistance(psychologists);
+            setDistanceError('');
+            return;
+        }
+
+        try {
+            setIsLoadingDistances(true);
+            setDistanceError('');
+
+            // Obtener la dirección del usuario (valida que esté configurada)
+            await getUserAddress();
+
+            const maxDistanceKm = parseFloat(distanciaMax);
+            const nearbyResponse = await mapsService.getNearbyPsychologists(maxDistanceKm);
+
+            // Crear un mapa de distancias por email de psicólogo (convertir metros a kilómetros)
+            const distanceMap = new Map<string, number>();
+            nearbyResponse.psychologists.forEach((psycho) => {
+                // Convertir distancia de metros a kilómetros
+                const distanceKm = psycho.distance / 1000;
+                distanceMap.set(psycho.email, distanceKm);
+            });
+
+            // Filtrar solo los psicólogos que están en el response del backend (dentro del rango)
+            const psychologistsInRange = psychologists.filter((psycho) => distanceMap.has(psycho.email));
+
+            // Agregar distancias a los psicólogos filtrados
+            const psychologistsWithDist = psychologistsInRange.map((psycho) => ({
+                ...psycho,
+                distance: distanceMap.get(psycho.email)!,
+            }));
+
+            setPsychologistsWithDistance(psychologistsWithDist);
+        } catch (error) {
+            console.error('Error loading distances:', error);
+
+            // Si hay error al cargar distancias, mostrar mensaje informativo
+            if (error instanceof Error) {
+                if (error.message.includes('Usuario no tiene dirección configurada')) {
+                    setDistanceError('Para usar el filtro de distancia, necesitas configurar tu dirección en tu perfil.');
+                } else if (error.message.includes('Authentication failed')) {
+                    redirectToLogin();
+                    return;
+                } else {
+                    setDistanceError('Error al calcular distancias. Intenta nuevamente.');
+                }
+            }
+
+            setPsychologistsWithDistance(psychologists);
+        } finally {
+            setIsLoadingDistances(false);
+        }
+    }, [psychologists, distanciaMax, getUserAddress, redirectToLogin]);
+
+    // Función para cargar TODAS las distancias para ordenamiento (sin filtrar por rango)
+    const loadAllDistancesForSorting = useCallback(async () => {
+        try {
+            setIsLoadingDistances(true);
+            setDistanceError('');
+
+            // Obtener la dirección del usuario (valida que esté configurada)
+            await getUserAddress();
+
+            // Usar un rango muy grande para obtener todas las distancias (1000 km)
+            const nearbyResponse = await mapsService.getNearbyPsychologists(1000);
+
+            // Crear un mapa de distancias por email de psicólogo (convertir metros a kilómetros)
+            const distanceMap = new Map<string, number>();
+            nearbyResponse.psychologists.forEach((psycho) => {
+                const distanceKm = psycho.distance / 1000;
+                distanceMap.set(psycho.email, distanceKm);
+            });
+
+            // Agregar distancias a TODOS los psicólogos (no filtrar por rango)
+            const psychologistsWithDist = psychologists.map((psycho) => ({
+                ...psycho,
+                distance: distanceMap.get(psycho.email) || undefined,
+            }));
+
+            setPsychologistsWithDistance(psychologistsWithDist);
+        } catch (error) {
+            console.error('Error loading distances for sorting:', error);
+
+            if (error instanceof Error) {
+                if (error.message.includes('Usuario no tiene dirección configurada')) {
+                    setDistanceError('Para ordenar por distancia, necesitas configurar tu dirección en tu perfil.');
+                } else if (error.message.includes('Authentication failed')) {
+                    redirectToLogin();
+                    return;
+                } else {
+                    setDistanceError('Error al calcular distancias. Intenta nuevamente.');
+                }
+            }
+
+            setPsychologistsWithDistance(psychologists);
+        } finally {
+            setIsLoadingDistances(false);
+        }
+    }, [psychologists, getUserAddress, redirectToLogin]);
+
+    // Cargar distancias cuando cambie el filtro de distancia (con debounce)
+    useEffect(() => {
+        if (distanciaMaxInput !== distanciaMax) {
+            setIsDistanceInputPending(true);
+        }
+
+        const timeoutId = setTimeout(() => {
+            setDistanciaMax(distanciaMaxInput);
+            setIsDistanceInputPending(false);
+        }, 800); // Esperar 800ms después de que el usuario deje de escribir
+
+        return () => clearTimeout(timeoutId);
+    }, [distanciaMaxInput, distanciaMax]);
+
+    // Cargar distancias cuando cambie el filtro de distancia
+    useEffect(() => {
+        if (psychologists.length > 0) {
+            loadPsychologistsWithDistances();
+        }
+    }, [loadPsychologistsWithDistances, psychologists.length]);
 
     useEffect(() => {
         const loadPsychologists = async () => {
@@ -86,7 +240,7 @@ const Filter = () => {
         };
 
         loadPsychologists();
-    }, [router, redirectToLogin]);
+    }, [router, redirectToLogin, getAuthToken]);
 
     const [busqueda, setBusqueda] = useState('');
 
@@ -120,6 +274,9 @@ const Filter = () => {
     const limpiarFiltros = () => {
         setPrecioMin('');
         setPrecioMax('');
+        setDistanciaMax('');
+        setDistanciaMaxInput(''); // Limpiar también el input interno
+        setIsDistanceInputPending(false); // Limpiar estado pendiente
         setModalidadSeleccionada('');
         setIdiomaSeleccionado('');
         setObraSocialSeleccionada('');
@@ -127,7 +284,22 @@ const Filter = () => {
         setDisponibilidadSeleccionada([]);
         setEnfoquesTerapiaSeleccionados([]);
         setEspecialidadesSeleccionadas([]);
+        // Limpiar también las distancias calculadas y errores
+        setPsychologistsWithDistance([]);
+        setDistanceError('');
     };
+
+    // Cargar distancias para ordenamiento cuando se seleccione ordenar por distancia
+    useEffect(() => {
+        if (
+            psychologists.length > 0 &&
+            (ordenamientoSeleccionado === 'distance_asc' || ordenamientoSeleccionado === 'distance_desc') &&
+            (!distanciaMax || parseFloat(distanciaMax) === 0)
+        ) {
+            // Solo si no hay filtro de distancia activo, cargar todas las distancias para ordenamiento
+            loadAllDistancesForSorting();
+        }
+    }, [ordenamientoSeleccionado, psychologists.length, distanciaMax, loadAllDistancesForSorting]);
 
     const toggleCheckbox = (value: string, selectedItems: string[], setSelectedItems: (items: string[]) => void) => {
         if (selectedItems.includes(value)) {
@@ -138,7 +310,17 @@ const Filter = () => {
     };
 
     const filtrarPsicologos = () => {
-        let resultado = psychologists.filter((psicologo) => {
+        // Usar la lista con distancias si:
+        // 1. Hay filtro de distancia activo, O
+        // 2. Se seleccionó ordenamiento por distancia y se cargaron las distancias
+        const useDistanceList =
+            (distanciaMax && parseFloat(distanciaMax) > 0) ||
+            ordenamientoSeleccionado === 'distance_asc' ||
+            ordenamientoSeleccionado === 'distance_desc';
+
+        const listaPsicologos = useDistanceList && psychologistsWithDistance.length > 0 ? psychologistsWithDistance : psychologists;
+
+        let resultado = listaPsicologos.filter((psicologo) => {
             const precioPsicologo = calcularPrecio(psicologo);
             const precioMinNum = precioMin ? parseFloat(precioMin) : 0;
             const precioMaxNum = precioMax ? parseFloat(precioMax) : Infinity;
@@ -146,6 +328,9 @@ const Filter = () => {
             if (precioPsicologo < precioMinNum || precioPsicologo > precioMaxNum) {
                 return false;
             }
+
+            // Si estamos usando filtro de distancia, los psicólogos ya están filtrados por distancia
+            // No necesitamos verificar distancia adicional aquí
 
             if (modalidadSeleccionada) {
                 const modalidadPsicologo = psicologo.modality;
@@ -269,6 +454,20 @@ const Filter = () => {
             case 'availability':
                 resultado = resultado.sort((a, b) => a.name.localeCompare(b.name));
                 break;
+            case 'distance_asc':
+                resultado = resultado.sort((a, b) => {
+                    const distanciaA = a.distance || Infinity;
+                    const distanciaB = b.distance || Infinity;
+                    return distanciaA - distanciaB;
+                });
+                break;
+            case 'distance_desc':
+                resultado = resultado.sort((a, b) => {
+                    const distanciaA = a.distance || 0;
+                    const distanciaB = b.distance || 0;
+                    return distanciaB - distanciaA;
+                });
+                break;
             default:
                 break;
         }
@@ -335,7 +534,7 @@ const Filter = () => {
                     </div>
                 </div>
             </div>
-            <div className="flex flex-col lg:flex-row gap-8">
+            <div className="flex flex-col lg:flex-row gap-8 overflow-y-auto">
                 <div className="lg:w-1/4">
                     <div className="rounded-lg border border-gray-300 bg-white text-gray-900 shadow-sm sticky top-4">
                         <div className="flex flex-col space-y-1.5 p-6">
@@ -388,6 +587,43 @@ const Filter = () => {
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            <div>
+                                <label className="text-sm font-medium mb-2 block">
+                                    Rango de Distancia (km)
+                                    {isLoadingDistances && <span className="ml-2 text-xs text-blue-600">Calculando...</span>}
+                                    {isDistanceInputPending && !isLoadingDistances && (
+                                        <span className="ml-2 text-xs text-orange-600">Aplicando filtro...</span>
+                                    )}
+                                </label>
+                                <div className="flex gap-2">
+                                    <div className="flex-1">
+                                        <label className="text-xs text-gray-500 mb-1 block">Máximo</label>
+                                        <div className="relative">
+                                            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">km</span>
+                                            <input
+                                                type="number"
+                                                placeholder="0"
+                                                value={distanciaMaxInput}
+                                                onChange={(e) => setDistanciaMaxInput(e.target.value)}
+                                                className="flex h-9 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                                disabled={isLoadingDistances}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                {distanciaMaxInput && parseFloat(distanciaMaxInput) > 0 && !distanceError && (
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Solo se mostrarán psicólogos dentro de {distanciaMaxInput} km de tu ubicación
+                                    </p>
+                                )}
+                                {distanceError && (
+                                    <p className="text-xs text-red-600 mt-1 flex items-center">
+                                        <span className="mr-1">⚠️</span>
+                                        {distanceError}
+                                    </p>
+                                )}
                             </div>
 
                             <div data-dropdown>
@@ -708,7 +944,21 @@ const Filter = () => {
                 </div>
                 <div className="lg:w-3/4">
                     <div className="mb-6 flex items-center justify-between">
-                        <p className="text-gray-600">{psicologosFiltrados.length} terapeutas encontrados</p>
+                        <div>
+                            <p className="text-gray-600">
+                                {psicologosFiltrados.length} terapeutas encontrados
+                                {distanciaMax && parseFloat(distanciaMax) > 0 && psychologistsWithDistance.length > 0 && (
+                                    <span className="text-blue-600 ml-1">dentro de {distanciaMax} km</span>
+                                )}
+                                {(ordenamientoSeleccionado === 'distance_asc' || ordenamientoSeleccionado === 'distance_desc') &&
+                                    (!distanciaMax || parseFloat(distanciaMax) === 0) &&
+                                    psychologistsWithDistance.length > 0 && <span className="text-green-600 ml-1">ordenados por distancia</span>}
+                            </p>
+                            {((distanciaMax && parseFloat(distanciaMax) > 0) ||
+                                ordenamientoSeleccionado === 'distance_asc' ||
+                                ordenamientoSeleccionado === 'distance_desc') &&
+                                isLoadingDistances && <p className="text-sm text-blue-500 mt-1">Calculando distancias...</p>}
+                        </div>
                     </div>
                     <div className="space-y-4">
                         {psicologosFiltrados.length > 0 ? (
@@ -739,6 +989,11 @@ const Filter = () => {
                                                         <div className="flex items-center text-sm text-gray-600 mb-2">
                                                             <MapPin className="h-4 w-4 mr-1" strokeWidth={2} />
                                                             {psicologo.office_address || 'Consulta disponible'}
+                                                            {psicologo.distance && (
+                                                                <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
+                                                                    {psicologo.distance.toFixed(1)} km
+                                                                </span>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>

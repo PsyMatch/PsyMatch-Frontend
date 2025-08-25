@@ -23,6 +23,7 @@ export interface PsychologistResponse {
     created_at: string;
     updated_at?: string;
     consultation_fee?: number;
+    distance?: number; // Distancia en kilómetros desde el usuario
 }
 
 export interface PsychologistsApiResponse {
