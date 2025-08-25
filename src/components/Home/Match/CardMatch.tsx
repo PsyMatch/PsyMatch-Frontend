@@ -1,74 +1,82 @@
 'use client';
 
-import { commonSymptoms } from '@/constants/symptoms';
+import { especialidades } from '@/constants/filters';
 import { Search } from 'lucide-react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useAuthState } from '@/hooks/useAuthState';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const CardMatch = () => {
-    const [symptoms, setSymptoms] = useState('');
-    const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
+    const router = useRouter();
+    const { isAuthenticated } = useAuthState();
+    const notifications = useNotifications();
+    const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
 
-    const handleSymptomClick = (symptom: string) => {
-        if (selectedSymptoms.includes(symptom)) {
+    const handleSpecialtyClick = (specialty: string) => {
+        if (selectedSpecialties.includes(specialty)) {
             // Si ya está seleccionado, lo removemos
-            const newSelectedSymptoms = selectedSymptoms.filter((symp) => symp !== symptom);
-            setSelectedSymptoms(newSelectedSymptoms);
-            
-            // Actualizamos el texto removiendo este síntoma
-            const symptomsText = newSelectedSymptoms.join(', ');
-            setSymptoms(symptomsText);
+            const newSelectedSpecialties = selectedSpecialties.filter((spec) => spec !== specialty);
+            setSelectedSpecialties(newSelectedSpecialties);
         } else {
             // Si no está seleccionado, lo agregamos
-            const newSelectedSymptoms = [...selectedSymptoms, symptom];
-            setSelectedSymptoms(newSelectedSymptoms);
-            
-            // Actualizamos el texto agregando este síntoma
-            const symptomsText = newSelectedSymptoms.join(', ');
-            setSymptoms(symptomsText);
+            const newSelectedSpecialties = [...selectedSpecialties, specialty];
+            setSelectedSpecialties(newSelectedSpecialties);
         }
+    };
+
+    const handleFindPsychologist = () => {
+        if (!isAuthenticated) {
+            notifications.warning('Debes iniciar sesión para buscar psicólogos');
+            return;
+        }
+
+        // Crear URL con filtros de especialidades aplicados
+        const params = new URLSearchParams();
+        if (selectedSpecialties.length > 0) {
+            selectedSpecialties.forEach(specialty => {
+                params.append('especialidades', specialty);
+            });
+        }
+        
+        const url = `/search-professionals${params.toString() ? `?${params.toString()}` : ''}`;
+        router.push(url);
     };
 
     return (
         <div className="max-w-4xl mx-auto mb-12 text-black bg-white border border-gray-200 rounded-lg shadow-sm">
             <div className="flex flex-col space-y-1.5 p-6">
                 <div className="flex items-center justify-center text-2xl font-semibold leading-none tracking-tight">
-                    Cuéntanos qué estás experimentando
+                    Selecciona las especialidades que necesitas
                 </div>
-                <div className="text-sm text-gray-500">Describe tus síntomas o selecciona de las preocupaciones comunes a continuación</div>
+                <div className="text-sm text-gray-500">Elige las áreas de especialización que mejor se adapten a tus necesidades</div>
             </div>
 
             <div className="p-6 pt-0 space-y-6">
-                <textarea
-                    value={symptoms}
-                    onChange={(e) => setSymptoms(e.target.value)}
-                    className="flex w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-base ring-offset-white placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-800 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm min-h-[100px] max-h-[200px] resize-none"
-                    placeholder="He estado sintiéndome ansioso por el trabajo y tengo problemas para dormir..."
-                    rows={4}
-                ></textarea>
 
                 <div className="flex flex-wrap justify-center gap-2">
-                    {commonSymptoms.map((symptom) => (
+                    {especialidades.map((specialty) => (
                         <div
-                            key={symptom}
-                            onClick={() => handleSymptomClick(symptom)}
+                            key={specialty}
+                            onClick={() => handleSpecialtyClick(specialty)}
                             className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-gray-800 focus:ring-offset-2 cursor-pointer ${
-                                selectedSymptoms.includes(symptom)
+                                selectedSpecialties.includes(specialty)
                                     ? 'bg-indigo-100 border-indigo-300 text-indigo-800'
                                     : 'border-gray-200 text-black hover:bg-indigo-50'
                             }`}
                         >
-                            {symptom}
+                            {specialty}
                         </div>
                     ))}
                 </div>
 
-                <Link href="/search-professionals">
-                    <button className="inline-flex mt-4 items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-800 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-gray-900 text-white hover:bg-gray-900/90 h-11 rounded-md px-8 w-full sm:w-auto">
-                        <Search className="w-5 h-5 mr-2" />
-                        Encontrar Mi Psicólogo
-                    </button>
-                </Link>
+                <button 
+                    onClick={handleFindPsychologist}
+                    className="inline-flex mt-4 items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-800 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-gray-900 text-white hover:bg-gray-900/90 h-11 rounded-md px-8 w-full sm:w-auto"
+                >
+                    <Search className="w-5 h-5 mr-2" />
+                    Encontrar Mi Psicólogo
+                </button>
             </div>
         </div>
     );
