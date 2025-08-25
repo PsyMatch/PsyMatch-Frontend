@@ -17,7 +17,7 @@ export default function Calendario({
     placeholder = 'Elije el día',
     minDate,
     format = 'iso-8601',
-    className = '',
+    className = 'placeholder:text-gray-400',
 }: CalendarProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState(value);
@@ -171,7 +171,7 @@ export default function Calendario({
                 readOnly
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg
                    focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5
-                   cursor-pointer"
+                   cursor-pointer placeholder:text-gray-400"
                 placeholder={placeholder}
             />
 
