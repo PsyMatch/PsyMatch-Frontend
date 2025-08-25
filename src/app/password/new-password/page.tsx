@@ -1,20 +1,15 @@
 "use client"
 import Button from "@/components/ui/button";
 import Input from "@/components/ui/input";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Cookies from "js-cookie";
 import { ErrorMessage, Field, Form, Formik } from "formik";
-import { useRouter, useSearchParams } from "next/navigation";
-import { toast } from "react-toastify";
 
 
 const ChangePassword = () => {
-    const router = useRouter();
-    const searchParams = useSearchParams()
-    const token = searchParams?.get("token");
+    const token = Cookies.get('authToken');
 
-    const [boton, setBoton] = useState(false);
-  
+
     return (
         <div className="flex flex-col items-center min-h-screen gap-4 pt-16 bg-gradient-to-br from-blue-50 to-indigo-100">
             <Formik
@@ -31,9 +26,9 @@ const ChangePassword = () => {
                     }
                     return errors;
                 }}
-                onSubmit={async (values) => {
+                onSubmit={async (values, { setSubmitting }) => {
                     try{   
-                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password`, {
+                        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password/:token`, {
                             method: 'POST',
                             headers: {
                                 "Content-Type": "application/json",
@@ -44,25 +39,13 @@ const ChangePassword = () => {
                             })
                         });
 
-                        const response = await res.json();
-                        toast.success(`${response.message}`, {
-                            position: "top-center",
-                            type: 'success',
-                            isLoading: false,
-                            autoClose: 2500,
-                            closeOnClick: true,
-                            draggable: true,
-                        });
-
-                        setBoton(true)
-
-                        setTimeout(() => {
-                            router.push("/login")
-                        },3300)
-
+                        const response = await res.text();
+                        console.log("Respuesta", response)
                     }catch(err){
                         console.log("Error", err)
-                    }finally {}
+                    }finally {
+                        setSubmitting(false);
+                    }
                 }}
             >
                 {({ isSubmitting }) => (
@@ -93,7 +76,7 @@ const ChangePassword = () => {
                             <ErrorMessage name="confirmPassword" component="div" className="text-xs text-red-500" />
                         </div>
                         <span className="text-xs text-center">Una vez hecho el cambio te redirigiremos a iniciar sesión</span>
-                        <Button type="submit" className="mt-2 text-black w-fit bg-violet-300" disabled={boton}>
+                        <Button type="submit" className="mt-2 text-black w-fit bg-violet-300" disabled={isSubmitting}>
                             Guardar nueva contraseña
                         </Button>
                     </Form>

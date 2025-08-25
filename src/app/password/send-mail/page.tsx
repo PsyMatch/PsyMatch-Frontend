@@ -4,7 +4,6 @@ import Input from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import Cookies from "js-cookie";
 
 interface FormData {
   email: string;
@@ -23,8 +22,6 @@ const validate = (input: FormData) => {
 const SendMail = () => {
     const router = useRouter();
     
-    const [isSubmitting, setIsSubmitting] = useState(false);
-
     const [formData, setFormData] = useState<FormData>({email: ''});
 
     const [errors, setErrors] = useState<Errors>({});
@@ -43,8 +40,6 @@ const SendMail = () => {
         setErrors(newErrors);
         if (newErrors.email) return;
 
-        setIsSubmitting(true);
-
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/forgot-password`, {
             method: 'POST',
             headers: {
@@ -56,6 +51,21 @@ const SendMail = () => {
         });
         const response = await res.json();
         console.log("Respuesta", response)
+
+        
+        const mail = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emails/new-password`, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                email: formData.email
+            })
+        });
+
+        console.log(mail)
+
+        
         toast.success(`${response.message}`, {
             position: "top-center",
             type: 'success',
@@ -64,11 +74,6 @@ const SendMail = () => {
             closeOnClick: true,
             draggable: true,
         });
-
-        const token = Cookies.get("authToken") || Cookies.get("auth_token")
-        console.log(token)
-
-        
         setTimeout(() => {
             router.push("/")
         },3200)
@@ -92,7 +97,7 @@ const SendMail = () => {
                    {errors.email && <span className="text-xs text-red-500">{errors.email}</span>}
                 </div>
             <span className="text-xs text-center">Te enviaremos un correo con las instrucciones para restablecer tu contraseña</span>
-            <Button type="submit" className="mt-2 text-black w-fit bg-violet-300" disabled={isSubmitting}>Enviar enlace de recuperación</Button>
+            <Button type="submit" className="mt-2 text-black w-fit bg-violet-300">Enviar enlace de recuperación</Button>
         </form>
     </div>
     );
