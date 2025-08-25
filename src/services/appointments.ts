@@ -145,7 +145,7 @@ export const appointmentsService = {
                 console.error('Response status:', response.status);
                 console.error('Response statusText:', response.statusText);
                 console.error('Response headers:', response.headers);
-                
+
                 if (response.status === 401) {
                     Cookies.remove('auth_token');
                     throw new Error('Authentication failed - please login again');
@@ -256,7 +256,7 @@ export const appointmentsService = {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                        Cookies.remove('auth_token');
+                    Cookies.remove('auth_token');
                     throw new Error('Authentication failed - please login again');
                 }
                 throw new Error(`Error updating appointment: ${response.statusText}`);
@@ -267,6 +267,23 @@ export const appointmentsService = {
         } catch (error) {
             console.error('Error updating appointment:', error);
             throw error;
+        }
+    },
+
+    // Verificar si el usuario tiene citas completadas con un psicólogo específico
+    hasCompletedAppointmentsWith: async (psychologistId: string): Promise<boolean> => {
+        try {
+            const appointments = await appointmentsService.getMyAppointments();
+
+            // Buscar si hay alguna cita completada con este psicólogo
+            const hasCompleted = appointments.some(
+                (appointment) => appointment.psychologist?.id === psychologistId && appointment.status === 'completed'
+            );
+
+            return hasCompleted;
+        } catch (error) {
+            console.error('Error checking completed appointments:', error);
+            return false;
         }
     },
 };

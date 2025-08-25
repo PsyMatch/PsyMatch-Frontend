@@ -1,22 +1,19 @@
 'use client';
 
 import type { IProfessional } from '@/services/prrofessionalProfile';
-import reviews from '@/helpers/reviewsMock';
+import { useReviews } from '@/hooks/useReviews';
+import type { Review } from '@/types/review';
 import { useMemo, useState } from 'react';
 import { Star, User } from 'lucide-react';
 
 interface ReviewCardProps {
-    review: {
-        userId: string;
-        psychologistId: string;
-        rating: number;
-        comment: string;
-        review_date: Date;
-    };
+    review: Review;
     index: number;
 }
 
 const ReviewCard = ({ review, index }: ReviewCardProps) => {
+    const reviewDate = new Date(review.review_date);
+
     return (
         <article
             className="w-full p-4 bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-xl shadow-sm"
@@ -30,8 +27,8 @@ const ReviewCard = ({ review, index }: ReviewCardProps) => {
                 <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <h4 className="font-semibold text-gray-900">Usuario anónimo</h4>
-                        <time className="text-sm text-gray-500 flex-shrink-0" dateTime={review.review_date.toISOString()}>
-                            {review.review_date.toLocaleDateString('es-ES', {
+                        <time className="text-sm text-gray-500 flex-shrink-0" dateTime={reviewDate.toISOString()}>
+                            {reviewDate.toLocaleDateString('es-ES', {
                                 year: 'numeric',
                                 month: 'short',
                                 day: 'numeric',
@@ -60,19 +57,47 @@ const ReviewCard = ({ review, index }: ReviewCardProps) => {
 };
 
 const Reseñas = ({ data }: { data: IProfessional }) => {
-    const filteredReviews = useMemo(() => reviews.filter((review) => review.psychologistId === data.id), [data.id]);
+    const { reviews, loading, error } = useReviews(data.id);
     const [showAllReviews, setShowAllReviews] = useState(false);
 
     const averageRating = useMemo(() => {
-        if (filteredReviews.length === 0) return 0;
-        const sum = filteredReviews.reduce((acc, review) => acc + review.rating, 0);
-        return (sum / filteredReviews.length).toFixed(1);
-    }, [filteredReviews]);
+        if (reviews.length === 0) return 0;
+        const sum = reviews.reduce((acc: number, review: Review) => acc + review.rating, 0);
+        return (sum / reviews.length).toFixed(1);
+    }, [reviews]);
 
-    const reviewsToShow = showAllReviews ? filteredReviews : filteredReviews.slice(0, 2);
-    const hasMoreReviews = filteredReviews.length > 2;
+    const reviewsToShow = showAllReviews ? reviews : reviews.slice(0, 2);
+    const hasMoreReviews = reviews.length > 2;
 
-    if (filteredReviews.length === 0) {
+    if (loading) {
+        return (
+            <section className="w-full p-8 mb-10 bg-white border border-gray-200 rounded-xl shadow-sm">
+                <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                        <Star className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Cargando reseñas...</h3>
+                    <p className="text-gray-600">Por favor espera mientras cargamos las reseñas.</p>
+                </div>
+            </section>
+        );
+    }
+
+    if (error) {
+        return (
+            <section className="w-full p-8 mb-10 bg-white border border-gray-200 rounded-xl shadow-sm">
+                <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Star className="w-8 h-8 text-red-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Error al cargar reseñas</h3>
+                    <p className="text-gray-600">{error}</p>
+                </div>
+            </section>
+        );
+    }
+
+    if (reviews.length === 0) {
         return (
             <section className="w-full p-8 mb-10 bg-white border border-gray-200 rounded-xl shadow-sm">
                 <div className="text-center py-8">
@@ -103,15 +128,15 @@ const Reseñas = ({ data }: { data: IProfessional }) => {
                             <span className="ml-1 font-semibold text-gray-900">{averageRating}</span>
                         </div>
                         <span className="text-gray-500">
-                            ({filteredReviews.length} {filteredReviews.length === 1 ? 'reseña' : 'reseñas'})
+                            ({reviews.length} {reviews.length === 1 ? 'reseña' : 'reseñas'})
                         </span>
                     </div>
                 </div>
             </header>
 
             <div className="space-y-4">
-                {reviewsToShow.map((review, index) => (
-                    <ReviewCard key={index} review={review} index={index} />
+                {reviewsToShow.map((review: Review, index: number) => (
+                    <ReviewCard key={review.id} review={review} index={index} />
                 ))}
             </div>
 
