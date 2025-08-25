@@ -9,6 +9,7 @@ import { useFotoDePerfil } from '@/context/fotoDePerfil';
 import { useAuthProfessionalContext } from '@/context/registerProfessional';
 import { ToastContainer, toast } from 'react-toastify';
 import { envs } from '@/config/envs.config';
+import { triggerAuthStateChange } from '@/utils/auth';
 
 const modalidades = ['Presencial', 'En línea', 'Híbrido'];
 
@@ -181,6 +182,9 @@ const Services_Prices = () => {
                     Cookies.set('role', data.data.role, { path: '/' });
                     Cookies.set('role', data.data.role, { path: '/' });
                 }
+
+                // Disparar evento para actualizar la Navbar
+                triggerAuthStateChange();
             }
 
             toast.update(toastId, {

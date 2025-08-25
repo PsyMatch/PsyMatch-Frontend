@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { envs } from '@/config/envs.config';
+import { triggerAuthStateChange } from '@/utils/auth';
 
 const LoginSchema = Yup.object().shape({
     email: Yup.string().email('Correo electrónico inválido').required('El correo electrónico es requerido'),
@@ -39,14 +40,13 @@ export default function LoginForm() {
 
             console.log('Response status:', response.status);
             console.log('Response ok:', response.ok);
-            
+
             const data = await response.json();
             console.log('Response data:', data);
 
             if (response.ok) {
                 console.log('Login exitoso:', data);
 
-                // Guardar token en Cookies si viene en la respuesta
                 if (data.token) {
                     Cookies.set('auth_token', data.token);
                 }
@@ -55,13 +55,14 @@ export default function LoginForm() {
                     Cookies.set('role', data.data.role);
                 }
 
-                if(data.data.verified) {
+                if (data.data.verified) {
                     Cookies.set('verified', data.data.verified);
                 }
 
+                triggerAuthStateChange();
+
                 const traerRole = Cookies.get('role');
 
-                // Redirigir según el tipo de usuario
                 if (traerRole === 'Psicólogo') {
                     router.push('/dashboard/professional');
                 }
@@ -72,7 +73,6 @@ export default function LoginForm() {
                     router.push('/dashboard/user');
                 }
             } else {
-                // Mostrar error del servidor
                 setLoginError(data.message || 'Error al iniciar sesión');
             }
         } catch (error) {
@@ -83,9 +83,7 @@ export default function LoginForm() {
         }
     };
 
-    // Handler para login con Google
     const handleGoogleLogin = () => {
-        // Redirige directamente al endpoint de Google Auth (redirect real)
         window.location.replace(`${envs.next_public_api_url}/auth/google`);
     };
 
