@@ -3,7 +3,6 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { adminService } from '@/services/admin';
 import { useNotifications } from '@/hooks/useNotifications';
-import { useNotifications } from '@/hooks/useNotifications';
 
 interface Paciente {
     id: string;
@@ -166,9 +165,7 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                     type="button"
                     className={`flex-1 h-full rounded-md transition-colors font-medium ${
                         filter === 'Pendiente' ? 'bg-[#5046E7] text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                        filter === 'Pendiente' ? 'bg-[#5046E7] text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                     }`}
-                    onClick={() => setFilter('Pendiente')}
                     onClick={() => setFilter('Pendiente')}
                 >
                     PENDIENTES ({profesionales.filter((p) => p.verified === 'Pendiente').length})
@@ -238,13 +235,10 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                                                 width={64}
                                                 height={64}
                                                 className="object-cover w-full h-full rounded-full"
-                                                className="object-cover w-full h-full rounded-full"
                                             />
                                         </div>
                                         <div className="flex-1">
                                             <h3 className="font-bold text-[#5046E7] text-lg">{psicologo.name}</h3>
-                                            <p className="text-sm text-gray-600">📧 {psicologo.email}</p>
-                                            <p className="text-sm text-gray-600">📱 {psicologo.phone}</p>
                                             <p className="text-sm text-gray-600">📧 {psicologo.email}</p>
                                             <p className="text-sm text-gray-600">📱 {psicologo.phone}</p>
                                         </div>
@@ -313,9 +307,6 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                                                 </button>
                                             </>
                                         )}
-
-                                        <button
-                                            className="px-4 py-2 bg-[#5046E7] text-white rounded-md hover:bg-[#4338CA] transition-colors text-sm font-medium"
 
                                         <button
                                             className="px-4 py-2 bg-[#5046E7] text-white rounded-md hover:bg-[#4338CA] transition-colors text-sm font-medium"
