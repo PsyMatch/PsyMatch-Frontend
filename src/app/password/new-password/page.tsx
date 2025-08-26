@@ -5,6 +5,7 @@ import { useState, Suspense } from 'react';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import { toast } from 'react-toastify';
 import { useRouter, useSearchParams } from 'next/navigation';
+import CustomPasswordInput from '@/components/ui/Custom-password-input';
 
 const ChangePasswordForm = () => {
     const router = useRouter();
@@ -82,37 +83,41 @@ const ChangePasswordForm = () => {
                     }
                 }}
             >
-                {({ isSubmitting }) => (
+                {({ isSubmitting, handleChange, handleBlur, values, errors, touched }) => (
                     <Form className="flex flex-col items-center h-56 w-[30%]">
                         <h1 className="text-[26px] font-bold mb-5">Crea una nueva contraseña</h1>
-                        <div className="flex flex-col w-full mb-2">
-                            <label htmlFor="newPassword">Nueva contraseña</label>
-                            <Field
-                                as={Input}
-                                name="newPassword"
-                                type="password"
+                        <div className="mt-2 w-full">
+                            <CustomPasswordInput
+                                label="Nueva contraseña"
                                 id="newPassword"
-                                className="h-8 mb-4"
-                                placeholder="nueva contraseña"
+                                name="newPassword"
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                value={values.newPassword}
+                                error={errors.newPassword && touched.newPassword && errors.newPassword}
                             />
-                            <ErrorMessage name="newPassword" component="div" className="text-xs text-red-500" />
                         </div>
-                        <div className="flex flex-col w-full mb-2">
-                            <label htmlFor="confirmPassword">Confirmar nueva contraseña</label>
-                            <Field
-                                as={Input}
-                                name="confirmPassword"
-                                type="password"
+                        <div className="my-2 w-full">
+                            <CustomPasswordInput
+                                label="Confirmar contraseña"
                                 id="confirmPassword"
-                                className="h-8 mb-4"
-                                placeholder="confirmar nueva contraseña"
+                                name="confirmPassword"
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                value={values.confirmPassword}
+                                error={errors.confirmPassword && touched.confirmPassword && errors.confirmPassword}
                             />
-                            <ErrorMessage name="confirmPassword" component="div" className="text-xs text-red-500" />
                         </div>
-                        <span className="text-xs text-center">Una vez hecho el cambio te redirigiremos a iniciar sesión</span>
-                        <Button type="submit" className="mt-2 text-black w-fit bg-violet-300" disabled={isSubmitting}>
-                            Guardar nueva contraseña
-                        </Button>
+                        <span className="text-xs my-2 text-center">Una vez hecho el cambio te redirigiremos a iniciar sesión</span>
+                        <div className="flex flex-col pt-2 space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">
+                            <Button
+                                type="submit"
+                                className="w-full text-white bg-blue-600 sm:flex-1 hover:bg-blue-700 disabled:opacity-50"
+                                disabled={isSubmitting}
+                            >
+                                Guardar nueva contraseña
+                            </Button>
+                        </div>
                     </Form>
                 )}
             </Formik>

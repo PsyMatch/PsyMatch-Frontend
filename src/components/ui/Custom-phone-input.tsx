@@ -8,13 +8,26 @@ interface CustomPhoneInputProps {
     id: string;
     name: string;
     value: string;
+    className?: string;
+    placeholder?: string;
     onChange: (phone: string) => void;
     onBlur: () => void;
     error?: string | false;
     disabled?: boolean;
 }
 
-export default function CustomPhoneInput({ label, id, name, value, onChange, onBlur, error, disabled = false }: CustomPhoneInputProps) {
+export default function CustomPhoneInput({
+    label,
+    id,
+    name,
+    value,
+    onChange,
+    onBlur,
+    className,
+    placeholder,
+    error,
+    disabled = false,
+}: CustomPhoneInputProps) {
     return (
         <div className="space-y-2">
             <Label htmlFor={id} className="text-sm font-medium text-gray-700">
@@ -26,6 +39,8 @@ export default function CustomPhoneInput({ label, id, name, value, onChange, onB
                 onChange={onChange}
                 onBlur={onBlur}
                 disabled={disabled}
+                placeholder={placeholder}
+                className={`w-full placeholder:text-gray-400 ${error ? 'border-red-500' : ''} ${className}`}
                 inputProps={{
                     id: id,
                     name: name,

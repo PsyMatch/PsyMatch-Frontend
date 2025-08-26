@@ -341,7 +341,7 @@ const Perfil = () => {
                                                         }
                                                     }, 300);
                                                 }}
-                                                className="w-full px-3 py-2 border rounded resize-none"
+                                                className="w-full px-3 py-2 border rounded resize-none placeholder:text-gray-400"
                                                 autoComplete="off"
                                             />
                                         </div>

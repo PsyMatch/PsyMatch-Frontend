@@ -305,6 +305,7 @@ export default function RegisterForm() {
                                     label="Nombre Completo *"
                                     id="fullName"
                                     name="fullName"
+                                    placeholder='Nombre Apellido'
                                     onChange={handleChange}
                                     onBlur={handleBlur}
                                     value={values.fullName}
@@ -317,6 +318,7 @@ export default function RegisterForm() {
                                     label="Alias"
                                     id="alias"
                                     name="alias"
+                                    placeholder='Alias'
                                     onChange={handleChange}
                                     onBlur={handleBlur}
                                     value={values.alias}
@@ -343,6 +345,7 @@ export default function RegisterForm() {
                                     id="email"
                                     type="email"
                                     name="email"
+                                    placeholder='ejemplo@correo.com'
                                     onChange={handleChange}
                                     onBlur={handleBlur}
                                     value={values.email}
@@ -359,7 +362,7 @@ export default function RegisterForm() {
                                     onBlur={handleBlur}
                                     value={values.dni}
                                     error={errors.dni && touched.dni && errors.dni}
-                                    placeholder="Ej: 12345678"
+                                    placeholder="12345678"
                                 />
                             </div>
 
@@ -368,6 +371,7 @@ export default function RegisterForm() {
                                     label="Número de teléfono *"
                                     id="phone"
                                     name="phone"
+                                    placeholder="11 2345-6789"
                                     value={values.phone}
                                     onChange={(phone) => handleChange({ target: { name: 'phone', value: phone } })}
                                     onBlur={() => handleBlur({ target: { name: 'phone' } })}
@@ -399,7 +403,7 @@ export default function RegisterForm() {
                                             }, 300);
                                         }}
                                         onBlur={handleBlur}
-                                        className={`w-full px-3 py-2 text-sm bg-white border rounded-md shadow-sm focus:outline-none focus:ring-1 ${
+                                        className={`placeholder:text-gray-400 w-full px-3 py-2 text-sm bg-white border rounded-md shadow-sm focus:outline-none focus:ring-1 ${
                                             errors.address && touched.address
                                                 ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
                                                 : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
@@ -549,7 +553,7 @@ export default function RegisterForm() {
                                 {isLoading ? 'Creando Cuenta...' : 'Crear Cuenta'}
                             </Button>
                             <Link href="/login">
-                                <Button className="w-full text-black bg-white sm:flex-1 hover:text-blue-700">Iniciar Sesión</Button>
+                                <Button className="w-full text-black bg-white sm:flex-1 hover:text-white hover:bg-neutral-700">Iniciar Sesión</Button>
                             </Link>
                         </div>
                     </Form>
