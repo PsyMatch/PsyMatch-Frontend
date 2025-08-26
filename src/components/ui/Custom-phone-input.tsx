@@ -40,7 +40,6 @@ export default function CustomPhoneInput({
                 onBlur={onBlur}
                 disabled={disabled}
                 placeholder={placeholder}
-        // className isn't accepted by the PhoneInput typings; styles are applied via inputStyle/container
                 inputProps={{
                     id: id,
                     name: name,
@@ -48,8 +47,7 @@ export default function CustomPhoneInput({
                 inputStyle={{
                     width: '100%',
                     height: '40px',
-                    paddingLeft: '45px',
-                    padding: '8px 12px',
+                    padding: '8px 38px',
                     border: `1px solid ${error ? '#ef4444' : '#d1d5db'}`,
                     borderRadius: '6px',
                     fontSize: '14px',
