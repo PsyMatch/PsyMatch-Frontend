@@ -123,19 +123,21 @@ export const validationSchema = Yup.object().shape({
     session_types: Yup.array().min(1, 'Selecciona al menos un tipo de sesión').required('Debes seleccionar tipos de sesión'),
 
     modality: Yup.string()
-    .required('Debes seleccionar modalidad')
-    .test(
-      'presencial-requiere-direccion',
-      'Para seleccionar "Presencial" debes ingresar la dirección de tu oficina',
-      function (value) {
-        const { office_address } = this.parent; // accede a otros campos del formulario
-        // si el valor es "Presencial" y la dirección está vacía, retorna false
-        if (value === 'Presencial' && (!office_address || office_address.trim() === '')) {
-          return false;
+      .required('Debes seleccionar modalidad')
+      .test(
+        'direccion-requerida',
+        'Para seleccionar "Presencial" o "Híbrido" debes ingresar la dirección de tu oficina',
+        function (value) {
+          const { office_address } = this.parent;
+
+          // Bloquea "Presencial" o "Híbrido" si no hay dirección
+          if ((value === 'Presencial' || value === 'Híbrido') && (!office_address || office_address.trim() === '')) {
+            return false;
+          }
+
+          return true;
         }
-        return true; // pasa la validación en cualquier otro caso
-      }
-    ),
+      ),
 
     availability: Yup.array().min(1, 'Selecciona al menos un día disponible').required('Debes seleccionar días disponibles'),
 
