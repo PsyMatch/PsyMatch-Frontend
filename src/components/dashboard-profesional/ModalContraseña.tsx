@@ -14,7 +14,7 @@ const ModalContraseña = () => {
     const { cerrarModal } = useModalContext();
     const notifications = useNotifications();
     const token = Cookies.get('authToken') || Cookies.get('auth_token');
-    const [disabled, setDisabled] = useState(false);
+    const [_disabled, setDisabled] = useState(false);
 
     useEffect(() => {
         const unlockTime = localStorage.getItem('buttonUnlockTime');
@@ -62,7 +62,7 @@ const ModalContraseña = () => {
                                 }),
                             });
 
-                            const response = await res.text();
+                            const _response = await res.text();
                             setDisabled(true);
 
                             notifications.success('Contraseña cambiada correctamente');

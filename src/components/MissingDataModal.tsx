@@ -69,7 +69,7 @@ export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave
     // Estados para autocompletado de direcciones
     const [addressSuggestions, setAddressSuggestions] = useState<MapboxSuggestion[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-    const [selectedCoordinates, setSelectedCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+    const [_selectedCoordinates, setSelectedCoordinates] = useState<{ lat: number; lng: number } | null>(null);
     const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
     const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
     const addressInputRef = useRef<HTMLInputElement>(null);
@@ -152,7 +152,7 @@ export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave
             } else {
                 setAddressSuggestions([]);
             }
-        } catch (error) {
+        } catch (_error) {
             setAddressSuggestions([]);
         } finally {
             setIsLoadingSuggestions(false);
@@ -231,7 +231,8 @@ export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave
                 <DialogHeader>
                     <DialogTitle className="text-xl font-bold text-gray-900">Completa tu perfil</DialogTitle>
                     <DialogDescription className="text-gray-600">
-                        ¡Bienvenido! Como te registraste con Google, necesitamos algunos datos adicionales para completar tu perfil y brindarte la mejor experiencia.
+                        ¡Bienvenido! Como te registraste con Google, necesitamos algunos datos adicionales para completar tu perfil y brindarte la
+                        mejor experiencia.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -362,28 +363,28 @@ export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave
                         {errors.emergency_contact && <p className="text-sm text-red-500">{errors.emergency_contact}</p>}
                     </div>
 
-          {/* Obra social */}
-          <div className="space-y-2">
-            <Label htmlFor="health_insurance" className="text-sm font-medium text-gray-700">
-              Obra social (opcional)
-            </Label>
-            <Select
-              value={formData.health_insurance || 'none'}
-              onValueChange={(value) => handleInputChange('health_insurance', value === 'none' ? '' : value)}
-            >
-              <SelectTrigger className={errors.health_insurance ? 'border-red-500' : ''}>
-                <SelectValue placeholder="Selecciona tu obra social (opcional)" />
-              </SelectTrigger>
-              <SelectContent>
-                {healthInsuranceOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.health_insurance && <p className="text-sm text-red-500">{errors.health_insurance}</p>}
-          </div>
+                    {/* Obra social */}
+                    <div className="space-y-2">
+                        <Label htmlFor="health_insurance" className="text-sm font-medium text-gray-700">
+                            Obra social (opcional)
+                        </Label>
+                        <Select
+                            value={formData.health_insurance || 'none'}
+                            onValueChange={(value) => handleInputChange('health_insurance', value === 'none' ? '' : value)}
+                        >
+                            <SelectTrigger className={errors.health_insurance ? 'border-red-500' : ''}>
+                                <SelectValue placeholder="Selecciona tu obra social (opcional)" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {healthInsuranceOptions.map((option) => (
+                                    <SelectItem key={option.value} value={option.value}>
+                                        {option.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {errors.health_insurance && <p className="text-sm text-red-500">{errors.health_insurance}</p>}
+                    </div>
 
                     <div className="flex justify-end pt-4">
                         <Button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white">

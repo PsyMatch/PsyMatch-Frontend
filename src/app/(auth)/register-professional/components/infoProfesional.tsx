@@ -25,54 +25,52 @@ interface MapboxSuggestion {
     };
 }
 const getInitialValues = (): ValoresInfoProfesional => {
-  const cookieData = getCookieObject();
-  return cookieData
-    ? {
-        personal_biography: cookieData.personal_biography || '',
-        languages: cookieData.languages || [],
-        license_number: cookieData.license_number || '',
-        professional_title: cookieData.professional_title || '',
-        professional_experience: cookieData.professional_experience || '',
-        office_address: cookieData.office_address || '',
-      }
-    : {
-        personal_biography: '',
-        languages: [],
-        license_number: '',
-        professional_title: '',
-        professional_experience: '',
-        office_address: '',
-      };
+    const cookieData = getCookieObject();
+    return cookieData
+        ? {
+              personal_biography: cookieData.personal_biography || '',
+              languages: cookieData.languages || [],
+              license_number: cookieData.license_number || '',
+              professional_title: cookieData.professional_title || '',
+              professional_experience: cookieData.professional_experience || '',
+              office_address: cookieData.office_address || '',
+          }
+        : {
+              personal_biography: '',
+              languages: [],
+              license_number: '',
+              professional_title: '',
+              professional_experience: '',
+              office_address: '',
+          };
 };
 
 const InfoProfesional = () => {
     const { avanzarPaso } = useBotonesRegisterContext();
 
-    const [initialValues, setInitialValues] = useState<ValoresInfoProfesional>(
-    getInitialValues
-    );
+    const [initialValues, setInitialValues] = useState<ValoresInfoProfesional>(getInitialValues);
 
     // Estados para autocompletado de direcciones
     const [addressSuggestions, setAddressSuggestions] = useState<MapboxSuggestion[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-    const [selectedCoordinates, setSelectedCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+    const [_selectedCoordinates, setSelectedCoordinates] = useState<{ lat: number; lng: number } | null>(null);
     const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
     const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
     const addressInputRef = useRef<HTMLInputElement>(null);
     const suggestionsRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-            const cookieData = getCookieObject();
-            if (cookieData) {
-                try {
-                    setInitialValues(prev => ({
+        const cookieData = getCookieObject();
+        if (cookieData) {
+            try {
+                setInitialValues((prev) => ({
                     ...prev,
-                    ...cookieData
+                    ...cookieData,
                 }));
-                } catch (error) {
-                    console.error(error);
-                }
+            } catch (_error) {
+                console.error(_error);
             }
+        }
     }, []);
 
     const searchAddresses = async (query: string) => {
@@ -106,7 +104,7 @@ const InfoProfesional = () => {
             } else {
                 setAddressSuggestions([]);
             }
-        } catch (error) {
+        } catch (_error) {
             setAddressSuggestions([]);
         } finally {
             setIsLoadingSuggestions(false);
@@ -141,32 +139,32 @@ const InfoProfesional = () => {
     }, []);
 
     interface ValidateFormValues {
-        field: "license_number";
+        field: 'license_number';
         licenseValue?: number;
     }
 
     // Debounce para validación de matrícula profesional
-    const [licenseValidationTimeout, setLicenseValidationTimeout] = useState<NodeJS.Timeout | null>(null);
-    const [licenseValidationError, setLicenseValidationError] = useState<string | null>(null);
+    const [_licenseValidationTimeout, _setLicenseValidationTimeout] = useState<NodeJS.Timeout | null>(null);
+    const [_licenseValidationError, _setLicenseValidationError] = useState<string | null>(null);
 
     const handleValidate = async (values: ValidateFormValues) => {
-        const errors: Partial<Record<"license_number", string | number>> = {};
+        const errors: Partial<Record<'license_number', string>> = {};
 
         try {
             const response = await fetch(`${envs.next_public_api_url}/users/validate-unique`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     field: values.field,
                     licenseValue: Number(values.licenseValue),
-                })
+                }),
             });
 
             if (response.status === 409) {
-                errors.license_number = "Número de matricula ya está registrado";
+                errors.license_number = 'Número de matricula ya está registrado';
             }
-        } catch (err) {
-            if (values.field === "license_number") errors.license_number = "Error de conexión con el servidor";
+        } catch (_err) {
+            if (values.field === 'license_number') errors.license_number = 'Error de conexión con el servidor';
         }
 
         return errors;
@@ -174,23 +172,23 @@ const InfoProfesional = () => {
 
     const handleLicenseBlur = async (value: string | number) => {
         if (!value) {
-            setLicenseValidationError("El número de matricula es obligatorio");
+            _setLicenseValidationError('El número de matricula es obligatorio');
             return;
         }
-        setLicenseValidationError(null);
-        const res = await handleValidate({ field: "license_number", licenseValue: Number(value) });
-        if (res.license_number) setLicenseValidationError(res.license_number as string);
-        else setLicenseValidationError(null);
+        _setLicenseValidationError(null);
+        const res = await handleValidate({ field: 'license_number', licenseValue: Number(value) });
+        if (res.license_number) _setLicenseValidationError(res.license_number as string);
+        else _setLicenseValidationError(null);
     };
 
     const handleSubmit = async (
         values: ValoresInfoProfesional,
-        { setErrors, setSubmitting }: { setErrors: (errors: any) => void; setSubmitting: (isSubmitting: boolean) => void }
+        { setErrors, setSubmitting }: import('formik').FormikHelpers<ValoresInfoProfesional>
     ) => {
-        const errors: any = {};
+        const errors: Record<string, string> = {};
 
         // Validación de matrícula profesional solo al enviar
-        const licenseErrors = await handleValidate({ field: "license_number", licenseValue: Number(values.license_number) });
+        const licenseErrors = await handleValidate({ field: 'license_number', licenseValue: Number(values.license_number) });
         if (licenseErrors.license_number) errors.license_number = licenseErrors.license_number;
 
         if (Object.keys(errors).length > 0) {
@@ -237,7 +235,7 @@ const InfoProfesional = () => {
                                         type="checkbox"
                                         name="languages"
                                         value={idioma}
-                                        className='mb-1 mr-1 border-gray-600'
+                                        className="mb-1 mr-1 border-gray-600"
                                         checked={values.languages.includes(idioma)}
                                         onChange={() => {
                                             if (values.languages.includes(idioma)) {

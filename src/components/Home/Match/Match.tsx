@@ -2,7 +2,6 @@
 
 import CardMatch from './CardMatch';
 import { useAuthState } from '@/hooks/useAuthState';
-import Link from 'next/link';
 
 const Match = () => {
     const { isAuthenticated } = useAuthState();
@@ -10,7 +9,6 @@ const Match = () => {
     return (
         <section className="py-20 relative">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-
                 <div className={`relative ${!isAuthenticated ? 'filter blur-sm pointer-events-none' : ''}`}>
                     <CardMatch />
                 </div>

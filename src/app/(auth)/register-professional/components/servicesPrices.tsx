@@ -1,7 +1,7 @@
 'use client';
 import { initialValuesTipos, validationSchema, Valores } from '@/helpers/formRegister/register-profesional';
 import { Formik, Form, ErrorMessage, Field } from 'formik';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { dataToSave, getCookieObject } from '@/helpers/formRegister/helpers';
@@ -144,7 +144,7 @@ const Services_Prices = () => {
     const { profileImageFile } = useFotoDePerfil();
     const { saveUserData } = useAuthProfessionalContext();
 
-    const [initialValues, setInitialValues] = useState<typeof initialValuesTipos>(getInitialValues);
+    const [initialValues] = useState<typeof initialValuesTipos>(getInitialValues);
 
     const handleSubmit = async (values: Valores) => {
         const toSave = dataToSave(values as unknown as Record<string, unknown>);

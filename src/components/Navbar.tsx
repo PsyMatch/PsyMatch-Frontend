@@ -25,7 +25,7 @@ const Navbar = () => {
     const [userRole, setUserRole] = useState<string | null>(null);
     const [alertMessage, setAlertMessage] = useState('');
 
-    const { isAuth, resetUserData } = useAuthProfessionalContext();
+    const { isAuth: _isAuth, resetUserData } = useAuthProfessionalContext();
     const { logout } = useAuth();
     const pathname = usePathname();
 
@@ -148,7 +148,7 @@ const Navbar = () => {
         },
     ];
 
-    const getVisibleNavItems = useCallback((): NavItem[] => {
+    const getVisibleNavItems = (): NavItem[] => {
         const allItems = getAllNavItems();
 
         return allItems.filter((item) => {
@@ -166,7 +166,7 @@ const Navbar = () => {
 
             return true;
         });
-    }, [token, userRole, getDashboardUrl, handleLogout]);
+    };
 
     const navItems = getVisibleNavItems();
 
@@ -175,7 +175,7 @@ const Navbar = () => {
         setTimeout(() => setAlertMessage(''), 3000);
     }, []);
 
-    const isItemAvailable = useCallback((item: NavItem): { available: boolean; reason?: string } => {
+    const isItemAvailable = useCallback((_item: NavItem): { available: boolean; reason?: string } => {
         return { available: true };
     }, []);
 
@@ -216,16 +216,18 @@ const Navbar = () => {
             </span>
         );
 
+        const classes = available ? '' : 'opacity-50 pointer-events-none';
+
         if (item.onClick) {
             return (
-                <button onClick={(e) => handleItemClick(item, e)} className="block w-full text-left">
+                <button aria-disabled={!available} onClick={(e) => handleItemClick(item, e)} className={`block w-full text-left ${classes}`}>
                     {content}
                 </button>
             );
         }
 
         return (
-            <Link href={item.href} className="block" onClick={(e) => handleItemClick(item, e)}>
+            <Link href={item.href} className={`block ${classes}`} onClick={(e) => handleItemClick(item, e)} aria-disabled={!available}>
                 {content}
             </Link>
         );
