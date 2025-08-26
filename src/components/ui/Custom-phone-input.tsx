@@ -29,7 +29,7 @@ export default function CustomPhoneInput({
     disabled = false,
 }: CustomPhoneInputProps) {
     return (
-        <div className="space-y-2">
+    <div className={`space-y-2 ${className ?? ''}`}>
             <Label htmlFor={id} className="text-sm font-medium text-gray-700">
                 {label}
             </Label>
@@ -40,7 +40,7 @@ export default function CustomPhoneInput({
                 onBlur={onBlur}
                 disabled={disabled}
                 placeholder={placeholder}
-                className={`w-full placeholder:text-gray-400 ${error ? 'border-red-500' : ''} ${className}`}
+        // className isn't accepted by the PhoneInput typings; styles are applied via inputStyle/container
                 inputProps={{
                     id: id,
                     name: name,
