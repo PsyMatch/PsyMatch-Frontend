@@ -3,7 +3,7 @@ import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { toast } from 'react-toastify';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface FormData {
     email: string;
@@ -21,6 +21,7 @@ const validate = (input: FormData) => {
 
 const SendMail = () => {
     const router = useRouter();
+    const notifications = useNotifications();
 
     const [formData, setFormData] = useState<FormData>({ email: '' });
 
@@ -50,9 +51,8 @@ const SendMail = () => {
             }),
         });
         const response = await res.json();
-        console.log('Respuesta', response);
 
-        const mail = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emails/new-password`, {
+        const _mail = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emails/new-password`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -62,19 +62,10 @@ const SendMail = () => {
             }),
         });
 
-        console.log(mail);
-
-        toast.success(`${response.message}`, {
-            position: 'top-center',
-            type: 'success',
-            isLoading: false,
-            autoClose: 2500,
-            closeOnClick: true,
-            draggable: true,
-        });
+        notifications.success(`${response.message}`);
         setTimeout(() => {
             router.push('/');
-        }, 3200);
+        }, 2000);
     };
 
     return (
@@ -82,7 +73,9 @@ const SendMail = () => {
             <form className="flex flex-col items-center h-56 w-[30%]" onSubmit={onSubmit}>
                 <h1 className="text-[26px] font-bold mb-5">¿Olvidaste tu contraseña?</h1>
                 <div className="flex flex-col w-full mb-6 space-y-2">
-                    <label htmlFor="email" className='text-sm font-medium text-gray-700'>Ingresa tu email registrado</label>
+                    <label htmlFor="email" className="text-sm font-medium text-gray-700">
+                        Ingresa tu email registrado
+                    </label>
                     <Input
                         onChange={onChange}
                         name="email"

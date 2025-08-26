@@ -29,7 +29,7 @@ export default function CustomPhoneInput({
     disabled = false,
 }: CustomPhoneInputProps) {
     return (
-        <div className="space-y-2">
+    <div className={`space-y-2 ${className ?? ''}`}>
             <Label htmlFor={id} className="text-sm font-medium text-gray-700">
                 {label}
             </Label>
@@ -40,7 +40,6 @@ export default function CustomPhoneInput({
                 onBlur={onBlur}
                 disabled={disabled}
                 placeholder={placeholder}
-                className={`w-full placeholder:text-gray-400 ${error ? 'border-red-500' : ''} ${className}`}
                 inputProps={{
                     id: id,
                     name: name,
@@ -48,8 +47,7 @@ export default function CustomPhoneInput({
                 inputStyle={{
                     width: '100%',
                     height: '40px',
-                    paddingLeft: '45px',
-                    padding: '8px 12px',
+                    padding: '8px 38px',
                     border: `1px solid ${error ? '#ef4444' : '#d1d5db'}`,
                     borderRadius: '6px',
                     fontSize: '14px',

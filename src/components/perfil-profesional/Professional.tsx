@@ -1,4 +1,4 @@
-import { MessageCircle, Calendar, MapPin, Clock } from 'lucide-react';
+import { MessageCircle, Calendar, MapPin as _MapPin, Clock } from 'lucide-react';
 import type { IProfessional } from '@/services/prrofessionalProfile';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -63,14 +63,6 @@ const Professional = ({ data }: { data: IProfessional }) => {
                     <Calendar className="w-4 h-4" aria-hidden="true" />
                     Reservar Ahora
                 </Link>
-
-                <button
-                    className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:bg-gray-50 focus:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 transition-all duration-200 hover:-translate-y-px active:translate-y-0 w-full md:w-auto justify-center font-medium text-gray-700"
-                    aria-label={`Enviar mensaje a ${data.name}`}
-                >
-                    <MessageCircle className="w-4 h-4" aria-hidden="true" />
-                    Enviar mensaje
-                </button>
             </div>
         </article>
     );

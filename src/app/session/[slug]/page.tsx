@@ -30,7 +30,7 @@ const SessionPage = () => {
     const [modality, setModality] = useState('');
     const [userId, setUserId] = useState<string>('');
     const [isClient, setIsClient] = useState(false);
-    
+
     // Estados para el flujo de pago
     const [showPayment, setShowPayment] = useState(false);
     const [createdAppointment, setCreatedAppointment] = useState<AppointmentResponse | null>(null);
@@ -198,7 +198,7 @@ const SessionPage = () => {
 
             return () => clearInterval(interval);
         }
-    }, [selectedTime, selectedDate, isTimeAvailable]);
+    }, [selectedTime, selectedDate, isTimeAvailable, notifications]);
 
     const handleDateChange = (date: string) => {
         setSelectedDate(date);
@@ -270,12 +270,9 @@ const SessionPage = () => {
             // Crear la cita usando el servicio
             const newAppointment = await appointmentsService.createAppointment(appointmentData);
 
-            console.log('Cita creada exitosamente:', newAppointment);
-            
             // Guardar la cita creada y mostrar el componente de pago
             setCreatedAppointment(newAppointment);
             setShowPayment(true);
-            
         } catch (error: unknown) {
             console.error('Error al crear la cita:', error);
 
@@ -299,7 +296,7 @@ const SessionPage = () => {
     // Manejar éxito del pago
     const handlePaymentSuccess = () => {
         setPaymentCompleted(true);
-        console.log('Pago completado, redirigiendo a MercadoPago...');
+        // console.log('Pago completado, redirigiendo a MercadoPago...');
         // El componente MercadoPagoPayment ya maneja la redirección automáticamente
     };
 
@@ -317,17 +314,16 @@ const SessionPage = () => {
 
         try {
             setLoading(true);
-            
+
             // Actualizar el estado de la cita a CONFIRMED
             await appointmentsService.updateAppointment(createdAppointment.id, {
-                status: 'confirmed'
+                status: 'confirmed',
             });
 
             notifications.success('¡Turno confirmado exitosamente! Te hemos enviado un email con los detalles.');
-            
+
             // Redirigir al dashboard del usuario
             router.push('/dashboard/user');
-            
         } catch (error) {
             console.error('Error confirmando la cita:', error);
             notifications.error('Hubo un error al confirmar el turno. Contacta con soporte.');
@@ -365,22 +361,22 @@ const SessionPage = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-4xl px-4 py-8 mx-auto sm:px-6 lg:px-8">
             {!isClient ? (
-                <div className="text-center py-8">
+                <div className="py-8 text-center">
                     <p className="text-gray-500">Cargando...</p>
                 </div>
             ) : !psychologist ? (
-                <div className="text-center py-8">
+                <div className="py-8 text-center">
                     <p className="text-gray-500">Psicólogo no encontrado</p>
                 </div>
             ) : !getAuthToken() ? (
-                <div className="text-center py-8">
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-                        <p className="text-yellow-800 mb-4">Debes iniciar sesión para agendar una cita</p>
+                <div className="py-8 text-center">
+                    <div className="p-6 border border-yellow-200 rounded-lg bg-yellow-50">
+                        <p className="mb-4 text-yellow-800">Debes iniciar sesión para agendar una cita</p>
                         <button
                             onClick={redirectToLogin}
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                            className="px-4 py-2 font-medium text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
                         >
                             Iniciar Sesión
                         </button>
@@ -388,17 +384,15 @@ const SessionPage = () => {
                 </div>
             ) : showPayment && createdAppointment ? (
                 // Mostrar componente de pago
-                <div className="text-center py-8">
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
-                        <h2 className="text-2xl font-bold text-green-800 mb-2">¡Cita Creada Exitosamente!</h2>
-                        <p className="text-green-700 mb-4">
+                <div className="py-8 text-center">
+                    <div className="p-6 mb-6 border border-green-200 rounded-lg bg-green-50">
+                        <h2 className="mb-2 text-2xl font-bold text-green-800">¡Cita Creada Exitosamente!</h2>
+                        <p className="mb-4 text-green-700">
                             Tu cita con {psychologist.name} para el {formatDisplayDate(selectedDate)} a las {selectedTime} ha sido creada.
                         </p>
-                        <p className="text-green-600 text-sm">
-                            Ahora necesitas completar el pago para confirmar tu turno.
-                        </p>
+                        <p className="text-sm text-green-600">Ahora necesitas completar el pago para confirmar tu turno.</p>
                     </div>
-                    
+
                     <MercadoPagoPayment
                         amount={psychologist.consultation_fee || 5000}
                         appointmentId={createdAppointment.id}
@@ -406,25 +400,21 @@ const SessionPage = () => {
                         onError={handlePaymentError}
                         disabled={loading}
                     />
-                    
+
                     {paymentCompleted && (
-                        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-6">
-                            <h3 className="text-lg font-semibold text-blue-800 mb-3">
-                                ¡Pago Procesado!
-                            </h3>
-                            <p className="text-blue-700 mb-4">
-                                Una vez que MercadoPago confirme tu pago, podrás confirmar definitivamente tu turno.
-                            </p>
+                        <div className="p-6 mt-6 border border-blue-200 rounded-lg bg-blue-50">
+                            <h3 className="mb-3 text-lg font-semibold text-blue-800">¡Pago Procesado!</h3>
+                            <p className="mb-4 text-blue-700">Una vez que MercadoPago confirme tu pago, podrás confirmar definitivamente tu turno.</p>
                             <button
                                 onClick={handleConfirmAppointment}
                                 disabled={loading}
-                                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+                                className="px-6 py-2 font-medium text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
                             >
                                 {loading ? 'Confirmando...' : 'Confirmar Turno'}
                             </button>
                         </div>
                     )}
-                    
+
                     <div className="mt-4">
                         <button
                             onClick={() => {
@@ -432,7 +422,7 @@ const SessionPage = () => {
                                 setCreatedAppointment(null);
                                 setPaymentCompleted(false);
                             }}
-                            className="text-gray-600 hover:text-gray-800 text-sm underline"
+                            className="text-sm text-gray-600 underline hover:text-gray-800"
                         >
                             Volver a la selección de horario
                         </button>
@@ -440,12 +430,12 @@ const SessionPage = () => {
                 </div>
             ) : (
                 <>
-                    <div className="rounded-lg border bg-white text-gray-900 shadow-sm mb-8">
+                    <div className="mb-8 text-gray-900 bg-white border rounded-lg shadow-sm">
                         <div className="p-6">
                             <div className="flex items-center">
                                 <Image
                                     alt={psychologist.name}
-                                    className="rounded-full mr-4"
+                                    className="mr-4 rounded-full"
                                     width={64}
                                     height={64}
                                     src={psychologist.profile_picture || '/person-gray-photo-placeholder-woman.webp'}
@@ -453,11 +443,11 @@ const SessionPage = () => {
                                 <div>
                                     <h2 className="text-2xl font-bold text-gray-900">Dr/a {psychologist.name}</h2>
                                     <p className="text-lg text-gray-600">{psychologist.professional_title || 'Psicólogo/a'}</p>
-                                    <p className="text-sm text-gray-500 mt-1">{psychologist.personal_biography}</p>
+                                    <p className="mt-1 text-sm text-gray-500">{psychologist.personal_biography}</p>
 
                                     <div className="flex items-center gap-4 mt-3">
                                         <div className="flex items-center">
-                                            <MapPin className="h-4 w-4 text-gray-400 mr-1" />
+                                            <MapPin className="w-4 h-4 mr-1 text-gray-400" />
                                             <span className="text-sm text-gray-600">
                                                 {psychologist.office_address || 'Ubicación no especificada'}
                                             </span>
@@ -475,7 +465,7 @@ const SessionPage = () => {
                                         <span className="text-sm text-gray-600">⭐ 4.8 (Reviews próximamente)</span>
                                         <span className="text-sm font-semibold text-green-600">💰 {psychologist.consultation_fee || 50000}</span>
                                         {psychologist.verified && (
-                                            <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                                            <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">
                                                 ✓ Verificado
                                             </span>
                                         )}
@@ -494,7 +484,7 @@ const SessionPage = () => {
                                                 {psychologist.specialities.slice(0, 3).map((specialty, index) => (
                                                     <span
                                                         key={index}
-                                                        className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full"
+                                                        className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-full"
                                                     >
                                                         {specialty}
                                                     </span>
@@ -511,26 +501,26 @@ const SessionPage = () => {
                     </div>
 
                     {/* Información adicional del psicólogo */}
-                    <div className="rounded-lg border bg-white text-gray-900 shadow-sm mb-8">
+                    <div className="mb-8 text-gray-900 bg-white border rounded-lg shadow-sm">
                         <div className="p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Información del Profesional</h3>
+                            <h3 className="mb-4 text-lg font-semibold text-gray-900">Información del Profesional</h3>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                                 {/* Modalidad */}
                                 <div>
-                                    <h4 className="text-sm font-medium text-gray-700 mb-2">Modalidad de Atención</h4>
+                                    <h4 className="mb-2 text-sm font-medium text-gray-700">Modalidad de Atención</h4>
                                     <p className="text-sm text-gray-600">{psychologist.modality || 'No especificado'}</p>
                                 </div>
 
                                 {/* Tipos de sesión */}
                                 {psychologist.session_types && psychologist.session_types.length > 0 && (
                                     <div>
-                                        <h4 className="text-sm font-medium text-gray-700 mb-2">Tipos de Sesión</h4>
+                                        <h4 className="mb-2 text-sm font-medium text-gray-700">Tipos de Sesión</h4>
                                         <div className="flex flex-wrap gap-1">
                                             {psychologist.session_types.map((type, index) => (
                                                 <span
                                                     key={index}
-                                                    className="inline-flex items-center px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full"
+                                                    className="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-800 bg-purple-100 rounded-full"
                                                 >
                                                     {type}
                                                 </span>
@@ -542,12 +532,12 @@ const SessionPage = () => {
                                 {/* Enfoques terapéuticos */}
                                 {psychologist.therapy_approaches && psychologist.therapy_approaches.length > 0 && (
                                     <div>
-                                        <h4 className="text-sm font-medium text-gray-700 mb-2">Enfoques Terapéuticos</h4>
+                                        <h4 className="mb-2 text-sm font-medium text-gray-700">Enfoques Terapéuticos</h4>
                                         <div className="flex flex-wrap gap-1">
                                             {psychologist.therapy_approaches.slice(0, 2).map((approach, index) => (
                                                 <span
                                                     key={index}
-                                                    className="inline-flex items-center px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded-full"
+                                                    className="inline-flex items-center px-2 py-1 text-xs font-medium text-orange-800 bg-orange-100 rounded-full"
                                                 >
                                                     {approach}
                                                 </span>
@@ -562,12 +552,12 @@ const SessionPage = () => {
                                 {/* Seguros aceptados */}
                                 {psychologist.insurance_accepted && psychologist.insurance_accepted.length > 0 && (
                                     <div>
-                                        <h4 className="text-sm font-medium text-gray-700 mb-2">Obras Sociales Aceptadas</h4>
+                                        <h4 className="mb-2 text-sm font-medium text-gray-700">Obras Sociales Aceptadas</h4>
                                         <div className="flex flex-wrap gap-1">
                                             {psychologist.insurance_accepted.slice(0, 3).map((insurance, index) => (
                                                 <span
                                                     key={index}
-                                                    className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full"
+                                                    className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-800 bg-gray-100 rounded-full"
                                                 >
                                                     {insurance}
                                                 </span>
@@ -582,7 +572,7 @@ const SessionPage = () => {
                                 {/* Número de licencia */}
                                 {psychologist.license_number && (
                                     <div>
-                                        <h4 className="text-sm font-medium text-gray-700 mb-2">Número de Licencia</h4>
+                                        <h4 className="mb-2 text-sm font-medium text-gray-700">Número de Licencia</h4>
                                         <p className="text-sm text-gray-600">#{psychologist.license_number}</p>
                                     </div>
                                 )}
@@ -590,12 +580,12 @@ const SessionPage = () => {
                                 {/* Disponibilidad */}
                                 {psychologist.availability && psychologist.availability.length > 0 && (
                                     <div>
-                                        <h4 className="text-sm font-medium text-gray-700 mb-2">Disponibilidad</h4>
+                                        <h4 className="mb-2 text-sm font-medium text-gray-700">Disponibilidad</h4>
                                         <div className="flex flex-wrap gap-1">
                                             {psychologist.availability.slice(0, 4).map((day, index) => (
                                                 <span
                                                     key={index}
-                                                    className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full"
+                                                    className="inline-flex items-center px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full"
                                                 >
                                                     {day}
                                                 </span>
@@ -610,30 +600,30 @@ const SessionPage = () => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div className="rounded-lg border bg-white text-gray-900 shadow-sm">
+                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                        <div className="text-gray-900 bg-white border rounded-lg shadow-sm">
                             <div className="flex flex-col space-y-1.5 p-6">
-                                <div className="text-2xl font-semibold leading-none tracking-tight flex items-center">
-                                    <Calendar className="h-5 w-5 mr-2" />
+                                <div className="flex items-center text-2xl font-semibold leading-none tracking-tight">
+                                    <Calendar className="w-5 h-5 mr-2" />
                                     Seleccionar Fecha
                                 </div>
-                                <div className="text-sm text-gray-500 mb-4">Elige el día para tu sesión</div>
+                                <div className="mb-4 text-sm text-gray-500">Elige el día para tu sesión</div>
                             </div>
                             <div className="p-6 pt-0">
                                 <Calendario value={selectedDate} onChange={handleDateChange} placeholder="Elije el día" className="w-full" />
                             </div>
                         </div>
-                        <div className="rounded-lg border bg-white text-gray-900 shadow-sm">
+                        <div className="text-gray-900 bg-white border rounded-lg shadow-sm">
                             <div className="flex flex-col space-y-1.5 p-6">
-                                <div className="text-2xl font-semibold leading-none tracking-tight flex items-center">
-                                    <Clock className="h-5 w-5 mr-2" />
+                                <div className="flex items-center text-2xl font-semibold leading-none tracking-tight">
+                                    <Clock className="w-5 h-5 mr-2" />
                                     Horarios Disponibles
                                 </div>
                                 <div className="text-sm text-gray-500">
                                     {selectedDate ? (
                                         <div>
                                             <div>{formatDisplayDate(selectedDate)}</div>
-                                            {selectedTime && <div className="text-blue-600 font-medium mt-1">Hora seleccionada: {selectedTime}</div>}
+                                            {selectedTime && <div className="mt-1 font-medium text-blue-600">Hora seleccionada: {selectedTime}</div>}
                                         </div>
                                     ) : (
                                         'Selecciona una fecha primero'
@@ -661,10 +651,10 @@ const SessionPage = () => {
                                         ))}
                                 </div>
                                 {!selectedDate && (
-                                    <p className="text-center text-gray-500 py-8">Selecciona una fecha para ver los horarios disponibles</p>
+                                    <p className="py-8 text-center text-gray-500">Selecciona una fecha para ver los horarios disponibles</p>
                                 )}
                                 {selectedDate && getFilteredTimes().length === 0 && (
-                                    <p className="text-center text-gray-500 py-8">
+                                    <p className="py-8 text-center text-gray-500">
                                         No hay horarios disponibles para esta fecha.
                                         {new Date(selectedDate + 'T00:00:00').toDateString() === new Date().toDateString()
                                             ? ' Los horarios deben ser al menos 1 hora después de la hora actual.'
@@ -678,7 +668,7 @@ const SessionPage = () => {
                     {/* Detalles adicionales de la sesión */}
                     {selectedDate && selectedTime && (
                         <div className="mt-8">
-                            <div className="rounded-lg border bg-white text-gray-900 shadow-sm">
+                            <div className="text-gray-900 bg-white border rounded-lg shadow-sm">
                                 <div className="flex flex-col space-y-1.5 p-6">
                                     <div className="text-2xl font-semibold leading-none tracking-tight">Detalles de la Sesión</div>
                                     <div className="text-sm text-gray-500">
@@ -689,7 +679,7 @@ const SessionPage = () => {
                                 <div className="p-6 pt-0 space-y-6">
                                     {/* Tipo de sesión */}
                                     <div>
-                                        <label htmlFor="session-type" className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label htmlFor="session-type" className="block mb-2 text-sm font-medium text-gray-700">
                                             Tipo de Sesión <span className="text-red-500">*</span>
                                         </label>
                                         <select
@@ -718,7 +708,7 @@ const SessionPage = () => {
 
                                     {/* Enfoque terapéutico */}
                                     <div>
-                                        <label htmlFor="therapy-approach" className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label htmlFor="therapy-approach" className="block mb-2 text-sm font-medium text-gray-700">
                                             Enfoque Terapéutico <span className="text-red-500">*</span>
                                         </label>
                                         <select
@@ -747,7 +737,7 @@ const SessionPage = () => {
 
                                     {/* Seguro médico */}
                                     <div>
-                                        <label htmlFor="insurance" className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label htmlFor="insurance" className="block mb-2 text-sm font-medium text-gray-700">
                                             Seguro Médico
                                         </label>
                                         <select
@@ -775,7 +765,7 @@ const SessionPage = () => {
 
                                     {/* Modalidad */}
                                     <div>
-                                        <label htmlFor="modality" className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label htmlFor="modality" className="block mb-2 text-sm font-medium text-gray-700">
                                             Modalidad <span className="text-red-500">*</span>
                                         </label>
                                         <select
@@ -808,14 +798,14 @@ const SessionPage = () => {
                                     {/* Información de duración y precio (solo lectura) */}
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Duración de la Sesión</label>
-                                            <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600">
+                                            <label className="block mb-2 text-sm font-medium text-gray-700">Duración de la Sesión</label>
+                                            <div className="w-full px-3 py-2 text-gray-600 border border-gray-300 rounded-lg bg-gray-50">
                                                 45 minutos
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Precio de la Sesión</label>
-                                            <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600">
+                                            <label className="block mb-2 text-sm font-medium text-gray-700">Precio de la Sesión</label>
+                                            <div className="w-full px-3 py-2 text-gray-600 border border-gray-300 rounded-lg bg-gray-50">
                                                 {psychologist.consultation_fee || 50000}
                                             </div>
                                         </div>
@@ -828,10 +818,10 @@ const SessionPage = () => {
                     {/* Botón de confirmación */}
                     {selectedDate && selectedTime && sessionType && therapyApproach && modality && (
                         <div className="mt-8">
-                            <div className="rounded-lg border bg-white text-gray-900 shadow-sm">
+                            <div className="text-gray-900 bg-white border rounded-lg shadow-sm">
                                 <div className="p-6">
-                                    <h3 className="text-lg font-semibold mb-4">Confirmar Cita</h3>
-                                    <div className="bg-gray-50 p-4 rounded-lg mb-4 space-y-2">
+                                    <h3 className="mb-4 text-lg font-semibold">Confirmar Cita</h3>
+                                    <div className="p-4 mb-4 space-y-2 rounded-lg bg-gray-50">
                                         <p className="text-sm text-gray-600">
                                             <strong>Fecha:</strong> {formatDisplayDate(selectedDate)}
                                         </p>

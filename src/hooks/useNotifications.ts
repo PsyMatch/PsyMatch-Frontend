@@ -1,54 +1,63 @@
 import { toast } from 'react-toastify';
+import { useCallback, useMemo } from 'react';
 
 export const useNotifications = () => {
-  const success = (message: string) => {
-    toast.success(message, {
-      position: 'top-right',
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-    });
-  };
+    const success = useCallback((message: string) => {
+        toast.success(message, {
+            position: 'top-right',
+            autoClose: false,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            closeButton: true,
+        });
+    }, []);
 
-  const error = (message: string) => {
-    toast.error(message, {
-      position: 'top-right',
-      autoClose: 5000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-    });
-  };
+    const error = useCallback((message: string) => {
+        toast.error(message, {
+            position: 'top-right',
+            autoClose: false,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            closeButton: true,
+        });
+    }, []);
 
-  const warning = (message: string) => {
-    toast.warning(message, {
-      position: 'top-right',
-      autoClose: 4000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-    });
-  };
+    const warning = useCallback((message: string) => {
+        toast.warning(message, {
+            position: 'top-right',
+            autoClose: false,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            closeButton: true,
+        });
+    }, []);
 
-  const info = (message: string) => {
-    toast.info(message, {
-      position: 'top-right',
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-    });
-  };
+    const info = useCallback((message: string) => {
+        toast.info(message, {
+            position: 'top-right',
+            autoClose: false,
+            hideProgressBar: false,
+            closeOnClick: false,
+            pauseOnHover: true,
+            draggable: true,
+            closeButton: true,
+        });
+    }, []);
 
-  return {
-    success,
-    error,
-    warning,
-    info,
-  };
+    // Devolver un objeto memoizado para mantener la referencia estable
+    return useMemo(
+        () => ({
+            success,
+            error,
+            warning,
+            info,
+        }),
+        [success, error, warning, info]
+    );
 };

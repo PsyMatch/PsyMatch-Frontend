@@ -1,6 +1,6 @@
 'use client';
-
-import MenuNavegacion from '../../../components/dashboard-profesional/MenuNavegacion';
+import dynamic from 'next/dynamic';
+const MenuNavegacion = dynamic(() => import('../../../components/dashboard-profesional/MenuNavegacion'), { ssr: false });
 import Cookies from 'js-cookie';
 import PendingProfessional from '../PendingProfessional';
 import { useEffect, useState } from 'react';

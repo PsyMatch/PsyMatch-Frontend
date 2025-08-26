@@ -1,9 +1,8 @@
 'use client';
 import Button from '@/components/ui/button';
-import Input from '@/components/ui/input';
 import { useState, Suspense } from 'react';
-import { ErrorMessage, Field, Form, Formik } from 'formik';
-import { toast } from 'react-toastify';
+import { Form, Formik } from 'formik';
+import { useNotifications } from '@/hooks/useNotifications';
 import { useRouter, useSearchParams } from 'next/navigation';
 import CustomPasswordInput from '@/components/ui/Custom-password-input';
 
@@ -11,8 +10,9 @@ const ChangePasswordForm = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const token = searchParams?.get('token');
+    const notifications = useNotifications();
 
-    const [boton, setBoton] = useState(false);
+    const [_boton, _setBoton] = useState(false);
 
     return (
         <div className="flex flex-col items-center min-h-screen gap-4 pt-16 bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -32,7 +32,7 @@ const ChangePasswordForm = () => {
                 }}
                 onSubmit={async (values, { setSubmitting }) => {
                     try {
-                        setBoton(true);
+                        _setBoton(true);
                         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password`, {
                             method: 'POST',
                             headers: {
@@ -47,46 +47,26 @@ const ChangePasswordForm = () => {
                         const response = await res.json();
 
                         if (res.ok) {
-                            toast.success(`${response.message}`, {
-                                position: 'top-center',
-                                type: 'success',
-                                isLoading: false,
-                                autoClose: 2500,
-                                closeOnClick: true,
-                                draggable: true,
-                            });
+                            notifications.success(`${response.message}`);
 
                             setTimeout(() => {
                                 router.push('/login');
-                            }, 3300);
+                            }, 2000);
                         } else {
-                            toast.error(`${response.message || 'Error al cambiar la contraseña'}`, {
-                                position: 'top-center',
-                                type: 'error',
-                                autoClose: 3000,
-                                closeOnClick: true,
-                                draggable: true,
-                            });
+                            notifications.error(`${response.message || 'Error al cambiar la contraseña'}`);
                         }
-                    } catch (err) {
-                        console.log('Error', err);
-                        toast.error('Error de conexión. Inténtalo de nuevo.', {
-                            position: 'top-center',
-                            type: 'error',
-                            autoClose: 3000,
-                            closeOnClick: true,
-                            draggable: true,
-                        });
+                    } catch (_err) {
+                        notifications.error('Error de conexión. Inténtalo de nuevo.');
                     } finally {
                         setSubmitting(false);
-                        setBoton(false);
+                        _setBoton(false);
                     }
                 }}
             >
                 {({ isSubmitting, handleChange, handleBlur, values, errors, touched }) => (
                     <Form className="flex flex-col items-center h-56 w-[30%]">
                         <h1 className="text-[26px] font-bold mb-5">Crea una nueva contraseña</h1>
-                        <div className="mt-2 w-full">
+                        <div className="w-full mt-2">
                             <CustomPasswordInput
                                 label="Nueva contraseña"
                                 id="newPassword"
@@ -97,7 +77,7 @@ const ChangePasswordForm = () => {
                                 error={errors.newPassword && touched.newPassword && errors.newPassword}
                             />
                         </div>
-                        <div className="my-2 w-full">
+                        <div className="w-full my-2">
                             <CustomPasswordInput
                                 label="Confirmar contraseña"
                                 id="confirmPassword"
@@ -108,7 +88,7 @@ const ChangePasswordForm = () => {
                                 error={errors.confirmPassword && touched.confirmPassword && errors.confirmPassword}
                             />
                         </div>
-                        <span className="text-xs my-2 text-center">Una vez hecho el cambio te redirigiremos a iniciar sesión</span>
+                        <span className="my-2 text-xs text-center">Una vez hecho el cambio te redirigiremos a iniciar sesión</span>
                         <div className="flex flex-col pt-2 space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">
                             <Button
                                 type="submit"
