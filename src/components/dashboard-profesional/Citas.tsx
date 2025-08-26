@@ -1,12 +1,17 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { appointmentsService, AppointmentResponse } from '@/services/appointments';
 import { getAppointmentDisplayStatus, AppointmentWithPayment, StatusInfo } from '@/services/appointmentStatus';
 import { useNotifications } from '@/hooks/useNotifications';
 
 const Citas = () => {
+    const searchParams = useSearchParams();
+    const router = useRouter();
     const [citas, setCitas] = useState<AppointmentResponse[]>([]);
     const [loading, setLoading] = useState(true);
+    const filtroInicial = (searchParams?.get('filter') as 'todos' | 'pendientes' | 'aceptadas' | 'canceladas') || 'todos';
+    const [filtroActivo, setFiltroActivo] = useState<'todos' | 'pendientes' | 'aceptadas' | 'canceladas'>(filtroInicial);
     const notifications = useNotifications();
 
     useEffect(() => {
@@ -36,14 +41,74 @@ const Citas = () => {
         loadAppointments();
     }, [notifications]);
 
-    // Función para confirmar cita (legacy - se mantiene por compatibilidad)
-    const _confirmAppointment = async (id: string) => {
-        return handleApproveAppointment(id);
+    // Función para obtener el estado con información completa (movida aquí para evitar errores de referencia)
+    const getStatusInfo = (appointment: AppointmentResponse): StatusInfo => {
+        // Convertir AppointmentResponse a AppointmentWithPayment
+        const appointmentWithPayment: AppointmentWithPayment = {
+            ...appointment,
+            
+        };
+        return getAppointmentDisplayStatus(appointmentWithPayment);
     };
 
-    // Función para completar cita (legacy - se mantiene por compatibilidad)
-    const _completeAppointment = async (id: string) => {
-        return handleMarkCompleted(id);
+    // Sincronizar filtro con URL cuando cambien los searchParams
+    useEffect(() => {
+        const filter = searchParams?.get('filter') as 'todos' | 'pendientes' | 'aceptadas' | 'canceladas';
+        if (filter && filter !== filtroActivo) {
+            setFiltroActivo(filter);
+        }
+    }, [searchParams, filtroActivo]);
+
+    // Función para cambiar filtro y actualizar URL
+    const cambiarFiltro = (nuevoFiltro: 'todos' | 'pendientes' | 'aceptadas' | 'canceladas') => {
+        setFiltroActivo(nuevoFiltro);
+        // Preservar el parámetro tab si existe
+        const currentTab = searchParams?.get('tab');
+        const newSearchParams = new URLSearchParams();
+        if (currentTab) newSearchParams.set('tab', currentTab);
+        newSearchParams.set('filter', nuevoFiltro);
+        router.replace(`?${newSearchParams.toString()}`, { scroll: false });
+    };
+
+    // Función para filtrar citas según el estado
+    const filtrarCitas = (citas: AppointmentResponse[]) => {
+        if (filtroActivo === 'todos') return citas;
+
+        return citas.filter((cita) => {
+            const statusInfo = getStatusInfo(cita);
+            
+            switch (filtroActivo) {
+                case 'pendientes':
+                    return statusInfo.status === 'pending_payment' || 
+                           statusInfo.status === 'pending_approval';
+                case 'aceptadas':
+                    return statusInfo.status === 'confirmed' || 
+                           statusInfo.status === 'completed';
+                case 'canceladas':
+                    return statusInfo.status === 'cancelled';
+                default:
+                    return true;
+            }
+        });
+    };
+
+    const citasFiltradas = filtrarCitas(citas);
+
+    // Calcular contadores para los filtros
+    const contadores = {
+        todos: citas.length,
+        pendientes: citas.filter((cita) => {
+            const statusInfo = getStatusInfo(cita);
+            return statusInfo.status === 'pending_payment' || statusInfo.status === 'pending_approval';
+        }).length,
+        aceptadas: citas.filter((cita) => {
+            const statusInfo = getStatusInfo(cita);
+            return statusInfo.status === 'confirmed' || statusInfo.status === 'completed';
+        }).length,
+        canceladas: citas.filter((cita) => {
+            const statusInfo = getStatusInfo(cita);
+            return statusInfo.status === 'cancelled';
+        }).length,
     };
 
     // Función para aprobar cita (nuevo)
@@ -116,11 +181,6 @@ const Citas = () => {
         }
     };
 
-    // Función para cancelar cita (legacy - mantener para compatibilidad)
-    const _cancelAppointment = async (id: string) => {
-        return handleCancelAppointment(id);
-    };
-
     // Función para formatear la fecha
     const formatDate = (dateString: string): string => {
         try {
@@ -137,17 +197,6 @@ const Citas = () => {
             console.error('Error formatting date:', error);
             return dateString;
         }
-    };
-
-    // Función para obtener el estado con información completa
-    const getStatusInfo = (appointment: AppointmentResponse): StatusInfo => {
-        // Convertir AppointmentResponse a AppointmentWithPayment
-        const appointmentWithPayment: AppointmentWithPayment = {
-            ...appointment,
-            // Por ahora no tenemos info de payment en AppointmentResponse
-            // En el futuro se podría hacer un join o fetch adicional
-        };
-        return getAppointmentDisplayStatus(appointmentWithPayment);
     };
 
     if (loading) {
@@ -170,10 +219,55 @@ const Citas = () => {
                 <h1 className="text-xl font-semibold text-black">Gestión de Citas</h1>
                 <span className="text-black">Gestiona tus citas programadas y disponibilidad</span>
             </div>
+
+            {/* Filtros */}
+            <div className="flex flex-wrap gap-2 mb-4">
+                <button
+                    onClick={() => cambiarFiltro('todos')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        filtroActivo === 'todos'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                >
+                    Todas ({contadores.todos})
+                </button>
+                <button
+                    onClick={() => cambiarFiltro('pendientes')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        filtroActivo === 'pendientes'
+                            ? 'bg-yellow-600 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                >
+                    Pendientes ({contadores.pendientes})
+                </button>
+                <button
+                    onClick={() => cambiarFiltro('aceptadas')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        filtroActivo === 'aceptadas'
+                            ? 'bg-green-600 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                >
+                    Aceptadas ({contadores.aceptadas})
+                </button>
+                <button
+                    onClick={() => cambiarFiltro('canceladas')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        filtroActivo === 'canceladas'
+                            ? 'bg-red-600 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                >
+                    Canceladas ({contadores.canceladas})
+                </button>
+            </div>
+
             <div>
-                {citas.length > 0 ? (
+                {citasFiltradas.length > 0 ? (
                     <ul className="space-y-4">
-                        {citas.map((cita, idx) => (
+                        {citasFiltradas.map((cita, idx) => (
                             <li key={cita.id || idx} className="border rounded-lg p-6 flex flex-col gap-3 bg-white shadow-sm">
                                 <div className="flex justify-between items-start">
                                     <div className="flex-1">
@@ -290,7 +384,13 @@ const Citas = () => {
                     </ul>
                 ) : (
                     <div className="text-center py-8">
-                        <p className="text-gray-500">No tienes citas programadas</p>
+                        <p className="text-gray-500 mb-4">
+                            {filtroActivo === 'todos' 
+                                ? 'No tienes citas programadas'
+                                : `No tienes citas ${filtroActivo === 'pendientes' ? 'pendientes' : 
+                                                    filtroActivo === 'aceptadas' ? 'aceptadas' : 'canceladas'}`
+                            }
+                        </p>
                     </div>
                 )}
             </div>

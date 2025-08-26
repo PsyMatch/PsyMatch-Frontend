@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
     try {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const _body = await request.json();
 
         // TODO: Implement signup logic here

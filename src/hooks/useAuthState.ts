@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import Cookies from 'js-cookie';
-import { useRouter } from 'next/navigation';
 
 interface AuthState {
     token: string | null;
@@ -15,8 +14,6 @@ export const useAuthState = () => {
         userRole: null,
         isAuthenticated: false,
     });
-
-    const _router = useRouter();
 
     const updateAuthState = useCallback(() => {
         const token = Cookies.get('auth_token') || null;
