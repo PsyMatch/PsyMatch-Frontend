@@ -154,6 +154,19 @@ const FlowbitePieChart: React.FC<FlowbitePieChartProps> = ({ data, title }) => {
           </button>
         </div>
       </div>
+
+      {/* Popover para información del gráfico */}
+      <div data-popover id="chart-info" role="tooltip" className="absolute z-10 invisible inline-block w-72 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 dark:text-gray-400 dark:bg-gray-800 dark:border-gray-600">
+        <div className="p-3 space-y-2">
+          <h3 className="font-semibold text-gray-900 dark:text-white">Información del Gráfico</h3>
+          <p>Este gráfico muestra la distribución de datos en forma circular, donde cada segmento representa una categoría.</p>
+          <div className="flex items-center">
+            <span className="w-2 h-2 bg-blue-600 rounded-full me-2"></span>
+            <span>Los colores ayudan a distinguir entre categorías</span>
+          </div>
+        </div>
+        <div data-popper-arrow></div>
+      </div>
     </div>
   );
 };

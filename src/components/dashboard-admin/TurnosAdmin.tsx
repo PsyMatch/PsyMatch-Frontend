@@ -1,5 +1,6 @@
 import { envs } from '@/config/envs.config';
 import { useEffect, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { getAppointmentDisplayStatus, AppointmentWithPayment, StatusInfo } from '@/services/appointmentStatus';
 
@@ -34,9 +35,13 @@ interface Appointment extends AppointmentWithPayment {
 }
 
 const TurnosAdmin = () => {
+    const searchParams = useSearchParams();
+    const router = useRouter();
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+    const filtroInicial = (searchParams?.get('filter') as 'todos' | 'pendientes' | 'aceptadas' | 'canceladas') || 'todos';
+    const [filtroActivo, setFiltroActivo] = useState<'todos' | 'pendientes' | 'aceptadas' | 'canceladas'>(filtroInicial);
 
     useEffect(() => {
         const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
@@ -58,6 +63,36 @@ const TurnosAdmin = () => {
         fetchData();
     }, []);
 
+    // Effect para manejar el scroll del body cuando el modal esté abierto
+    useEffect(() => {
+        if (selectedAppointment) {
+            // Bloquear scroll del body cuando el modal esté abierto
+            document.body.style.overflow = 'hidden';
+            
+            // Manejar tecla Escape para cerrar modal
+            const handleEscape = (e: KeyboardEvent) => {
+                if (e.key === 'Escape') {
+                    setSelectedAppointment(null);
+                }
+            };
+            
+            document.addEventListener('keydown', handleEscape);
+            
+            return () => {
+                document.removeEventListener('keydown', handleEscape);
+            };
+        } else {
+            // Restaurar scroll del body cuando el modal se cierre
+            document.body.style.overflow = 'unset';
+        }
+
+        // Cleanup al desmontar el componente
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [selectedAppointment]);
+
+    // Funciones de formateo (deben estar antes de las funciones de filtrado)
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('es-ES', {
             year: 'numeric',
@@ -90,6 +125,66 @@ const TurnosAdmin = () => {
         return 'No definido';
     };
 
+    // Sincronizar filtro con URL cuando cambien los searchParams
+    useEffect(() => {
+        const filter = searchParams?.get('filter') as 'todos' | 'pendientes' | 'aceptadas' | 'canceladas';
+        if (filter && filter !== filtroActivo) {
+            setFiltroActivo(filter);
+        }
+    }, [searchParams, filtroActivo]);
+
+    // Función para cambiar filtro y actualizar URL
+    const cambiarFiltro = (nuevoFiltro: 'todos' | 'pendientes' | 'aceptadas' | 'canceladas') => {
+        setFiltroActivo(nuevoFiltro);
+        // Preservar el parámetro tab si existe
+        const currentTab = searchParams?.get('tab');
+        const newSearchParams = new URLSearchParams();
+        if (currentTab) newSearchParams.set('tab', currentTab);
+        newSearchParams.set('filter', nuevoFiltro);
+        router.replace(`?${newSearchParams.toString()}`, { scroll: false });
+    };
+
+    // Función para filtrar citas según el estado
+    const filtrarCitas = (citas: Appointment[]) => {
+        if (filtroActivo === 'todos') return citas;
+
+        return citas.filter((cita) => {
+            const statusInfo = formatStatus(cita);
+            
+            switch (filtroActivo) {
+                case 'pendientes':
+                    return statusInfo.status === 'pending_payment' || 
+                           statusInfo.status === 'pending_approval';
+                case 'aceptadas':
+                    return statusInfo.status === 'confirmed' || 
+                           statusInfo.status === 'completed';
+                case 'canceladas':
+                    return statusInfo.status === 'cancelled';
+                default:
+                    return true;
+            }
+        });
+    };
+
+    const citasFiltradas = filtrarCitas(appointments);
+
+    // Calcular contadores para los filtros
+    const contadores = {
+        todos: appointments.length,
+        pendientes: appointments.filter((cita) => {
+            const statusInfo = formatStatus(cita);
+            return statusInfo.status === 'pending_payment' || statusInfo.status === 'pending_approval';
+        }).length,
+        aceptadas: appointments.filter((cita) => {
+            const statusInfo = formatStatus(cita);
+            return statusInfo.status === 'confirmed' || statusInfo.status === 'completed';
+        }).length,
+        canceladas: appointments.filter((cita) => {
+            const statusInfo = formatStatus(cita);
+            return statusInfo.status === 'cancelled';
+        }).length,
+    };
+
     if (loading) {
         return (
             <div className="w-full min-h-[500px] flex items-center justify-center">
@@ -109,21 +204,74 @@ const TurnosAdmin = () => {
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800">Gestión de Citas</h2>
                 <div className="ml-auto bg-[#5046E7]/10 text-[#5046E7] px-3 py-1 rounded-full text-sm font-semibold">
-                    {appointments.length} citas
+                    {citasFiltradas.length} de {appointments.length} citas
                 </div>
+            </div>
+
+            {/* Filtros */}
+            <div className="flex flex-wrap gap-2 mb-6">
+                <button
+                    onClick={() => cambiarFiltro('todos')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        filtroActivo === 'todos'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                >
+                    Todas ({contadores.todos})
+                </button>
+                <button
+                    onClick={() => cambiarFiltro('pendientes')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        filtroActivo === 'pendientes'
+                            ? 'bg-yellow-600 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                >
+                    Pendientes ({contadores.pendientes})
+                </button>
+                <button
+                    onClick={() => cambiarFiltro('aceptadas')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        filtroActivo === 'aceptadas'
+                            ? 'bg-green-600 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                >
+                    Aceptadas ({contadores.aceptadas})
+                </button>
+                <button
+                    onClick={() => cambiarFiltro('canceladas')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        filtroActivo === 'canceladas'
+                            ? 'bg-red-600 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                >
+                    Canceladas ({contadores.canceladas})
+                </button>
             </div>
             
             <div className="flex-1">
-                {appointments.length === 0 ? (
+                {citasFiltradas.length === 0 ? (
                     <div className="flex items-center justify-center h-full">
                         <div className="bg-gradient-to-r from-[#5046E7]/10 to-[#6366F1]/10 border border-[#5046E7]/20 rounded-lg p-8 text-center w-full max-w-2xl">
                             <div className="flex flex-col items-center gap-4">
                                 <div className="w-16 h-16 bg-[#5046E7]/20 rounded-full flex items-center justify-center">
                                     <span className="text-2xl">📋</span>
                                 </div>
-                                <h3 className="text-xl font-semibold text-gray-700">No hay citas registradas</h3>
+                                <h3 className="text-xl font-semibold text-gray-700">
+                                    {filtroActivo === 'todos' 
+                                        ? 'No hay citas registradas'
+                                        : `No hay citas ${filtroActivo === 'pendientes' ? 'pendientes' : 
+                                                        filtroActivo === 'aceptadas' ? 'aceptadas' : 'canceladas'}`
+                                    }
+                                </h3>
                                 <p className="max-w-md text-gray-500">
-                                    Aún no se han programado citas en el sistema. Las citas aparecerán aquí cuando los pacientes las reserven.
+                                    {filtroActivo === 'todos' 
+                                        ? 'Aún no se han programado citas en el sistema. Las citas aparecerán aquí cuando los pacientes las reserven.'
+                                        : `No se encontraron citas con el estado "${filtroActivo}".`
+                                    }
                                 </p>
                             </div>
                         </div>
@@ -155,7 +303,7 @@ const TurnosAdmin = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {appointments.map((appointment) => {
+                                    {citasFiltradas.map((appointment) => {
                                         const statusInfo = formatStatus(appointment);
                                         return (
                                             <tr key={appointment.id} className="hover:bg-gray-50">
@@ -222,8 +370,16 @@ const TurnosAdmin = () => {
 
             {/* Modal de Detalles Completos */}
             {selectedAppointment && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-                    <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div 
+                    className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm"
+                    onClick={(e) => {
+                        // Cerrar modal al hacer clic en el backdrop
+                        if (e.target === e.currentTarget) {
+                            setSelectedAppointment(null);
+                        }
+                    }}
+                >
+                    <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative z-[10000]">
                         <div className="p-6 border-b border-gray-200">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-xl font-bold text-gray-800">Detalles Completos de la Cita</h3>

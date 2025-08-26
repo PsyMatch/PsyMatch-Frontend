@@ -22,7 +22,7 @@ const PendingProfessional = () => {
                 </div>
             </div>
             <div className="mt-6">
-                <a href="" className="flex flex-row items-center px-6 w-fit bg-violet-200 rounded-xl">¿Tenés dudas? Contactanos aquí <Pointer className="h-5 ml-2"/></a>
+                <a href="/soporte" className="flex flex-row items-center px-6 w-fit bg-violet-200 rounded-xl">¿Tenés dudas? Contactanos aquí <Pointer className="h-5 ml-2"/></a>
             </div>
         </div>
     );

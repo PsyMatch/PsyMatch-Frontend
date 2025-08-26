@@ -25,7 +25,7 @@ const Navbar = () => {
     const [userRole, setUserRole] = useState<string | null>(null);
     const [alertMessage, setAlertMessage] = useState('');
 
-    const { isAuth: _isAuth, resetUserData } = useAuthProfessionalContext();
+    const { resetUserData } = useAuthProfessionalContext();
     const { logout } = useAuth();
     const pathname = usePathname();
 

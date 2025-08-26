@@ -28,22 +28,25 @@ const getInitialValues = (): ValoresInfoProfesional => {
     const cookieData = getCookieObject();
     return cookieData
         ? {
-              personal_biography: cookieData.personal_biography || '',
-              languages: cookieData.languages || [],
-              license_number: cookieData.license_number || '',
-              professional_title: cookieData.professional_title || '',
-              professional_experience: cookieData.professional_experience || '',
-              office_address: cookieData.office_address || '',
+            personal_biography: cookieData.personal_biography || '',
+            languages: cookieData.languages || [],
+            license_number: cookieData.license_number || '',
+            professional_title: cookieData.professional_title || '',
+            professional_experience: cookieData?.professional_experience != null
+                ? Number(cookieData.professional_experience)
+                : 0,
+            office_address: cookieData.office_address || 0,
           }
         : {
               personal_biography: '',
               languages: [],
               license_number: '',
               professional_title: '',
-              professional_experience: '',
+              professional_experience: null,
               office_address: '',
           };
 };
+
 
 const InfoProfesional = () => {
     const { avanzarPaso } = useBotonesRegisterContext();
@@ -272,7 +275,7 @@ const InfoProfesional = () => {
                             <label className="text-sm font-medium text-gray-700" htmlFor="license_number">
                                 Nro de Matricula Profesional *
                             </label>
-                            <ErrorMessage name="license_number" component="div" className="mt-1 text-red-500" />
+                            <ErrorMessage name="license" component="div" className="mt-1 text-red-500" />
                             <Field
                                 name="license_number"
                                 type="number"
