@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { appointmentsService, AppointmentResponse } from '@/services/appointments';
 import { useNotifications } from '@/hooks/useNotifications';
+import Link from 'next/link';
 
 interface PatientInfo {
     id: string;
@@ -153,6 +154,13 @@ const Pacientes = () => {
                                             )}
                                         </div>
                                     </div>
+                                        <div className="flex flex-col sm:flex-col gap-2 md:gap-3 w-full sm:w-auto sm:flex-shrink-0">
+                                            <Link href={`/profile/${patient.id}`} className="w-full">
+                                                <button className="w-full sm:min-w-[120px] px-3 md:px-4 py-2 border border-gray-300 text-gray-700 text-sm md:text-base rounded-md hover:bg-gray-50 transition-colors">
+                                                    Ver Perfil
+                                                </button>
+                                            </Link>
+                                        </div>
                                 </div>
                             </div>
                         ))}
