@@ -35,10 +35,10 @@ const CitasUser = () => {
         };
 
         loadAppointments();
-    }, []);
+    }, [notifications]);
 
     // Función para cancelar cita usando el nuevo servicio (legacy)
-    const cancelarCita = async (id: string) => {
+    const _cancelarCita = async (id: string) => {
         return handleCancelAppointment(id);
     };
 
@@ -46,14 +46,14 @@ const CitasUser = () => {
     const handleMarkCompleted = async (id: string) => {
         try {
             await appointmentsService.markAsCompleted(id);
-            
+
             // Actualizar la lista local
             setCitas((prev) => prev.map((cita) => (cita.id === id ? { ...cita, status: 'completed' } : cita)));
-            
+
             notifications.success('Cita marcada como realizada exitosamente.');
         } catch (error) {
             console.error('Error marking appointment as completed:', error);
-            
+
             const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
             if (errorMessage.includes('Authentication failed')) {
                 notifications.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
@@ -72,10 +72,8 @@ const CitasUser = () => {
 
         try {
             await appointmentsService.cancelAppointment(id);
-
-            // Actualizar la lista local - eliminar la cita cancelada
-            setCitas((prev) => prev.filter((cita) => cita.id !== id));
-            
+            // Actualizar la lista local - marcar la cita como cancelada
+            setCitas((prev) => prev.map((cita) => (cita.id === id ? { ...cita, status: 'cancelled' } : cita)));
             notifications.success('Cita cancelada exitosamente.');
         } catch (error) {
             console.error('Error cancelling appointment:', error);
@@ -202,7 +200,10 @@ const CitasUser = () => {
                                         {(() => {
                                             const statusInfo = getStatusInfo(cita);
                                             return (
-                                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusInfo.color}`} title={statusInfo.description}>
+                                                <span
+                                                    className={`px-3 py-1 rounded-full text-xs font-semibold ${statusInfo.color}`}
+                                                    title={statusInfo.description}
+                                                >
                                                     {statusInfo.label}
                                                 </span>
                                             );

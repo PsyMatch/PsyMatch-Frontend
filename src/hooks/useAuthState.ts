@@ -16,7 +16,7 @@ export const useAuthState = () => {
         isAuthenticated: false,
     });
 
-    const router = useRouter();
+    const _router = useRouter();
 
     const updateAuthState = useCallback(() => {
         const token = Cookies.get('auth_token') || null;
@@ -53,6 +53,6 @@ export const useAuthState = () => {
     return {
         ...authState,
         triggerAuthChange,
-        updateAuthState
+        updateAuthState,
     };
 };

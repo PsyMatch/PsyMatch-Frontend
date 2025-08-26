@@ -30,7 +30,7 @@ const SessionPage = () => {
     const [modality, setModality] = useState('');
     const [userId, setUserId] = useState<string>('');
     const [isClient, setIsClient] = useState(false);
-    
+
     // Estados para el flujo de pago
     const [showPayment, setShowPayment] = useState(false);
     const [createdAppointment, setCreatedAppointment] = useState<AppointmentResponse | null>(null);
@@ -198,7 +198,7 @@ const SessionPage = () => {
 
             return () => clearInterval(interval);
         }
-    }, [selectedTime, selectedDate, isTimeAvailable]);
+    }, [selectedTime, selectedDate, isTimeAvailable, notifications]);
 
     const handleDateChange = (date: string) => {
         setSelectedDate(date);
@@ -270,11 +270,9 @@ const SessionPage = () => {
             // Crear la cita usando el servicio
             const newAppointment = await appointmentsService.createAppointment(appointmentData);
 
-            
             // Guardar la cita creada y mostrar el componente de pago
             setCreatedAppointment(newAppointment);
             setShowPayment(true);
-            
         } catch (error: unknown) {
             console.error('Error al crear la cita:', error);
 
@@ -316,17 +314,16 @@ const SessionPage = () => {
 
         try {
             setLoading(true);
-            
+
             // Actualizar el estado de la cita a CONFIRMED
             await appointmentsService.updateAppointment(createdAppointment.id, {
-                status: 'confirmed'
+                status: 'confirmed',
             });
 
             notifications.success('¡Turno confirmado exitosamente! Te hemos enviado un email con los detalles.');
-            
+
             // Redirigir al dashboard del usuario
             router.push('/dashboard/user');
-            
         } catch (error) {
             console.error('Error confirmando la cita:', error);
             notifications.error('Hubo un error al confirmar el turno. Contacta con soporte.');
@@ -393,11 +390,9 @@ const SessionPage = () => {
                         <p className="mb-4 text-green-700">
                             Tu cita con {psychologist.name} para el {formatDisplayDate(selectedDate)} a las {selectedTime} ha sido creada.
                         </p>
-                        <p className="text-sm text-green-600">
-                            Ahora necesitas completar el pago para confirmar tu turno.
-                        </p>
+                        <p className="text-sm text-green-600">Ahora necesitas completar el pago para confirmar tu turno.</p>
                     </div>
-                    
+
                     <MercadoPagoPayment
                         amount={psychologist.consultation_fee || 5000}
                         appointmentId={createdAppointment.id}
@@ -405,15 +400,11 @@ const SessionPage = () => {
                         onError={handlePaymentError}
                         disabled={loading}
                     />
-                    
+
                     {paymentCompleted && (
                         <div className="p-6 mt-6 border border-blue-200 rounded-lg bg-blue-50">
-                            <h3 className="mb-3 text-lg font-semibold text-blue-800">
-                                ¡Pago Procesado!
-                            </h3>
-                            <p className="mb-4 text-blue-700">
-                                Una vez que MercadoPago confirme tu pago, podrás confirmar definitivamente tu turno.
-                            </p>
+                            <h3 className="mb-3 text-lg font-semibold text-blue-800">¡Pago Procesado!</h3>
+                            <p className="mb-4 text-blue-700">Una vez que MercadoPago confirme tu pago, podrás confirmar definitivamente tu turno.</p>
                             <button
                                 onClick={handleConfirmAppointment}
                                 disabled={loading}
@@ -423,7 +414,7 @@ const SessionPage = () => {
                             </button>
                         </div>
                     )}
-                    
+
                     <div className="mt-4">
                         <button
                             onClick={() => {
