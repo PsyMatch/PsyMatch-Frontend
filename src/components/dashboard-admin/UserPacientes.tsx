@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { adminService } from '@/services/admin';
 import { useNotifications } from '@/hooks/useNotifications';
 
@@ -20,18 +20,25 @@ interface Paciente {
 
 interface UserPacientesProps {
     data: Paciente[];
+    onUserUpdate?: (userId: string, updates: Partial<Paciente>) => void;
 }
 
-const UserPacientes = ({ data }: UserPacientesProps) => {
+const UserPacientes = ({ data, onUserUpdate }: UserPacientesProps) => {
     const notifications = useNotifications();
     const [loading, setLoading] = useState<string | null>(null);
+    const [localData, setLocalData] = useState<Paciente[]>(data);
     const [confirmAction, setConfirmAction] = useState<{
         userId: string;
         action: 'promote' | 'ban' | 'unban';
         userName: string;
     } | null>(null);
 
-    const pacientes = data.filter((u) => u.role === 'Paciente');
+    const pacientes = localData.filter((u) => u.role === 'Paciente');
+
+    // Sincronizar con nuevos datos cuando cambien las props
+    useEffect(() => {
+        setLocalData(data);
+    }, [data]);
 
     const handleUserAction = async (userId: string, action: 'promote' | 'ban' | 'unban') => {
         setLoading(userId);
@@ -50,7 +57,27 @@ const UserPacientes = ({ data }: UserPacientesProps) => {
             if (result?.success) {
                 notifications.success(`Usuario ${action === 'promote' ? 'promovido' : action === 'ban' ? 'baneado' : 'desbaneado'} exitosamente`);
                 setConfirmAction(null);
-                window.location.reload();
+                
+                // Actualizar el estado global y local
+                if (action === 'promote') {
+                    // Si se promueve a admin, actualizar en el estado global y remover localmente
+                    onUserUpdate?.(userId, { role: 'Administrador' });
+                    setLocalData(prevData => prevData.filter(user => user.id !== userId));
+                } else if (action === 'ban') {
+                    // Si se banea, actualizar en el estado global y remover localmente
+                    onUserUpdate?.(userId, { is_active: false });
+                    setLocalData(prevData => prevData.filter(user => user.id !== userId));
+                } else if (action === 'unban') {
+                    // Si se desbanea, actualizar en el estado global y mantener en la lista
+                    onUserUpdate?.(userId, { is_active: true });
+                    setLocalData(prevData => 
+                        prevData.map(user => 
+                            user.id === userId 
+                                ? { ...user, is_active: true }
+                                : user
+                        )
+                    );
+                }
             } else {
                 notifications.error(result?.message || `Error al ${action === 'promote' ? 'promover' : action === 'ban' ? 'banear' : 'desbanear'} usuario`);
             }

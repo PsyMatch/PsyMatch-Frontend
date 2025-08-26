@@ -21,9 +21,10 @@ interface Paciente {
 
 interface UserProfessionalsProps {
     data: Paciente[];
+    onUserUpdate?: (userId: string, updates: Partial<Paciente>) => void;
 }
 
-const UserProfessionals = ({ data }: UserProfessionalsProps) => {
+const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
     const [loading, setLoading] = useState<string | null>(null);
     const [confirmAction, setConfirmAction] = useState<{
         userId: string;
@@ -125,11 +126,31 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                     return;
             }
 
-            if (result.success) {
+            if (result.success && (action === 'promote' || action === 'ban' || action === 'unban')) {
+                // Actualizar el estado global y local
+                if (action === 'promote') {
+                    // Si se promueve a admin, actualizar en el estado global y remover localmente
+                    onUserUpdate?.(userId, { role: 'Administrador' });
+                    setLocalData(prev => prev.filter(user => user.id !== userId));
+                } else if (action === 'ban') {
+                    // Si se banea, actualizar en el estado global y remover localmente
+                    onUserUpdate?.(userId, { is_active: false });
+                    setLocalData(prev => prev.filter(user => user.id !== userId));
+                } else if (action === 'unban') {
+                    // Si se desbanea, actualizar en el estado global y mantener en la lista
+                    onUserUpdate?.(userId, { is_active: true });
+                    setLocalData(prev => 
+                        prev.map(user => 
+                            user.id === userId 
+                                ? { ...user, is_active: true }
+                                : user
+                        )
+                    );
+                }
+                
                 const actionText = action === 'promote' ? 'promovido' : action === 'ban' ? 'baneado' : 'desbaneado';
                 notifications.success(`Usuario ${actionText} exitosamente`);
-                window.location.reload(); // Recargar para ver cambios
-            } else {
+            } else if (!result.success) {
                 notifications.error(`Error: ${result.message}`);
             }
         } catch (error) {
