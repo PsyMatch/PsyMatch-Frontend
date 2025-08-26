@@ -5,7 +5,7 @@ const getAuthToken = () => {
     const token = localStorage.getItem('authToken') || 
                   Cookies.get('authToken') || 
                   Cookies.get('auth_token');
-    console.log('🔑 Token obtenido:', token ? 'Token presente' : 'Token NO encontrado');
+    // console.log('🔑 Token obtenido:', token ? 'Token presente' : 'Token NO encontrado');
     return token;
 };
 
