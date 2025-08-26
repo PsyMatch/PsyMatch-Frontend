@@ -1,8 +1,6 @@
 'use client';
-import { envs } from '@/config/envs.config';
 import Image from 'next/image';
 import { useState } from 'react';
-import Cookies from 'js-cookie';
 import { adminService } from '@/services/admin';
 import { useNotifications } from '@/hooks/useNotifications';
 
@@ -32,6 +30,8 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
         action: 'promote' | 'ban' | 'unban' | 'verify' | 'reject';
         userName: string;
     } | null>(null);
+    const [localData, setLocalData] = useState(data);
+    const [selectedProfile, setSelectedProfile] = useState<Paciente | null>(null);
     const notifications = useNotifications();
 
     const handleUserAction = async (userId: string, action: 'promote' | 'ban' | 'unban' | 'verify' | 'reject') => {
@@ -50,7 +50,7 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                                 ? { ...user, verified: 'Validado' }
                                 : user
                         ));
-                        alert('Psicólogo verificado exitosamente');
+                        notifications.success('Psicólogo verificado exitosamente');
                     }
                     break;
                 case 'reject':
@@ -62,7 +62,7 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                                 ? { ...user, verified: 'Rechazado' }
                                 : user
                         ));
-                        alert('Psicólogo rechazado exitosamente');
+                        notifications.success('Psicólogo rechazado exitosamente');
                     }
                     break;
                 case 'promote':
@@ -95,14 +95,23 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
     };
 
     const handleAccept = async (id: string) => {
-        const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
-        const response = await fetch(`${envs.next_public_api_url}/psychologist/verification/${id}/verify`, {
-            method: 'PUT',
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-        const _result = await response.json();
+        try {
+            await adminService.verifyPsychologist(id);
+            
+            // Actualizar el estado local
+            setLocalData(prevData => 
+                prevData.map(psicologo => 
+                    psicologo.id === id 
+                        ? { ...psicologo, isVerified: true }
+                        : psicologo
+                )
+            );
+            
+            notifications.success("Psicólogo aprobado exitosamente");
+        } catch (error) {
+            console.error("Error al aprobar psicólogo:", error);
+            notifications.error("Error al aprobar psicólogo");
+        }
     };
 
     const [filter, setFilter] = useState<'Pendiente' | 'Validado' | 'Rechazado'>('Pendiente');
@@ -142,15 +151,6 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                     onClick={() => setFilter('Validado')}
                 >
                     APROBADOS ({profesionales.filter((p) => p.verified === 'Validado').length})
-                </button>
-                <button
-                    type="button"
-                    className={`flex-1 h-full rounded-md transition-colors font-medium ${
-                        filter === "Rechazado" ? "bg-[#5046E7] text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-700"
-                    }`}
-                    onClick={() => setFilter("Rechazado")}
-                >
-                    RECHAZADOS ({profesionales.filter(p => p.verified === "Rechazado").length})
                 </button>
                 <button
                     type="button"
@@ -272,11 +272,7 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                                         <button
                                             className="px-4 py-2 bg-[#5046E7] text-white rounded-md hover:bg-[#4338CA] transition-colors text-sm font-medium"
                                             type="button"
-                                            onClick={() => {
-                                                // Aquí podrías abrir un modal con el perfil completo
-                                                // en lugar de navegar a otra página
-                                                notifications.info(`Ver perfil completo de ${psicologo.name} - ID: ${psicologo.id}`);
-                                            }}
+                                            onClick={() => setSelectedProfile(psicologo)}
                                         >
                                             Ver Perfil
                                         </button>
