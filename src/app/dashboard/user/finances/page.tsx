@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import PaymentHistory from '@/components/payments/PaymentHistory';
 import MercadoPagoPayment from '@/components/payments/MercadoPagoPayment';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export default function FinancesPage() {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
@@ -13,8 +14,10 @@ export default function FinancesPage() {
     window.location.reload(); // Temporal, idealmente usaríamos el refetch del hook
   };
 
+  const notifications = useNotifications();
+
   const handlePaymentError = (error: string) => {
-    alert(`Error en el pago: ${error}`);
+    notifications.error(`Error en el pago: ${error}`);
   };
 
   return (

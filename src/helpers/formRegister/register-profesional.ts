@@ -63,6 +63,22 @@ export const obrasSociales = [
 
 
 export interface Valores {
+    name: string,
+    email: string
+    phone: string,
+    password: string,
+    confirmPassword: string,
+    birthdate: string,
+    dni: string,
+    profile_picture: null,
+    personal_biography: string,
+    languages: [],
+    license_number: string,
+    professional_title: string,
+    professional_experience: string,
+    office_address: string,
+
+
     specialities: string[];
     therapy_approaches: string[];
     session_types: string[];
@@ -73,6 +89,21 @@ export interface Valores {
 }
 
 export const initialValuesTipos: Valores = {
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: '',
+    birthdate: '',
+    dni: '',
+    profile_picture: null,
+    personal_biography: '',
+    languages: [],
+    license_number: '',
+    professional_title: '',
+    professional_experience: '',
+    office_address: '',
+
     specialities: [],
     therapy_approaches: [],
     session_types: [],
@@ -91,7 +122,20 @@ export const validationSchema = Yup.object().shape({
 
     session_types: Yup.array().min(1, 'Selecciona al menos un tipo de sesión').required('Debes seleccionar tipos de sesión'),
 
-    modality: Yup.string().required('Debes seleccionar modalidad'),
+    modality: Yup.string()
+    .required('Debes seleccionar modalidad')
+    .test(
+      'presencial-requiere-direccion',
+      'Para seleccionar "Presencial" debes ingresar la dirección de tu oficina',
+      function (value) {
+        const { office_address } = this.parent; // accede a otros campos del formulario
+        // si el valor es "Presencial" y la dirección está vacía, retorna false
+        if (value === 'Presencial' && (!office_address || office_address.trim() === '')) {
+          return false;
+        }
+        return true; // pasa la validación en cualquier otro caso
+      }
+    ),
 
     availability: Yup.array().min(1, 'Selecciona al menos un día disponible').required('Debes seleccionar días disponibles'),
 

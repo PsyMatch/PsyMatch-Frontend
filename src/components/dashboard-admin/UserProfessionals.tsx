@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import Cookies from 'js-cookie';
 import { adminService } from '@/services/admin';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface Paciente {
     id: string;
@@ -31,6 +32,7 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
         action: 'promote' | 'ban' | 'unban';
         userName: string;
     } | null>(null);
+    const notifications = useNotifications();
 
     const handleUserAction = async (userId: string, action: 'promote' | 'ban' | 'unban') => {
         setLoading(userId);
@@ -55,14 +57,14 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
             if (result.success) {
                 const actionText = action === 'promote' ? 'promovido' : 
                                 action === 'ban' ? 'baneado' : 'desbaneado';
-                alert(`Usuario ${actionText} exitosamente`);
+                notifications.success(`Usuario ${actionText} exitosamente`);
                 window.location.reload(); // Recargar para ver cambios
             } else {
-                alert(`Error: ${result.message}`);
+                notifications.error(`Error: ${result.message}`);
             }
         } catch (error) {
             console.error('Error en la acción:', error);
-            alert('Error al ejecutar la acción');
+            notifications.error('Error al ejecutar la acción');
         } finally {
             setLoading(null);
             setConfirmAction(null);
@@ -78,7 +80,6 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
             },
         });
         const result = await response.json();
-        console.log(result);
     };
 
     const [filter, setFilter] = useState<'Pendiente' | 'Validado'>('Pendiente');
@@ -127,7 +128,7 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                             <h3 className="text-xl font-semibold text-gray-700">
                                 No hay psicólogos {filter.toLowerCase()}
                             </h3>
-                            <p className="text-gray-500 max-w-md">
+                            <p className="max-w-md text-gray-500">
                                 {filter === "Pendiente" 
                                     ? "No hay psicólogos esperando aprobación en este momento."
                                     : "No hay psicólogos aprobados aún."
@@ -136,12 +137,12 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                         </div>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                         {filtrados?.map((psicologo) => (
-                            <div key={psicologo.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all duration-200">
+                            <div key={psicologo.id} className="p-6 transition-all duration-200 bg-white border border-gray-200 rounded-lg hover:shadow-md">
                                 <div className="flex flex-col gap-4">
                                     <div className="flex items-start gap-4">
-                                        <div className="w-16 h-16 bg-gray-200 rounded-full flex-shrink-0">
+                                        <div className="flex-shrink-0 w-16 h-16 bg-gray-200 rounded-full">
                                             <Image 
                                                 src={psicologo.profile_picture || "/person-gray-photo-placeholder-woman.webp"} 
                                                 alt={`Foto de ${psicologo.name}`}
@@ -152,8 +153,8 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                                         </div>
                                         <div className="flex-1">
                                             <h3 className="font-bold text-[#5046E7] text-lg">{psicologo.name}</h3>
-                                            <p className="text-gray-600 text-sm">📧 {psicologo.email}</p>
-                                            <p className="text-gray-600 text-sm">📱 {psicologo.phone}</p>
+                                            <p className="text-sm text-gray-600">📧 {psicologo.email}</p>
+                                            <p className="text-sm text-gray-600">📱 {psicologo.phone}</p>
                                         </div>
                                         <div className="flex-shrink-0">
                                             <div className="flex flex-col gap-2">
@@ -181,11 +182,11 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                                         <p className="text-sm"><strong>Años de Experiencia:</strong> {psicologo.professional_experience}</p>
                                     </div>
                                     
-                                    <div className="flex gap-2 mt-4 flex-wrap">
+                                    <div className="flex flex-wrap gap-2 mt-4">
                                         {psicologo.verified === "Pendiente" && (
                                             <button  
                                                 onClick={() => setAlerta(true)} 
-                                                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
+                                                className="px-4 py-2 text-sm font-medium text-white transition-colors bg-green-600 rounded-md hover:bg-green-700"
                                                 type="button"
                                             >
                                                 Aprobar
@@ -198,7 +199,7 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                                             onClick={() => {
                                                 // Aquí podrías abrir un modal con el perfil completo
                                                 // en lugar de navegar a otra página
-                                                alert(`Ver perfil completo de ${psicologo.name} - ID: ${psicologo.id}`);
+                                                notifications.info(`Ver perfil completo de ${psicologo.name} - ID: ${psicologo.id}`);
                                             }}
                                         >
                                             Ver Perfil
@@ -212,7 +213,7 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                                                 userName: psicologo.name
                                             })}
                                             disabled={loading === psicologo.id}
-                                            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm font-medium disabled:opacity-50"
+                                            className="px-4 py-2 text-sm font-medium text-white transition-colors bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50"
                                         >
                                             {loading === psicologo.id ? 'Procesando...' : 'Promover a Admin'}
                                         </button>
@@ -226,7 +227,7 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                                                     userName: psicologo.name
                                                 })}
                                                 disabled={loading === psicologo.id}
-                                                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium disabled:opacity-50"
+                                                className="px-4 py-2 text-sm font-medium text-white transition-colors bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
                                             >
                                                 {loading === psicologo.id ? 'Procesando...' : 'Banear Usuario'}
                                             </button>
@@ -238,7 +239,7 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                                                     userName: psicologo.name
                                                 })}
                                                 disabled={loading === psicologo.id}
-                                                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50"
+                                                className="px-4 py-2 text-sm font-medium text-white transition-colors bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50"
                                             >
                                                 {loading === psicologo.id ? 'Procesando...' : 'Desbanear Usuario'}
                                             </button>
@@ -263,13 +264,13 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                                                         // En lugar de recargar la página, podrías actualizar el estado local
                                                         // setFilter(current => current === "Pendiente" ? "Validado" : current);
                                                     }}
-                                                    className="px-6 py-2 text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors"
+                                                    className="px-6 py-2 text-white transition-colors bg-green-600 rounded-md hover:bg-green-700"
                                                 >
                                                     Confirmar
                                                 </button>
                                                 <button
                                                     onClick={() => setAlerta(false)}
-                                                    className="px-6 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors"
+                                                    className="px-6 py-2 text-gray-700 transition-colors bg-gray-300 rounded-md hover:bg-gray-400"
                                                 >
                                                     Cancelar
                                                 </button>
@@ -285,17 +286,17 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
 
             {/* Modal de confirmación */}
             {confirmAction && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-                        <h3 className="text-lg font-semibold mb-4">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="w-full max-w-md p-6 mx-4 bg-white rounded-lg">
+                        <h3 className="mb-4 text-lg font-semibold">
                             Confirmar acción
                         </h3>
-                        <p className="text-gray-600 mb-6">
+                        <p className="mb-6 text-gray-600">
                             {confirmAction.action === 'promote' && `¿Estás seguro de que quieres promover a administrador a ${confirmAction.userName}?`}
                             {confirmAction.action === 'ban' && `¿Estás seguro de que quieres banear a ${confirmAction.userName}? Esta acción desactivará su cuenta.`}
                             {confirmAction.action === 'unban' && `¿Estás seguro de que quieres desbanear a ${confirmAction.userName}? Esta acción reactivará su cuenta.`}
                         </p>
-                        <div className="flex gap-4 justify-end">
+                        <div className="flex justify-end gap-4">
                             <button
                                 onClick={() => setConfirmAction(null)}
                                 className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"

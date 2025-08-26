@@ -76,7 +76,9 @@ export const AuthProfessionalProvider: FC<{ children: ReactNode }> = ({ children
             setToken(cookiesToken);
             setIsAuth(true);
         } else {
-            console.log('No hay cookie o token guardado');
+            if (!token) {
+                return;
+            }
         }
     }, []);
 

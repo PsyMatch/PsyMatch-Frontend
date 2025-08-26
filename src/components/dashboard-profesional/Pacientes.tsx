@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { appointmentsService, AppointmentResponse } from '@/services/appointments';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface PatientInfo {
     id: string;
@@ -14,6 +15,7 @@ interface PatientInfo {
 const Pacientes = () => {
     const [patients, setPatients] = useState<PatientInfo[]>([]);
     const [loading, setLoading] = useState(true);
+    const notifications = useNotifications();
 
     useEffect(() => {
         const loadPatients = async () => {
@@ -69,10 +71,10 @@ const Pacientes = () => {
 
                 const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
                 if (errorMessage.includes('Authentication failed') || errorMessage.includes('Token expired')) {
-                    alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                    notifications.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
                     window.location.href = '/login';
                 } else {
-                    alert('Ocurrió un error al cargar la lista de pacientes. Por favor, recarga la página.');
+                    notifications.error('Ocurrió un error al cargar la lista de pacientes. Por favor, recarga la página.');
                 }
             } finally {
                 setLoading(false);
@@ -105,7 +107,7 @@ const Pacientes = () => {
                     <span className="text-black">Cargando tu lista de pacientes...</span>
                 </div>
                 <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <div className="w-8 h-8 border-b-2 border-blue-600 rounded-full animate-spin"></div>
                 </div>
             </div>
         );
@@ -121,17 +123,17 @@ const Pacientes = () => {
                 {patients.length > 0 ? (
                     <div className="space-y-4">
                         {patients.map((patient) => (
-                            <div key={patient.id} className="bg-white border rounded-lg p-6 shadow-sm">
+                            <div key={patient.id} className="p-6 bg-white border rounded-lg shadow-sm">
                                 <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] gap-4 items-center">
                                     {/* Avatar placeholder */}
-                                    <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
-                                        <span className="text-white font-bold text-lg">{patient.name.charAt(0).toUpperCase()}</span>
+                                    <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-blue-600">
+                                        <span className="text-lg font-bold text-white">{patient.name.charAt(0).toUpperCase()}</span>
                                     </div>
 
                                     {/* Información del paciente */}
                                     <div className="flex flex-col gap-2">
-                                        <h3 className="font-bold text-lg text-black">{patient.name}</h3>
-                                        <p className="text-gray-600 text-sm">{patient.email}</p>
+                                        <h3 className="text-lg font-bold text-black">{patient.name}</h3>
+                                        <p className="text-sm text-gray-600">{patient.email}</p>
 
                                         <div className="flex flex-wrap gap-4 text-sm text-gray-500">
                                             <div>
@@ -151,36 +153,13 @@ const Pacientes = () => {
                                             )}
                                         </div>
                                     </div>
-
-                                    {/* Botones de acción */}
-                                    <div className="flex gap-2">
-                                        <button
-                                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
-                                            onClick={() => {
-                                                // TODO: Implementar funcionalidad de enviar mensaje
-                                                alert('Funcionalidad de mensajería próximamente disponible');
-                                            }}
-                                        >
-                                            Enviar Mensaje
-                                        </button>
-
-                                        <button
-                                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm font-medium"
-                                            onClick={() => {
-                                                // TODO: Implementar navegación al historial de citas del paciente
-                                                alert('Funcionalidad de historial próximamente disponible');
-                                            }}
-                                        >
-                                            Ver Historial
-                                        </button>
-                                    </div>
                                 </div>
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <div className="text-center py-8">
-                        <p className="text-gray-500 mb-4">No tienes pacientes registrados aún</p>
+                    <div className="py-8 text-center">
+                        <p className="mb-4 text-gray-500">No tienes pacientes registrados aún</p>
                         <p className="text-sm text-gray-400">Los pacientes aparecerán aquí cuando reserven citas contigo</p>
                     </div>
                 )}

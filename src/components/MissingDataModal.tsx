@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UpdateUserData } from '@/services/users';
-import { toast } from 'react-toastify';
+import { useNotifications } from '@/hooks/useNotifications';
 import { MapPinIcon } from 'lucide-react';
 import { envs } from '@/config/envs.config';
 
@@ -54,6 +54,7 @@ interface MapboxSuggestion {
 }
 
 export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave, onClose }) => {
+    const notifications = useNotifications();
     const [formData, setFormData] = useState<UpdateUserData>({
         alias: '',
         phone: '',
@@ -189,7 +190,7 @@ export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave
         e.preventDefault();
 
         if (!validateForm()) {
-            toast.error('Por favor, corrige los errores en el formulario');
+            notifications.error('Por favor, corrige los errores en el formulario');
             return;
         }
 
@@ -198,7 +199,7 @@ export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave
             await onSave(formData);
 
             // Mostrar mensaje de éxito
-            toast.success('Datos guardados exitosamente');
+            notifications.success('Datos guardados exitosamente');
 
             // Limpiar formulario
             setFormData({
@@ -218,7 +219,7 @@ export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave
             }
         } catch (error) {
             console.error('Error al guardar datos:', error);
-            toast.error('Error al guardar los datos. Inténtalo de nuevo.');
+            notifications.error('Error al guardar los datos. Inténtalo de nuevo.');
         } finally {
             setLoading(false);
         }
@@ -246,7 +247,7 @@ export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave
                             placeholder="Ej: Juan123"
                             value={formData.alias || ''}
                             onChange={(e) => handleInputChange('alias', e.target.value)}
-                            className={errors.alias ? 'border-red-500' : ''}
+                            className={errors.alias ? 'border-red-500 placeholder:text-gray-400' : 'placeholder:text-gray-400'}
                         />
                         {errors.alias && <p className="text-sm text-red-500">{errors.alias}</p>}
                     </div>
@@ -262,7 +263,7 @@ export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave
                             placeholder="Ej: +5411123456789"
                             value={formData.phone || ''}
                             onChange={(e) => handleInputChange('phone', e.target.value)}
-                            className={errors.phone ? 'border-red-500' : ''}
+                            className={errors.phone ? 'border-red-500 placeholder:text-gray-400' : 'placeholder:text-gray-400'}
                         />
                         {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
                     </div>
@@ -304,7 +305,7 @@ export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave
                                         }
                                     }, 300);
                                 }}
-                                className={errors.address ? 'border-red-500' : ''}
+                                className={errors.address ? 'border-red-500 placeholder:text-gray-400' : 'placeholder:text-gray-400'}
                                 autoComplete="off"
                             />
                         </div>
@@ -356,7 +357,7 @@ export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave
                             placeholder="Ej: María Pérez - +5411987654321 - Madre (opcional)"
                             value={formData.emergency_contact || ''}
                             onChange={(e) => handleInputChange('emergency_contact', e.target.value)}
-                            className={errors.emergency_contact ? 'border-red-500' : ''}
+                            className={errors.emergency_contact ? 'border-red-500 placeholder:text-gray-400' : 'placeholder:text-gray-400'}
                         />
                         {errors.emergency_contact && <p className="text-sm text-red-500">{errors.emergency_contact}</p>}
                     </div>

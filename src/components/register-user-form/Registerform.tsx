@@ -15,6 +15,7 @@ import Link from 'next/link';
 import Cookies from 'js-cookie';
 import { envs } from '@/config/envs.config';
 import { useNotifications } from '@/hooks/useNotifications';
+import { triggerAuthStateChange } from '@/utils/auth';
 
 const RegisterSchema = Yup.object().shape({
     fullName: Yup.string().min(2, 'El nombre debe tener al menos 2 caracteres').required('El nombre completo es requerido'),
@@ -62,7 +63,7 @@ export interface RegisterFormValues {
 interface MapboxSuggestion {
     id: string;
     place_name: string;
-    center: [number, number]; // [lng, lat]
+    center: [number, number];
     place_type: string[];
     relevance: number;
     context?: Array<{
@@ -83,7 +84,6 @@ export default function RegisterForm() {
     const [registerError, setRegisterError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    // Estados para autocompletado de direcciones
     const [addressSuggestions, setAddressSuggestions] = useState<MapboxSuggestion[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [selectedCoordinates, setSelectedCoordinates] = useState<{ lat: number; lng: number } | null>(null);
@@ -122,13 +122,9 @@ export default function RegisterForm() {
                 formData.append('emergency_contact', values.emergencyContact);
             }
 
-            // El backend maneja la foto de perfil de dos maneras:
-            // 1. Como archivo (usando FileInterceptor) - cuando se sube un archivo
-            // 2. Como string en el DTO - cuando no se sube archivo
             if (profileImageFile) {
                 formData.append('profile_picture', profileImageFile);
             } else {
-                // Si no hay archivo, enviamos una URL por defecto como string
                 formData.append(
                     'profile_picture',
                     'https://res.cloudinary.com/dibnkd72j/image/upload/v1755495603/default-pacient-profile-picture_kqpobf.webp'
@@ -144,13 +140,11 @@ export default function RegisterForm() {
 
             if (response.ok) {
                 notifications.success('¡Cuenta creada exitosamente! Bienvenido a PsyMatch');
-                
-                // Hacer login automático después del registro exitoso
+
                 await handleAutoLogin(values.email, values.password);
             } else {
                 setRegisterError(data.message || 'Error al crear la cuenta');
             }
-
         } catch (_error) {
             setRegisterError('Error de conexión. Intenta nuevamente.');
         } finally {
@@ -174,7 +168,6 @@ export default function RegisterForm() {
             const data = await response.json();
 
             if (response.ok) {
-                // Guardar token en Cookies
                 if (data.token) {
                     Cookies.set('auth_token', data.token);
                 }
@@ -187,15 +180,14 @@ export default function RegisterForm() {
                     Cookies.set('verified', data.data.verified);
                 }
 
-                // Redirigir al dashboard del usuario (todos los nuevos registros son pacientes)
+                triggerAuthStateChange();
+
                 router.push('/dashboard/user');
             } else {
-                // Si falla el login automático, redirigir a login manual
                 notifications.warning('Cuenta creada exitosamente. Por favor inicia sesión.');
                 router.push('/login');
             }
         } catch (_error) {
-            // Si falla el login automático, redirigir a login manual
             notifications.warning('Cuenta creada exitosamente. Por favor inicia sesión.');
             router.push('/login');
         }
@@ -222,7 +214,6 @@ export default function RegisterForm() {
 
         const MAPBOX_TOKEN = envs.next_public_mapbox_token;
         if (!MAPBOX_TOKEN) {
-            console.error('Mapbox access token no configurado');
             return;
         }
 
@@ -280,6 +271,13 @@ export default function RegisterForm() {
 
     return (
         <div className="w-full max-w-sm space-y-4 sm:max-w-md sm:space-y-6">
+            <div className="text-xs font-bold text-center text-gray-600 rounded sm:text-sm">
+                ¿Eres un profesional de salud mental?{' '}
+                <Link href="/register-professional" className="text-blue-600 hover:underline">
+                    Únete a Nuestra Red
+                </Link>
+            </div>
+
             <div className="space-y-2 text-center">
                 <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">Comenzar</h1>
                 <p className="text-sm text-gray-600 sm:text-base">Únete a miles de usuarios que han encontrado a su terapeuta ideal</p>
@@ -314,6 +312,7 @@ export default function RegisterForm() {
                                     label="Nombre Completo *"
                                     id="fullName"
                                     name="fullName"
+                                    placeholder='Nombre Apellido'
                                     onChange={handleChange}
                                     onBlur={handleBlur}
                                     value={values.fullName}
@@ -326,6 +325,7 @@ export default function RegisterForm() {
                                     label="Alias"
                                     id="alias"
                                     name="alias"
+                                    placeholder='Alias'
                                     onChange={handleChange}
                                     onBlur={handleBlur}
                                     value={values.alias}
@@ -352,6 +352,7 @@ export default function RegisterForm() {
                                     id="email"
                                     type="email"
                                     name="email"
+                                    placeholder='ejemplo@correo.com'
                                     onChange={handleChange}
                                     onBlur={handleBlur}
                                     value={values.email}
@@ -368,7 +369,7 @@ export default function RegisterForm() {
                                     onBlur={handleBlur}
                                     value={values.dni}
                                     error={errors.dni && touched.dni && errors.dni}
-                                    placeholder="Ej: 12345678"
+                                    placeholder="12345678"
                                 />
                             </div>
 
@@ -377,6 +378,7 @@ export default function RegisterForm() {
                                     label="Número de teléfono *"
                                     id="phone"
                                     name="phone"
+                                    placeholder="11 2345-6789"
                                     value={values.phone}
                                     onChange={(phone) => handleChange({ target: { name: 'phone', value: phone } })}
                                     onBlur={() => handleBlur({ target: { name: 'phone' } })}
@@ -386,8 +388,8 @@ export default function RegisterForm() {
                         </div>
 
                         <div className="mt-2 md:col-span-1">
-                            <div className="space-y-2 relative">
-                                <Label htmlFor="address" className="text-sm font-medium flex items-center gap-2">
+                            <div className="relative space-y-2">
+                                <Label htmlFor="address" className="flex items-center gap-2 text-sm font-medium">
                                     Dirección *
                                 </Label>
                                 <div ref={addressInputRef}>
@@ -408,7 +410,7 @@ export default function RegisterForm() {
                                             }, 300);
                                         }}
                                         onBlur={handleBlur}
-                                        className={`w-full px-3 py-2 text-sm bg-white border rounded-md shadow-sm focus:outline-none focus:ring-1 ${
+                                        className={`placeholder:text-gray-400 w-full px-3 py-2 text-sm bg-white border rounded-md shadow-sm focus:outline-none focus:ring-1 ${
                                             errors.address && touched.address
                                                 ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
                                                 : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
@@ -420,11 +422,11 @@ export default function RegisterForm() {
                                 {showSuggestions && (
                                     <div
                                         ref={suggestionsRef}
-                                        className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto mt-1"
+                                        className="absolute left-0 right-0 z-50 mt-1 overflow-y-auto bg-white border border-gray-300 rounded-md shadow-lg top-full max-h-60"
                                     >
                                         {isLoadingSuggestions ? (
-                                            <div className="text-sm font-medium flex items-center gap-2">
-                                                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                            <div className="flex items-center gap-2 text-sm font-medium">
+                                                <div className="w-4 h-4 border-2 border-blue-500 rounded-full border-t-transparent animate-spin"></div>
                                                 Buscando direcciones en Argentina...
                                             </div>
                                         ) : addressSuggestions.length > 0 ? (
@@ -432,19 +434,19 @@ export default function RegisterForm() {
                                                 <button
                                                     key={suggestion.id}
                                                     type="button"
-                                                    className="w-full text-left p-3 hover:bg-gray-50 text-sm border-b border-gray-200 last:border-b-0 transition-colors"
+                                                    className="w-full p-3 text-sm text-left transition-colors border-b border-gray-200 hover:bg-gray-50 last:border-b-0"
                                                     onClick={() => selectAddress(suggestion, setFieldValue)}
                                                 >
                                                     <div className="flex items-center gap-2">
                                                         <MapPinIcon className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
                                                         <div className="flex-1 min-w-0">
-                                                            <div className="text-sm flex items-center gap-2">{suggestion.place_name}</div>
+                                                            <div className="flex items-center gap-2 text-sm">{suggestion.place_name}</div>
                                                         </div>
                                                     </div>
                                                 </button>
                                             ))
                                         ) : (
-                                            <div className="p-3 text-sm text-gray-600 text-center">
+                                            <div className="p-3 text-sm text-center text-gray-600">
                                                 No se encontraron direcciones en Argentina. Intente con una búsqueda más específica.
                                             </div>
                                         )}
@@ -558,19 +560,12 @@ export default function RegisterForm() {
                                 {isLoading ? 'Creando Cuenta...' : 'Crear Cuenta'}
                             </Button>
                             <Link href="/login">
-                                <Button className="w-full text-black bg-white sm:flex-1 hover:text-blue-700">Iniciar Sesión</Button>
+                                <Button className="w-full text-black bg-white sm:flex-1 hover:text-white hover:bg-neutral-700">Iniciar Sesión</Button>
                             </Link>
                         </div>
                     </Form>
                 )}
             </Formik>
-
-            <div className="text-xs text-center text-gray-600 sm:text-sm">
-                ¿Eres un profesional de salud mental?{' '}
-                <Link href="/register-professional" className="text-blue-600 hover:underline">
-                    Únete a Nuestra Red
-                </Link>
-            </div>
         </div>
     );
 }

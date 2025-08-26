@@ -5,7 +5,6 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
 
         // TODO: Implement signup logic here
-        console.log('Signup request:', body);
 
         return NextResponse.json({ message: 'Signup endpoint - implementation pending' }, { status: 200 });
     } catch (error) {

@@ -252,6 +252,63 @@ const Filter = () => {
 
     const [ordenamientoSeleccionado, setOrdenamientoSeleccionado] = useState('rating');
 
+    // Clave para localStorage
+    const FILTERS_STORAGE_KEY = 'search-professionals-filters';
+
+    // Función para guardar filtros en localStorage
+    const saveFiltersToStorage = useCallback(
+        (filters: {
+            precioMin: string;
+            precioMax: string;
+            distanciaMax: string;
+            distanciaMaxInput: string;
+            modalidadSeleccionada: string;
+            idiomaSeleccionado: string;
+            obraSocialSeleccionada: string;
+            tipoTerapiaSeleccionado: string;
+            disponibilidadSeleccionada: string[];
+            enfoquesTerapiaSeleccionados: string[];
+            especialidadesSeleccionadas: string[];
+            ordenamientoSeleccionado: string;
+            busqueda: string;
+        }) => {
+            if (typeof window !== 'undefined') {
+                try {
+                    localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters));
+                } catch (error) {
+                    console.error('Error saving filters to localStorage:', error);
+                }
+            }
+        },
+        [FILTERS_STORAGE_KEY]
+    );
+
+    // Función para cargar filtros desde localStorage
+    const loadFiltersFromStorage = useCallback(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                const savedFilters = localStorage.getItem(FILTERS_STORAGE_KEY);
+                if (savedFilters) {
+                    return JSON.parse(savedFilters);
+                }
+            } catch (error) {
+                console.error('Error loading filters from localStorage:', error);
+            }
+        }
+        return null;
+    }, [FILTERS_STORAGE_KEY]);
+
+    // Función para limpiar filtros del localStorage
+    const clearFiltersFromStorage = useCallback(() => {
+        if (typeof window !== 'undefined') {
+            try {
+                localStorage.removeItem(FILTERS_STORAGE_KEY);
+            } catch (error) {
+                console.error('Error clearing filters from localStorage:', error);
+            }
+        }
+    }, [FILTERS_STORAGE_KEY]);
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             const target = event.target as HTMLElement;
@@ -271,6 +328,39 @@ const Filter = () => {
         return () => document.removeEventListener('click', handleClickOutside);
     }, []);
 
+    // Efecto para leer parámetros URL y aplicar filtros al cargar la página
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            // Primero cargar filtros guardados en localStorage
+            const savedFilters = loadFiltersFromStorage();
+            if (savedFilters) {
+                setPrecioMin(savedFilters.precioMin || '');
+                setPrecioMax(savedFilters.precioMax || '');
+                setDistanciaMax(savedFilters.distanciaMax || '');
+                setDistanciaMaxInput(savedFilters.distanciaMaxInput || '');
+                setModalidadSeleccionada(savedFilters.modalidadSeleccionada || '');
+                setIdiomaSeleccionado(savedFilters.idiomaSeleccionado || '');
+                setObraSocialSeleccionada(savedFilters.obraSocialSeleccionada || '');
+                setTipoTerapiaSeleccionado(savedFilters.tipoTerapiaSeleccionado || '');
+                setDisponibilidadSeleccionada(savedFilters.disponibilidadSeleccionada || []);
+                setEnfoquesTerapiaSeleccionados(savedFilters.enfoquesTerapiaSeleccionados || []);
+                setEspecialidadesSeleccionadas(savedFilters.especialidadesSeleccionadas || []);
+                setOrdenamientoSeleccionado(savedFilters.ordenamientoSeleccionado || 'rating');
+                setBusqueda(savedFilters.busqueda || '');
+            }
+
+            // Luego verificar parámetros URL y sobrescribir especialidades si existen
+            const searchParams = new URLSearchParams(window.location.search);
+            const especialidadesFromURL = searchParams.getAll('especialidades');
+
+            if (especialidadesFromURL.length > 0) {
+                // Filtrar especialidades válidas (que existan en la constante)
+                const especialidadesValidas = especialidadesFromURL.filter((especialidad) => especialidades.includes(especialidad));
+                setEspecialidadesSeleccionadas(especialidadesValidas);
+            }
+        }
+    }, [loadFiltersFromStorage]); // Solo ejecutar una vez al montar
+
     const limpiarFiltros = () => {
         setPrecioMin('');
         setPrecioMax('');
@@ -284,10 +374,58 @@ const Filter = () => {
         setDisponibilidadSeleccionada([]);
         setEnfoquesTerapiaSeleccionados([]);
         setEspecialidadesSeleccionadas([]);
+        setOrdenamientoSeleccionado('rating');
+        setBusqueda('');
         // Limpiar también las distancias calculadas y errores
         setPsychologistsWithDistance([]);
         setDistanceError('');
+        // Limpiar filtros del localStorage
+        clearFiltersFromStorage();
     };
+
+    // Efecto para guardar filtros automáticamente cuando cambien
+    useEffect(() => {
+        // Solo guardar si estamos en el cliente y después de la carga inicial
+        if (typeof window !== 'undefined') {
+            const currentFilters = {
+                precioMin,
+                precioMax,
+                distanciaMax,
+                distanciaMaxInput,
+                modalidadSeleccionada,
+                idiomaSeleccionado,
+                obraSocialSeleccionada,
+                tipoTerapiaSeleccionado,
+                disponibilidadSeleccionada,
+                enfoquesTerapiaSeleccionados,
+                especialidadesSeleccionadas,
+                ordenamientoSeleccionado,
+                busqueda,
+            };
+
+            // Debounce para evitar guardado excesivo
+            const timeoutId = setTimeout(() => {
+                saveFiltersToStorage(currentFilters);
+            }, 500); // Esperar 500ms después de que el usuario deje de interactuar
+
+            return () => clearTimeout(timeoutId);
+        }
+    }, [
+        precioMin,
+        precioMax,
+        distanciaMax,
+        distanciaMaxInput,
+        modalidadSeleccionada,
+        idiomaSeleccionado,
+        obraSocialSeleccionada,
+        tipoTerapiaSeleccionado,
+        disponibilidadSeleccionada,
+        enfoquesTerapiaSeleccionados,
+        especialidadesSeleccionadas,
+        ordenamientoSeleccionado,
+        busqueda,
+        saveFiltersToStorage,
+    ]);
 
     // Cargar distancias para ordenamiento cuando se seleccione ordenar por distancia
     useEffect(() => {

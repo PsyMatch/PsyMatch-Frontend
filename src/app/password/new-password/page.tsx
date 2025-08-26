@@ -3,13 +3,15 @@ import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import { useState, Suspense } from 'react';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
-import { toast } from 'react-toastify';
+import { useNotifications } from '@/hooks/useNotifications';
 import { useRouter, useSearchParams } from 'next/navigation';
+import CustomPasswordInput from '@/components/ui/Custom-password-input';
 
 const ChangePasswordForm = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const token = searchParams?.get('token');
+    const notifications = useNotifications();
 
     const [boton, setBoton] = useState(false);
 
@@ -46,73 +48,57 @@ const ChangePasswordForm = () => {
                         const response = await res.json();
 
                         if (res.ok) {
-                            toast.success(`${response.message}`, {
-                                position: 'top-center',
-                                type: 'success',
-                                isLoading: false,
-                                autoClose: 2500,
-                                closeOnClick: true,
-                                draggable: true,
-                            });
+                            notifications.success(`${response.message}`);
 
                             setTimeout(() => {
                                 router.push('/login');
-                            }, 3300);
+                            }, 2000);
                         } else {
-                            toast.error(`${response.message || 'Error al cambiar la contraseña'}`, {
-                                position: 'top-center',
-                                type: 'error',
-                                autoClose: 3000,
-                                closeOnClick: true,
-                                draggable: true,
-                            });
+                            notifications.error(`${response.message || 'Error al cambiar la contraseña'}`);
                         }
                     } catch (err) {
-                        console.log('Error', err);
-                        toast.error('Error de conexión. Inténtalo de nuevo.', {
-                            position: 'top-center',
-                            type: 'error',
-                            autoClose: 3000,
-                            closeOnClick: true,
-                            draggable: true,
-                        });
+                        notifications.error('Error de conexión. Inténtalo de nuevo.');
                     } finally {
                         setSubmitting(false);
                         setBoton(false);
                     }
                 }}
             >
-                {({ isSubmitting }) => (
+                {({ isSubmitting, handleChange, handleBlur, values, errors, touched }) => (
                     <Form className="flex flex-col items-center h-56 w-[30%]">
                         <h1 className="text-[26px] font-bold mb-5">Crea una nueva contraseña</h1>
-                        <div className="flex flex-col w-full mb-2">
-                            <label htmlFor="newPassword">Nueva contraseña</label>
-                            <Field
-                                as={Input}
-                                name="newPassword"
-                                type="password"
+                        <div className="w-full mt-2">
+                            <CustomPasswordInput
+                                label="Nueva contraseña"
                                 id="newPassword"
-                                className="h-8 mb-4"
-                                placeholder="nueva contraseña"
+                                name="newPassword"
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                value={values.newPassword}
+                                error={errors.newPassword && touched.newPassword && errors.newPassword}
                             />
-                            <ErrorMessage name="newPassword" component="div" className="text-xs text-red-500" />
                         </div>
-                        <div className="flex flex-col w-full mb-2">
-                            <label htmlFor="confirmPassword">Confirmar nueva contraseña</label>
-                            <Field
-                                as={Input}
-                                name="confirmPassword"
-                                type="password"
+                        <div className="w-full my-2">
+                            <CustomPasswordInput
+                                label="Confirmar contraseña"
                                 id="confirmPassword"
-                                className="h-8 mb-4"
-                                placeholder="confirmar nueva contraseña"
+                                name="confirmPassword"
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                value={values.confirmPassword}
+                                error={errors.confirmPassword && touched.confirmPassword && errors.confirmPassword}
                             />
-                            <ErrorMessage name="confirmPassword" component="div" className="text-xs text-red-500" />
                         </div>
-                        <span className="text-xs text-center">Una vez hecho el cambio te redirigiremos a iniciar sesión</span>
-                        <Button type="submit" className="mt-2 text-black w-fit bg-violet-300" disabled={isSubmitting}>
-                            Guardar nueva contraseña
-                        </Button>
+                        <span className="my-2 text-xs text-center">Una vez hecho el cambio te redirigiremos a iniciar sesión</span>
+                        <div className="flex flex-col pt-2 space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">
+                            <Button
+                                type="submit"
+                                className="w-full text-white bg-blue-600 sm:flex-1 hover:bg-blue-700 disabled:opacity-50"
+                                disabled={isSubmitting}
+                            >
+                                Guardar nueva contraseña
+                            </Button>
+                        </div>
                     </Form>
                 )}
             </Formik>
