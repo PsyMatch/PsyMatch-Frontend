@@ -19,6 +19,48 @@ const getAuthHeaders = () => {
 
 export const adminService = {
 
+    // Verificar/Aprobar psicólogo
+    verifyPsychologist: async (psychologistId: string): Promise<{ success: boolean; message?: string; data?: unknown }> => {
+        try {
+            const response = await fetch(`${envs.next_public_api_url}/admin/${psychologistId}/verify`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                return { success: true, data, message: 'Psicólogo verificado exitosamente' };
+            } else {
+                const errorData = await response.text();
+                return { success: false, message: errorData };
+            }
+        } catch (error) {
+            console.error('Error verificando psicólogo:', error);
+            return { success: false, message: 'Error de conexión' };
+        }
+    },
+
+    // Rechazar psicólogo
+    rejectPsychologist: async (psychologistId: string): Promise<{ success: boolean; message?: string; data?: unknown }> => {
+        try {
+            const response = await fetch(`${envs.next_public_api_url}/admin/${psychologistId}/reject`, {
+                method: 'PUT',
+                headers: getAuthHeaders(),
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                return { success: true, data, message: 'Psicólogo rechazado exitosamente' };
+            } else {
+                const errorData = await response.text();
+                return { success: false, message: errorData };
+            }
+        } catch (error) {
+            console.error('Error rechazando psicólogo:', error);
+            return { success: false, message: 'Error de conexión' };
+        }
+    },
+
     // Promover usuario a un rol superior (según backend)
     promoteUser: async (userId: string): Promise<{ success: boolean; message?: string }> => {
         try {
