@@ -214,7 +214,6 @@ export default function RegisterForm() {
 
         const MAPBOX_TOKEN = envs.next_public_mapbox_token;
         if (!MAPBOX_TOKEN) {
-            console.error('Mapbox access token no configurado');
             return;
         }
 

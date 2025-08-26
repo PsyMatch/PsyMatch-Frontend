@@ -340,7 +340,7 @@ const PerfilUser = () => {
     };
 
     return (
-        <div className="flex flex-col w-full gap-8 px-2 py-8 md:flex-row bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="flex flex-col w-full gap-8 px-2 py-8 md:flex-row bg-white">
             {/* Panel imagen */}
             <div className="flex flex-col items-center w-full md:w-1/2">
                 <div className="flex flex-col items-center w-full p-8 bg-white rounded-lg shadow">

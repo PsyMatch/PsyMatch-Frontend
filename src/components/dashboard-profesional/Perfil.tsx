@@ -88,10 +88,10 @@ const Perfil = () => {
             .then((response) => {
                 setPerfil(response.data);
             })
-            .catch(console.error);
+            .catch(() => {
+                // Error loading profile
+            });
     }, []);
-
-    console.log(perfil);
 
     const [profileImage, setProfileImage] = useState('');
     const [profileFile, setProfileFile] = useState<File | null>(null);
@@ -114,7 +114,6 @@ const Perfil = () => {
 
         const MAPBOX_TOKEN = envs.next_public_mapbox_token;
         if (!MAPBOX_TOKEN) {
-            console.error('Mapbox access token no configurado');
             return;
         }
 
@@ -136,7 +135,7 @@ const Perfil = () => {
             } else {
                 setAddressSuggestions([]);
             }
-        } catch (error) {
+        } catch {
             setAddressSuggestions([]);
         } finally {
             setIsLoadingSuggestions(false);
@@ -177,11 +176,8 @@ const Perfil = () => {
         let bodySend = Object.fromEntries(Object.entries(cambios).filter(([key, value]) => value !== original[key as keyof ResponseDataProfile]));
 
         if (Object.keys(bodySend).length === 0) {
-            console.log('No hay cambios para enviar');
             return;
         }
-
-        console.log('Cuerpo de la solicitud:', bodySend);
 
         fetch(`${envs.next_public_api_url}/psychologist/me`, {
             method: 'PUT',
@@ -193,8 +189,6 @@ const Perfil = () => {
         })
             .then((res) => res.json())
             .then((response) => {
-                console.log('Respuesta:', response.message);
-
                 setPerfil((prev) => ({ ...prev, ...response }));
                 setCambios({});
                 bodySend = {};
