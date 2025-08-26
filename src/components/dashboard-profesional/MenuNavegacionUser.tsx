@@ -1,5 +1,6 @@
 'use client'
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import Terapeutas from "./Terapeutas"
 import CitasUser from "./CitasUser"
 import PerfilUser from "./PerfilUser"
@@ -7,7 +8,20 @@ import Finanzas from "./Finanzas"
 import ReviewsUser from "./ReviewsUser"
 
 const MenuNavegacionUser = () => {
-    const [pestanaActiva, setPestanaActiva] = useState("terapeutas")
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pestañaInicial = searchParams?.get("tab") || "terapeutas";
+    const [pestanaActiva, setPestanaActiva] = useState(pestañaInicial);
+
+    useEffect(() => {
+        const tab = searchParams?.get('tab');
+        if (tab) setPestanaActiva(tab);
+    }, [searchParams]);
+
+    const cambiarPestaña = (id: string) => {
+        setPestanaActiva(id);
+        router.replace(`?tab=${id}`, { scroll: false });
+    };
 
     const pestanas = [
         { id: "terapeutas", label: "Terapeutas", component: <Terapeutas /> },
@@ -23,7 +37,7 @@ const MenuNavegacionUser = () => {
             <div className="block sm:hidden">
                 <select
                     value={pestanaActiva}
-                    onChange={(e) => setPestanaActiva(e.target.value)}
+                    onChange={(e) => cambiarPestaña(e.target.value)}
                     className="w-full p-3 bg-white border border-gray-300 rounded-lg text-gray-700 font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                     {pestanas.map((pestana) => (
@@ -45,7 +59,7 @@ const MenuNavegacionUser = () => {
                                     ? "bg-blue-500 text-white shadow-md"
                                     : "text-gray-600 hover:bg-blue-50 hover:text-blue-600"
                             }`}
-                            onClick={() => setPestanaActiva(pestana.id)}
+                            onClick={() => cambiarPestaña(pestana.id)}
                         >
                             {pestana.label}
                         </button>

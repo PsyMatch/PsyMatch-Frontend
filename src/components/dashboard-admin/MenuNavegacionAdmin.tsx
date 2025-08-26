@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import UserProfessionals from './UserProfessionals';
 import UserPacientes from './UserPacientes';
 import UserAdministrators from './UserAdministrators';
@@ -20,7 +21,20 @@ interface MenuNavegacionAdminProps {
 }
 
 const MenuNavegacionAdmin = ({ data }: MenuNavegacionAdminProps) => {
-    const [pestañaActiva, setpestañaActiva] = useState('pacientes');
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pestañaInicial = searchParams?.get("tab") || "pacientes";
+    const [pestañaActiva, setpestañaActiva] = useState(pestañaInicial);
+
+    useEffect(() => {
+        const tab = searchParams?.get('tab');
+        if (tab) setpestañaActiva(tab);
+    }, [searchParams]);
+
+    const cambiarPestaña = (id: string) => {
+        setpestañaActiva(id);
+        router.replace(`?tab=${id}`, { scroll: false });
+    };
 
   const pestañas = [
     { id: "pacientes", label: "Pacientes", component: <UserPacientes data={data} /> },
@@ -32,11 +46,7 @@ const MenuNavegacionAdmin = ({ data }: MenuNavegacionAdminProps) => {
   ]
 
   const handleTabChange = (newTab: string) => {
-    setpestañaActiva(newTab);
-    // Prevenir el scroll automático
-    setTimeout(() => {
-      window.scrollTo({ top: window.scrollY, behavior: 'auto' });
-    }, 50);
+    cambiarPestaña(newTab);
   }
 
   return (
