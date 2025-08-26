@@ -1,28 +1,16 @@
 'use client';
-import React, { useState } from 'react';
+import React from 'react';
 import PaymentHistory from '@/components/payments/PaymentHistory';
-import MercadoPagoPayment from '@/components/payments/MercadoPagoPayment';
 import { usePayments } from '@/hooks/usePayments';
 import { useAuth } from '@/hooks/useAuth';
 
 const Finanzas = () => {
-    const [showPaymentForm, setShowPaymentForm] = useState(false);
     const { payments, professionalPayments } = usePayments();
     const { user } = useAuth();
 
     // Detectar tipo de usuario automáticamente
     const userType = user?.role === 'PSYCHOLOGIST' ? 'psychologist' : 'patient';
     const displayPayments = userType === 'psychologist' ? professionalPayments : payments;
-
-    const handlePaymentSuccess = () => {
-        setShowPaymentForm(false);
-        // El componente PaymentHistory se actualizará automáticamente
-        window.location.reload(); // Temporal, idealmente usaríamos el refetch del hook
-    };
-
-    const handlePaymentError = (error: string) => {
-        alert(`Error en el pago: ${error}`);
-    };
 
     // Calcular estadísticas básicas
     const completedPayments = displayPayments.filter(p => p.pay_status === 'COMPLETED');
@@ -218,48 +206,7 @@ const Finanzas = () => {
                 </div>
             )}
 
-            {/* Action Buttons - Solo para usuarios que pagan */}
-            {userType === 'patient' && (
-                <div className="mb-6">
-                    <button
-                        onClick={() => setShowPaymentForm(!showPaymentForm)}
-                        className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors flex items-center"
-                    >
-                        <svg
-                            className="h-5 w-5 mr-2"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                            />
-                        </svg>
-                        {showPaymentForm ? 'Cancelar Pago' : 'Realizar Pago'}
-                    </button>
-                </div>
-            )}
-
             {/* Payment Form - Solo para usuarios que pagan */}
-            {userType === 'patient' && showPaymentForm && (
-                <div className="mb-6">
-                    <div className="bg-white rounded-lg border p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                            Realizar Nuevo Pago
-                        </h3>
-                        <div className="max-w-md">
-                            <MercadoPagoPayment
-                                amount={55}
-                                onSuccess={handlePaymentSuccess}
-                                onError={handlePaymentError}
-                            />
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Payment History */}
             <div className="flex-1">

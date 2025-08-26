@@ -216,7 +216,7 @@ const CrearReseñas = ({ psychologistId, psychologistName, onReviewCreated }: Cr
                         placeholder="Describe tu experiencia con este profesional..."
                         rows={4}
                         maxLength={500}
-                        className={`w-full px-4 py-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
+                        className={`w-full px-4 py-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 placeholder:text-gray-400 ${
                             errors.comment ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                         }`}
                         aria-describedby={errors.comment ? 'comment-error' : 'comment-help'}

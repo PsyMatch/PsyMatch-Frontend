@@ -47,7 +47,7 @@ export default function CustomPasswordInput({
                     onChange={onChange}
                     onBlur={onBlur}
                     value={value}
-                    className={`w-full pr-10 ${error ? 'border-red-500' : ''} ${className}`}
+                    className={`w-full pr-10 placeholder:text-gray-400 ${error ? 'border-red-500' : ''} ${className}`}
                     placeholder={placeholder}
                     disabled={disabled}
                 />

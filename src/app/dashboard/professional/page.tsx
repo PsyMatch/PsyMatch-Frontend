@@ -1,6 +1,6 @@
 'use client';
-import MenuNavegacion from '../../../components/dashboard-profesional/MenuNavegacion';
 
+import MenuNavegacion from '../../../components/dashboard-profesional/MenuNavegacion';
 import Cookies from 'js-cookie';
 import PendingProfessional from '../PendingProfessional';
 import { useEffect, useState } from 'react';
@@ -10,7 +10,6 @@ const DashboardProfessional = () => {
 
     useEffect(() => {
         const verifiedCookie = Cookies.get('verified');
-        console.log('Estado de verificación:', verifiedCookie);
         setVerified(verifiedCookie || null);
     }, []);
 

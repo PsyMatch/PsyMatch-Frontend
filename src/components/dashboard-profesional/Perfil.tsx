@@ -97,10 +97,10 @@ const Perfil = () => {
                         `https://ui-avatars.com/api/?name=${encodeURIComponent(response.data.fullName || response.data.name || 'Usuario')}`
                 );
             })
-            .catch(console.error);
+            .catch(() => {
+                // Error loading profile
+            });
     }, []);
-
-    console.log(perfil);
 
     const [profileImage, setProfileImage] = useState('');
     const [profileFile, setProfileFile] = useState<File | null>(null);
@@ -123,7 +123,6 @@ const Perfil = () => {
 
         const MAPBOX_TOKEN = envs.next_public_mapbox_token;
         if (!MAPBOX_TOKEN) {
-            console.error('Mapbox access token no configurado');
             return;
         }
 
@@ -145,7 +144,7 @@ const Perfil = () => {
             } else {
                 setAddressSuggestions([]);
             }
-        } catch (error) {
+        } catch {
             setAddressSuggestions([]);
         } finally {
             setIsLoadingSuggestions(false);

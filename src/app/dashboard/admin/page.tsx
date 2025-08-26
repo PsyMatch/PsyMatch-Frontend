@@ -108,15 +108,20 @@ const AdminDashboard = () => {
     <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 to-indigo-100 relative overflow-hidden">
             {(loadingMetrics || loadingUsers) && (
                 <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-60 z-50">
-                    <span className="text-xl font-semibold text-[#5046E7]">
-                        {loadingMetrics && loadingUsers ? 'Cargando datos...' : 
-                         loadingMetrics ? 'Cargando métricas...' : 'Cargando usuarios...'}
-                    </span>
+                    <div className="text-center px-4">
+                        <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-[#5046E7] mx-auto mb-4"></div>
+                        <span className="text-lg sm:text-xl font-semibold text-[#5046E7]">
+                            {loadingMetrics && loadingUsers ? 'Cargando datos...' : 
+                             loadingMetrics ? 'Cargando métricas...' : 'Cargando usuarios...'}
+                        </span>
+                    </div>
                 </div>
             )}
             {errorMetrics && (
-                <div className="fixed inset-0 flex items-center justify-center bg-red-100 bg-opacity-80 z-50">
-                    <span className="text-xl font-semibold text-red-600">Error: {errorMetrics}</span>
+                <div className="fixed inset-0 flex items-center justify-center bg-red-100 bg-opacity-80 z-50 px-4">
+                    <div className="text-center max-w-md">
+                        <span className="text-lg sm:text-xl font-semibold text-red-600">Error: {errorMetrics}</span>
+                    </div>
                 </div>
             )}
             {/* Elementos decorativos de fondo más sutiles */}
@@ -126,9 +131,9 @@ const AdminDashboard = () => {
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-purple-50/20 to-indigo-50/20 rounded-full blur-3xl"></div>
             </div>
             
-            <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">
+            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
                 {/* Widgets del dashboard con colores PsyMatch */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
                     <DashboardWidget
                         title="USUARIOS TOTALES"
                         value={metrics?.users ?? '—'}
@@ -184,7 +189,7 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Gráficos profesionales */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
                     <FlowbiteLineChart 
                         data={sessionDataWeek}
                         title="Sesiones de Terapia (por semana)"
@@ -198,7 +203,7 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Gráficos de análisis */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
                     <FlowbitePieChart 
                         title="Páginas más visitadas" 
                         data={pagesData}
@@ -210,21 +215,21 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Sección de Gestión de Usuarios */}
-                <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8">
-                    <div className="flex items-center justify-between mb-8">
+                <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 sm:p-6 lg:p-8">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-4">
                         <div>
-                            <h2 className="text-3xl font-bold text-gray-800">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
                                 Gestión de Usuarios
                             </h2>
-                            <p className="text-gray-600 mt-2 text-lg">
+                            <p className="text-gray-600 mt-2 text-base sm:text-lg">
                                 Administra pacientes, psicólogos y sus estados de verificación
                             </p>
                         </div>
                         <div className="flex items-center space-x-4">
-                            <div className="bg-[#5046E7] rounded-xl p-4 shadow-lg">
-                                <div className="flex items-center space-x-3">
-                                    <div className="w-4 h-4 bg-white rounded-full"></div>
-                                    <span className="text-sm font-semibold text-white">
+                            <div className="bg-[#5046E7] rounded-xl p-3 sm:p-4 shadow-lg">
+                                <div className="flex items-center space-x-2 sm:space-x-3">
+                                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-white rounded-full"></div>
+                                    <span className="text-xs sm:text-sm font-semibold text-white">
                                         Total: {totalUsers} usuarios activos
                                     </span>
                                 </div>
@@ -233,44 +238,44 @@ const AdminDashboard = () => {
                     </div>
                     
                     {/* Métricas rápidas en tarjetas de gestión */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <div className="bg-gradient-to-br from-[#5046E7] to-[#4338CA] rounded-xl p-6 text-white shadow-lg hover:shadow-[#5046E7]/25 transition-all duration-300 cursor-pointer">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                        <div className="bg-gradient-to-br from-[#5046E7] to-[#4338CA] rounded-xl p-4 sm:p-6 text-white shadow-lg hover:shadow-[#5046E7]/25 transition-all duration-300 cursor-pointer">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-indigo-100 text-sm font-semibold uppercase tracking-wider">Pacientes</p>
-                                    <h1 className="text-3xl font-bold mt-2">{metrics?.patients ?? 0}</h1>
-                                    <p className="text-indigo-200 text-sm mt-1">Usuarios registrados (total)</p>
+                                    <p className="text-indigo-100 text-xs sm:text-sm font-semibold uppercase tracking-wider">Pacientes</p>
+                                    <h1 className="text-2xl sm:text-3xl font-bold mt-2">{metrics?.patients ?? 0}</h1>
+                                    <p className="text-indigo-200 text-xs sm:text-sm mt-1">Usuarios registrados (total)</p>
                                 </div>
-                                <div className="bg-white bg-opacity-20 rounded-xl p-3">
-                                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <div className="bg-white bg-opacity-20 rounded-xl p-2 sm:p-3">
+                                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/>
                                     </svg>
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-gradient-to-br from-[#6366F1] to-[#5046E7] rounded-xl p-6 text-white shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 cursor-pointer">
+                        <div className="bg-gradient-to-br from-[#6366F1] to-[#5046E7] rounded-xl p-4 sm:p-6 text-white shadow-lg hover:shadow-[#6366F1]/25 transition-all duration-300 cursor-pointer">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-indigo-100 text-sm font-semibold uppercase tracking-wider">Psicólogos</p>
-                                    <h1 className="text-3xl font-bold mt-2">{metrics?.professionals ?? 0}</h1>
-                                    <p className="text-indigo-200 text-sm mt-1">Profesionales activos (total)</p>
+                                    <p className="text-indigo-100 text-xs sm:text-sm font-semibold uppercase tracking-wider">Psicólogos</p>
+                                    <h1 className="text-2xl sm:text-3xl font-bold mt-2">{metrics?.professionals ?? 0}</h1>
+                                    <p className="text-indigo-200 text-xs sm:text-sm mt-1">Profesionales activos (total)</p>
                                 </div>
-                                <div className="bg-white bg-opacity-20 rounded-xl p-3">
-                                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <div className="bg-white bg-opacity-20 rounded-xl p-2 sm:p-3">
+                                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3z"/>
                                     </svg>
                                 </div>
                             </div>
                         </div>
-                        <div className="bg-gradient-to-br from-[#8B5CF6] to-[#6366F1] rounded-xl p-6 text-white shadow-lg hover:shadow-[#8B5CF6]/25 transition-all duration-300 cursor-pointer">
+                        <div className="bg-gradient-to-br from-[#8B5CF6] to-[#6366F1] rounded-xl p-4 sm:p-6 text-white shadow-lg hover:shadow-[#8B5CF6]/25 transition-all duration-300 cursor-pointer">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-purple-100 text-sm font-semibold uppercase tracking-wider">Estado</p>
-                                    <h1 className="text-3xl font-bold mt-2">✓</h1>
-                                    <p className="text-purple-200 text-sm mt-1">Todo al día</p>
+                                    <p className="text-purple-100 text-xs sm:text-sm font-semibold uppercase tracking-wider">Estado</p>
+                                    <h1 className="text-2xl sm:text-3xl font-bold mt-2">✓</h1>
+                                    <p className="text-purple-200 text-xs sm:text-sm mt-1">Todo al día</p>
                                 </div>
-                                <div className="bg-white bg-opacity-20 rounded-xl p-3">
-                                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <div className="bg-white bg-opacity-20 rounded-xl p-2 sm:p-3">
+                                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
                                     </svg>
                                 </div>
