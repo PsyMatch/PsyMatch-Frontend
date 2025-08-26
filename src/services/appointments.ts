@@ -430,4 +430,67 @@ export const appointmentsService = {
         const appointmentDateTime = new Date(`${date}T${hour}:00`);
         return appointmentDateTime.getTime() > Date.now();
     },
+
+    /**
+     * Aprobar una cita que está pendiente de aprobación
+     */
+    async approveAppointment(appointmentId: string): Promise<AppointmentResponse> {
+        const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
+        
+        const response = await fetch(`${envs.next_public_api_url}/appointments/${appointmentId}/approve`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Error al aprobar la cita');
+        }
+
+        return response.json();
+    },
+
+    /**
+     * Marcar una cita como realizada
+     */
+    async markAsCompleted(appointmentId: string): Promise<AppointmentResponse> {
+        const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
+        
+        const response = await fetch(`${envs.next_public_api_url}/appointments/${appointmentId}/mark-completed`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Error al marcar la cita como realizada');
+        }
+
+        return response.json();
+    },
+
+    /**
+     * Cancelar una cita
+     */
+    async cancelAppointment(appointmentId: string): Promise<AppointmentResponse> {
+        const token = localStorage.getItem('authToken') || Cookies.get('authToken') || Cookies.get('auth_token');
+        
+        const response = await fetch(`${envs.next_public_api_url}/appointments/${appointmentId}/cancel`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Error al cancelar la cita');
+        }
+
+        return response.json();
+    },
 };

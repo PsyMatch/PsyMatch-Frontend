@@ -1,6 +1,7 @@
 import { envs } from '@/config/envs.config';
 import { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
+import { getAppointmentDisplayStatus, AppointmentWithPayment, StatusInfo } from '@/services/appointmentStatus';
 
 interface Patient {
     id: string;
@@ -27,18 +28,7 @@ interface Psychologist {
     verified_status?: string;
 }
 
-interface Appointment {
-    id: string;
-    date: string;
-    hour: string;
-    duration?: number;
-    notes?: string;
-    status: string;
-    modality: string;
-    session_type?: string;
-    therapy_approach?: string;
-    insurance?: string;
-    price?: number;
+interface Appointment extends AppointmentWithPayment {
     patient: Patient;
     psychologist: Psychologist;
 }
@@ -76,15 +66,8 @@ const TurnosAdmin = () => {
         });
     };
 
-    const formatStatus = (status: string) => {
-        const statusMap: { [key: string]: { label: string; color: string } } = {
-            'PENDING': { label: 'Pendiente', color: 'bg-yellow-100 text-yellow-800' },
-            'CONFIRMED': { label: 'Confirmada', color: 'bg-green-100 text-green-800' },
-            'COMPLETED': { label: 'Completada', color: 'bg-blue-100 text-blue-800' },
-            'CANCELLED': { label: 'Cancelada', color: 'bg-red-100 text-red-800' },
-            'NO_SHOW': { label: 'No asistió', color: 'bg-gray-100 text-gray-800' },
-        };
-        return statusMap[status] || { label: status, color: 'bg-gray-100 text-gray-800' };
+    const formatStatus = (appointment: Appointment): StatusInfo => {
+        return getAppointmentDisplayStatus(appointment);
     };
 
     const formatModality = (modality: string) => {
@@ -173,7 +156,7 @@ const TurnosAdmin = () => {
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
                                     {appointments.map((appointment) => {
-                                        const statusInfo = formatStatus(appointment.status);
+                                        const statusInfo = formatStatus(appointment);
                                         return (
                                             <tr key={appointment.id} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -213,22 +196,17 @@ const TurnosAdmin = () => {
                                                     {formatModality(appointment.modality)}
                                                 </td>
                                                 <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
-                                                    <div className="flex space-x-2">
+                                                    <div className="flex space-x-2 flex-wrap">
                                                         <button
                                                             onClick={() => setSelectedAppointment(appointment)}
-                                                            className="text-blue-600 hover:text-blue-900"
+                                                            className="text-blue-600 hover:text-blue-900 text-xs"
                                                         >
                                                             Ver
                                                         </button>
-                                                        {appointment.status === 'PENDING' && (
-                                                            <>
-                                                                <button className="text-green-600 hover:text-green-900">
-                                                                    Confirmar
-                                                                </button>
-                                                                <button className="text-red-600 hover:text-red-900">
-                                                                    Cancelar
-                                                                </button>
-                                                            </>
+                                                        {statusInfo.canCancel && (
+                                                            <button className="text-red-600 hover:text-red-900 text-xs">
+                                                                Cancelar
+                                                            </button>
                                                         )}
                                                     </div>
                                                 </td>
@@ -310,8 +288,8 @@ const TurnosAdmin = () => {
                                             <div><strong>Hora:</strong> {selectedAppointment.hour}</div>
                                             <div><strong>Duración:</strong> {selectedAppointment.duration || 45} minutos</div>
                                             <div><strong>Estado:</strong> 
-                                                <span className={`ml-2 px-2 py-1 rounded-full text-xs ${formatStatus(selectedAppointment.status).color}`}>
-                                                    {formatStatus(selectedAppointment.status).label}
+                                                <span className={`ml-2 px-2 py-1 rounded-full text-xs ${formatStatus(selectedAppointment).color}`}>
+                                                    {formatStatus(selectedAppointment).label}
                                                 </span>
                                             </div>
                                             <div><strong>Modalidad:</strong> {formatModality(selectedAppointment.modality)}</div>
@@ -340,9 +318,6 @@ const TurnosAdmin = () => {
                                 <div className="flex gap-2 pt-4 mt-6 border-t border-gray-200">
                                     {selectedAppointment.status === 'PENDING' && (
                                         <>
-                                            <button className="px-4 py-2 text-sm text-white transition-colors bg-green-600 rounded-md hover:bg-green-700">
-                                                Confirmar Cita
-                                            </button>
                                             <button className="px-4 py-2 text-sm text-white transition-colors bg-red-600 rounded-md hover:bg-red-700">
                                                 Cancelar Cita
                                             </button>
