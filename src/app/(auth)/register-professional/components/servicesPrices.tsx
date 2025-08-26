@@ -147,9 +147,7 @@ const Services_Prices = () => {
 
     const handleSubmit = async (values: Valores) => {
         const toSave = dataToSave(values as unknown as Record<string, unknown>);
-        console.log('Guardando en cookie (submit):', toSave);
         saveMerged(toSave);
-        console.log(Cookies.get('userDataCompleta'));
 
         const fullData = getCookieObject();
 
@@ -190,13 +188,11 @@ const Services_Prices = () => {
             if (profileImageFile) {
                 formData.append('profile_picture', profileImageFile);
             }
-            console.log(formData.get('consultation_fee')); // 45000
             const response = await fetch(`${envs.next_public_api_url}/auth/signup/psychologist`, {
                 method: 'POST',
                 // headers: { 'Content-Type': 'application/json' },
                 body: formData,
             });
-            console.log('Response:', response);
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message);

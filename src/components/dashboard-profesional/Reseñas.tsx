@@ -37,12 +37,10 @@ const Reseñas = () => {
             .then((res) => res.json())
             .then((response) => {
                 setReseñas(response.reviews.reviews);
-                console.log(response.reviews.reviews)
             })
             .catch(console.error);
     }, [idUser]);
 
-    console.log(reseñas);
     return (
         <div className="flex flex-col gap-3 px-8 py-8 h-fit">
             <div>

@@ -199,9 +199,7 @@ const InfoProfesional = () => {
             return;
         }
 
-        console.log('Languages enviados:', values.languages);
         const toSave = dataToSave(values as unknown as Record<string, unknown>);
-        console.log('Guardando en cookie (submit):', toSave);
         saveMerged(toSave);
         avanzarPaso();
     };

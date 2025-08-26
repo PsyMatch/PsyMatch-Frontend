@@ -185,7 +185,6 @@ const Perfil = () => {
         let bodySend = Object.fromEntries(Object.entries(cambios).filter(([key, value]) => value !== original[key as keyof ResponseDataProfile]));
 
         if (Object.keys(bodySend).length === 0 && !profileFile) {
-            console.log('No hay cambios para enviar');
             return;
         }
 
@@ -199,7 +198,6 @@ const Perfil = () => {
             formData.append('profile_picture', profileFile);
         }
 
-        console.log('Cuerpo de la solicitud:', bodySend);
 
         fetch(`${envs.next_public_api_url}/psychologist/me`, {
             method: 'PUT',
@@ -210,8 +208,6 @@ const Perfil = () => {
         })
             .then((res) => res.json())
             .then((response) => {
-                console.log('Respuesta:', response);
-
                 setPerfil((prev) => ({ ...prev, ...response }));
                 setProfileImage(
                     response.profileImage ||
@@ -237,7 +233,6 @@ const Perfil = () => {
 
 
     };
-    console.log('Enviando cambios:', cambios);
 
     const [editable, setEditable] = useState<boolean>(false);
 
