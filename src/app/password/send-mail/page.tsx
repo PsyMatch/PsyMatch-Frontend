@@ -52,7 +52,7 @@ const SendMail = () => {
         });
         const response = await res.json();
 
-        const mail = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emails/new-password`, {
+        const _mail = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emails/new-password`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -61,7 +61,6 @@ const SendMail = () => {
                 email: formData.email,
             }),
         });
-
 
         notifications.success(`${response.message}`);
         setTimeout(() => {
@@ -74,7 +73,9 @@ const SendMail = () => {
             <form className="flex flex-col items-center h-56 w-[30%]" onSubmit={onSubmit}>
                 <h1 className="text-[26px] font-bold mb-5">¿Olvidaste tu contraseña?</h1>
                 <div className="flex flex-col w-full mb-6 space-y-2">
-                    <label htmlFor="email" className='text-sm font-medium text-gray-700'>Ingresa tu email registrado</label>
+                    <label htmlFor="email" className="text-sm font-medium text-gray-700">
+                        Ingresa tu email registrado
+                    </label>
                     <Input
                         onChange={onChange}
                         name="email"

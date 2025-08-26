@@ -34,15 +34,15 @@ const Citas = () => {
         };
 
         loadAppointments();
-    }, []);
+    }, [notifications]);
 
     // Función para confirmar cita (legacy - se mantiene por compatibilidad)
-    const confirmAppointment = async (id: string) => {
+    const _confirmAppointment = async (id: string) => {
         return handleApproveAppointment(id);
     };
 
     // Función para completar cita (legacy - se mantiene por compatibilidad)
-    const completeAppointment = async (id: string) => {
+    const _completeAppointment = async (id: string) => {
         return handleMarkCompleted(id);
     };
 
@@ -50,14 +50,14 @@ const Citas = () => {
     const handleApproveAppointment = async (id: string) => {
         try {
             await appointmentsService.approveAppointment(id);
-            
+
             // Actualizar la lista local
             setCitas((prev) => prev.map((cita) => (cita.id === id ? { ...cita, status: 'confirmed' } : cita)));
-            
+
             notifications.success('Cita aprobada exitosamente.');
         } catch (error) {
             console.error('Error approving appointment:', error);
-            
+
             const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
             if (errorMessage.includes('Authentication failed')) {
                 notifications.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
@@ -72,14 +72,14 @@ const Citas = () => {
     const handleMarkCompleted = async (id: string) => {
         try {
             await appointmentsService.markAsCompleted(id);
-            
+
             // Actualizar la lista local
             setCitas((prev) => prev.map((cita) => (cita.id === id ? { ...cita, status: 'completed' } : cita)));
-            
+
             notifications.success('Cita marcada como realizada exitosamente.');
         } catch (error) {
             console.error('Error marking appointment as completed:', error);
-            
+
             const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
             if (errorMessage.includes('Authentication failed')) {
                 notifications.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
@@ -94,18 +94,18 @@ const Citas = () => {
     const handleCancelAppointment = async (id: string) => {
         try {
             const confirmCancel = window.confirm('¿Estás seguro de que deseas cancelar esta cita?');
-            
+
             if (!confirmCancel) return;
-            
+
             await appointmentsService.cancelAppointment(id);
-            
+
             // Actualizar la lista local
             setCitas((prev) => prev.map((cita) => (cita.id === id ? { ...cita, status: 'cancelled' } : cita)));
-            
+
             notifications.success('Cita cancelada exitosamente.');
         } catch (error) {
             console.error('Error cancelling appointment:', error);
-            
+
             const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
             if (errorMessage.includes('Authentication failed')) {
                 notifications.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
@@ -117,7 +117,7 @@ const Citas = () => {
     };
 
     // Función para cancelar cita (legacy - mantener para compatibilidad)
-    const cancelAppointment = async (id: string) => {
+    const _cancelAppointment = async (id: string) => {
         return handleCancelAppointment(id);
     };
 
@@ -233,7 +233,10 @@ const Citas = () => {
                                         {(() => {
                                             const statusInfo = getStatusInfo(cita);
                                             return (
-                                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusInfo.color}`} title={statusInfo.description}>
+                                                <span
+                                                    className={`px-3 py-1 rounded-full text-xs font-semibold ${statusInfo.color}`}
+                                                    title={statusInfo.description}
+                                                >
                                                     {statusInfo.label}
                                                 </span>
                                             );
@@ -272,14 +275,10 @@ const Citas = () => {
                                                         </button>
                                                     )}
                                                     {statusInfo.status === 'completed' && (
-                                                        <div className="text-xs text-gray-500 mt-1">
-                                                            Sesión realizada
-                                                        </div>
+                                                        <div className="text-xs text-gray-500 mt-1">Sesión realizada</div>
                                                     )}
                                                     {statusInfo.status === 'cancelled' && (
-                                                        <div className="text-xs text-gray-500 mt-1">
-                                                            Cita cancelada
-                                                        </div>
+                                                        <div className="text-xs text-gray-500 mt-1">Cita cancelada</div>
                                                     )}
                                                 </div>
                                             );

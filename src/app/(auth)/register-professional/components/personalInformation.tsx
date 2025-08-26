@@ -1,5 +1,6 @@
 'use client';
-import { ErrorMessage, Field, Form, Formik } from 'formik';
+import { ErrorMessage, Field, Form, Formik, FormikHelpers, useFormikContext } from 'formik';
+import Image from 'next/image';
 import * as Yup from 'yup';
 import { User, Mail, Phone, Upload } from 'lucide-react';
 import { useBotonesRegisterContext } from '@/context/botonesRegisterContext';
@@ -11,10 +12,27 @@ import { envs } from '@/config/envs.config';
 
 const PersonalInformation = () => {
     const { avanzarPaso } = useBotonesRegisterContext();
-    
+
     const { profileImagePreview, handleImageUpload, profileImageFile } = useFotoDePerfil();
 
-    const [initialValues, setInitialValues] = useState({
+    interface PersonalInformationFormValues {
+        name: string;
+        email: string;
+        phone: string;
+        password: string;
+        confirmPassword: string;
+        birthdate: string;
+        dni: string;
+        profile_picture?: File | null;
+        personal_biography: string;
+        languages: string[];
+        license_number: string;
+        professional_title: string;
+        professional_experience: string;
+        office_address: string;
+    }
+
+    const [initialValues, setInitialValues] = useState<PersonalInformationFormValues>({
         name: '',
         email: '',
         phone: '',
@@ -90,11 +108,7 @@ const PersonalInformation = () => {
             // .test("fileType", "Solo se permiten imágenes", (value) => {
             //     return value instanceof File; // Verifica que sea un archivo
             // })
-            .test(
-                "fileSize",
-                "El archivo debe pesar menos de 2 MB",
-                (value) => value instanceof File && value.size <= 2 * 1024 * 1024
-            ),
+            .test('fileSize', 'El archivo debe pesar menos de 2 MB', (value) => value instanceof File && value.size <= 2 * 1024 * 1024),
     });
 
     interface PersonalInformationFormValues {
@@ -108,58 +122,53 @@ const PersonalInformation = () => {
         profile_picture?: File | null;
     }
 
-
-
-interface ValidateFormValues {
-  field: "email" | "phone" | "dni" | "license_number";
-  emailValue?: string;
-  phoneValue?: string;
-  dniValue?: number;
-  licenseValue?: number;
-}
-
-const handleValidate = async (values: ValidateFormValues) => {
-  const errors: Partial<Record<"email" | "phone" | "dni" | "license_number", string | number>> = {};
-
-  try {
-    const response = await fetch(`${envs.next_public_api_url}/users/validate-unique`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
-    });
-
-    if (response.status === 409) {
-      // conflicto, por ejemplo email ya registrado
-      errors.email = "El correo ya está registrado";
-      errors.phone = "El telefono ya está registrado";
-      errors.dni = "El dni ya está registrado";
+    interface ValidateFormValues {
+        field: 'email' | 'phone' | 'dni' | 'license_number';
+        emailValue?: string;
+        phoneValue?: string;
+        dniValue?: string | number;
+        licenseValue?: string | number;
     }
-    
-  } catch (err) {
-    if (values.field === "email") errors.email = "Error de conexión con el servidor";
-    if (values.field === "phone") errors.phone = "Error de conexión con el servidor";
-    if (values.field === "dni") errors.dni = "Error de conexión con el servidor";
-    if (values.field === "license_number") errors.license_number = "Error de conexión con el servidor";
-  }
 
-  return errors;
-};
+    const handleValidate = async (values: ValidateFormValues) => {
+        const errors: Partial<Record<'email' | 'phone' | 'dni' | 'license_number', string>> = {};
 
+        try {
+            const response = await fetch(`${envs.next_public_api_url}/users/validate-unique`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(values),
+            });
 
+            if (response.status === 409) {
+                // conflicto, por ejemplo email ya registrado
+                errors.email = 'El correo ya está registrado';
+                errors.phone = 'El telefono ya está registrado';
+                errors.dni = 'El dni ya está registrado';
+            }
+        } catch (_err) {
+            if (values.field === 'email') errors.email = 'Error de conexión con el servidor';
+            if (values.field === 'phone') errors.phone = 'Error de conexión con el servidor';
+            if (values.field === 'dni') errors.dni = 'Error de conexión con el servidor';
+            if (values.field === 'license_number') errors.license_number = 'Error de conexión con el servidor';
+        }
+
+        return errors;
+    };
 
     const handleSubmit = async (
         values: PersonalInformationFormValues,
-        { setErrors, setSubmitting }: { setErrors: (errors: any) => void; setSubmitting: (isSubmitting: boolean) => void }
+        { setErrors, setSubmitting }: FormikHelpers<PersonalInformationFormValues>
     ) => {
-        const errors: any = {};
+        const errors: Record<string, string> = {};
 
-        const emailErrors = await handleValidate({ field: "email", emailValue: values.email });
+        const emailErrors = await handleValidate({ field: 'email', emailValue: values.email });
         if (emailErrors.email) errors.email = emailErrors.email;
 
-        const phoneErrors = await handleValidate({ field: "phone", phoneValue: values.phone });
+        const phoneErrors = await handleValidate({ field: 'phone', phoneValue: values.phone });
         if (phoneErrors.phone) errors.phone = phoneErrors.phone;
 
-        const dniErrors = await handleValidate({ field: "dni", dniValue: Number(values.dni) });
+        const dniErrors = await handleValidate({ field: 'dni', dniValue: values.dni });
         if (dniErrors.dni) errors.dni = dniErrors.dni;
 
         if (Object.keys(errors).length > 0) {
@@ -173,6 +182,61 @@ const handleValidate = async (values: ValidateFormValues) => {
         avanzarPaso();
     };
 
+    // Componente interno para sincronizar el archivo de imagen de perfil con Formik
+    const SyncProfileImage = ({ profileImageFile }: { profileImageFile: File | null }) => {
+        const { setFieldValue, values } = useFormikContext<PersonalInformationFormValues>();
+
+        useEffect(() => {
+            if (profileImageFile && values.profile_picture !== profileImageFile) {
+                setFieldValue('profile_picture', profileImageFile);
+            }
+        }, [profileImageFile, setFieldValue, values.profile_picture]);
+
+        return null;
+    };
+
+    const ProfilePictureField = () => {
+        const { setFieldValue, setFieldTouched, errors, touched } = useFormikContext<PersonalInformationFormValues>();
+
+        return (
+            <div>
+                <label htmlFor="profile_picture" className="text-sm font-medium text-gray-700">
+                    Foto de perfil profesional *
+                </label>
+                <div className="flex items-center mt-2 space-x-4">
+                    {profileImagePreview && (
+                        <div className="relative w-[120px] h-[120px] border border-gray-300 rounded-full overflow-hidden">
+                            <Image src={profileImagePreview} alt="Preview" fill sizes="120px" className="object-cover" />
+                        </div>
+                    )}
+                    <div>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                                const file = e.target.files?.[0] ?? null;
+                                handleImageUpload(e); // contexto
+                                setFieldValue('profile_picture', file);
+                                setFieldTouched('profile_picture', true, true);
+                            }}
+                            className="hidden"
+                            id="profile_picture"
+                        />
+                        <label
+                            htmlFor="profile_picture"
+                            className="inline-flex items-center px-4 py-2 text-sm font-medium text-white transition rounded-lg cursor-pointer bg-violet-600 hover:bg-violet-700"
+                        >
+                            <Upload className="w-4 h-4 mr-2" />
+                            Subir Foto
+                        </label>
+                    </div>
+                </div>
+                {touched?.profile_picture && errors?.profile_picture && (
+                    <div className="mt-1 text-sm text-red-500">{String(errors.profile_picture)}</div>
+                )}
+            </div>
+        );
+    };
 
     return (
         <div className="text-gray-900 bg-white shadow-sm ">
@@ -185,237 +249,177 @@ const handleValidate = async (values: ValidateFormValues) => {
             </div>
 
             <div className="pb-6 space-y-6">
-                
-            <Formik
-                initialValues={initialValues}
-                validationSchema={validationSchema}
-                onSubmit={handleSubmit}
-                enableReinitialize
-                validateOnBlur={true}
-                validateOnChange={false}
-            >
-                {({ handleChange, values, isValid, isSubmitting, setFieldValue }) => {
-                    useEffect(() => {
-                        if (profileImageFile && values.profile_picture !== profileImageFile) {
-                            setFieldValue("profile_picture", profileImageFile);
-                        }
-                    }, [profileImageFile, setFieldValue, values.profile_picture]);
-
-                    return(
-                        <Form className="space-y-6">
-                            <AutoSaveCookies />
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div>
-                                    <label className="text-sm font-medium text-gray-700" htmlFor="name">
-                                        Nombre Completo *
-                                    </label>
-                                    <Field
-                                        name="name"
-                                        id="name"
-                                        className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
-                                    />
-                                    <ErrorMessage name="name" component="div" className="mt-1 text-sm text-red-500" />
-                                </div>
-                                <div>
-                                    <label className="text-sm font-medium text-gray-700" htmlFor="birthdate">
-                                        Fecha de nacimiento *
-                                    </label>
-                                    <Field
-                                        name="birthdate"
-                                        type="date"
-                                        id="birthdate"
-                                        className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
-                                    />
-                                    <ErrorMessage name="birthdate" component="div" className="mt-1 text-sm text-red-500" />
-                                </div>
-                            </div>
-
-                            {/* Email y Teléfono */}
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div>
-                                    <label className="text-sm font-medium text-gray-700" htmlFor="email">
-                                        Correo Electrónico *
-                                    </label>
-                                    <div className="relative flex items-center">
-                                        <Mail className="absolute w-5 h-5 text-gray-400 pointer-events-none left-3" />
+                <Formik
+                    initialValues={initialValues}
+                    validationSchema={validationSchema}
+                    onSubmit={handleSubmit}
+                    enableReinitialize
+                    validateOnBlur={true}
+                    validateOnChange={false}
+                >
+                    {({ handleChange, values, isValid, isSubmitting }) => {
+                        return (
+                            <Form className="space-y-6">
+                                <SyncProfileImage profileImageFile={profileImageFile} />
+                                <AutoSaveCookies />
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700" htmlFor="name">
+                                            Nombre Completo *
+                                        </label>
                                         <Field
-                                            name="email"
-                                            type="email"
-                                            validate={async (value: string) => {
-                                                if (!value) return "El correo es obligatorio";
-                                                try {
-                                                    const res = await fetch(`${envs.next_public_api_url}/users/validate-unique`, {
-                                                        method: "POST",
-                                                        headers: { "Content-Type": "application/json" },
-                                                        body: JSON.stringify({ field: "email", emailValue: value }),
-                                                    });
-                                                    if (res.status === 409) return "El correo ya está registrado";
-                                                } catch {
-                                                    return "Error de conexión";
-                                                }
-                                            }}
-                                            className="flex w-full h-10 px-3 py-2 pl-10 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
+                                            name="name"
+                                            id="name"
+                                            className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
                                         />
+                                        <ErrorMessage name="name" component="div" className="mt-1 text-sm text-red-500" />
                                     </div>
-                                    <ErrorMessage name="email" component="div" className="mt-1 text-red-500" />
-                                </div>
-
-                                <div>
-                                    <label className="text-sm font-medium text-gray-700" htmlFor="phone">
-                                        Número de Teléfono *
-                                    </label>
-                                    <div className="relative flex items-center">
-                                        <Phone className="absolute w-5 h-5 text-gray-400 pointer-events-none left-3" />
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700" htmlFor="birthdate">
+                                            Fecha de nacimiento *
+                                        </label>
                                         <Field
-                                            name="phone"
-                                            type="text"
-                                            validate={async (value: string) => {
-                                                if (!value) return "El teléfono es obligatorio";
-
-                                                try {
-                                                const res = await fetch(`${envs.next_public_api_url}/users/validate-unique`, {
-                                                    method: "POST",
-                                                    headers: { "Content-Type": "application/json" },
-                                                    body: JSON.stringify({ field: "phone", phoneValue: value }),
-                                                });
-                                                if (res.status === 409) return "El teléfono ya está registrado";
-                                                } catch {
-                                                return "Error de conexión";
-                                                }
-                                            }}
-                                            className="flex w-full h-10 px-3 py-2 pl-10 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"    
+                                            name="birthdate"
+                                            type="date"
+                                            id="birthdate"
+                                            className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
                                         />
+                                        <ErrorMessage name="birthdate" component="div" className="mt-1 text-sm text-red-500" />
                                     </div>
-                                    <ErrorMessage name="phone" component="div" className="mt-1 text-red-500" />
                                 </div>
-                            </div>
 
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div>
-                                    <label className="text-sm font-medium text-gray-700" htmlFor="dni">
-                                        Nro de Documento *
-                                    </label>
+                                {/* Email y Teléfono */}
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700" htmlFor="email">
+                                            Correo Electrónico *
+                                        </label>
+                                        <div className="relative flex items-center">
+                                            <Mail className="absolute w-5 h-5 text-gray-400 pointer-events-none left-3" />
+                                            <Field
+                                                name="email"
+                                                type="email"
+                                                validate={async (value: string) => {
+                                                    if (!value) return 'El correo es obligatorio';
+                                                    try {
+                                                        const res = await fetch(`${envs.next_public_api_url}/users/validate-unique`, {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({ field: 'email', emailValue: value }),
+                                                        });
+                                                        if (res.status === 409) return 'El correo ya está registrado';
+                                                    } catch {
+                                                        return 'Error de conexión';
+                                                    }
+                                                }}
+                                                className="flex w-full h-10 px-3 py-2 pl-10 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
+                                            />
+                                        </div>
+                                        <ErrorMessage name="email" component="div" className="mt-1 text-red-500" />
+                                    </div>
+
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700" htmlFor="phone">
+                                            Número de Teléfono *
+                                        </label>
+                                        <div className="relative flex items-center">
+                                            <Phone className="absolute w-5 h-5 text-gray-400 pointer-events-none left-3" />
+                                            <Field
+                                                name="phone"
+                                                type="text"
+                                                validate={async (value: string) => {
+                                                    if (!value) return 'El teléfono es obligatorio';
+
+                                                    try {
+                                                        const res = await fetch(`${envs.next_public_api_url}/users/validate-unique`, {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({ field: 'phone', phoneValue: value }),
+                                                        });
+                                                        if (res.status === 409) return 'El teléfono ya está registrado';
+                                                    } catch {
+                                                        return 'Error de conexión';
+                                                    }
+                                                }}
+                                                className="flex w-full h-10 px-3 py-2 pl-10 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
+                                            />
+                                        </div>
+                                        <ErrorMessage name="phone" component="div" className="mt-1 text-red-500" />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700" htmlFor="dni">
+                                            Nro de Documento *
+                                        </label>
                                         <Field
                                             name="dni"
                                             type="number"
                                             validate={async (value: string) => {
-                                                if (!value) return "El dni es obligatorio";
+                                                if (!value) return 'El dni es obligatorio';
 
                                                 try {
-                                                const res = await fetch(`${envs.next_public_api_url}/users/validate-unique`, {
-                                                    method: "POST",
-                                                    headers: { "Content-Type": "application/json" },
-                                                    body: JSON.stringify({ field: "dni", dniValue: value }),
-                                                });
-                                                if (res.status === 409) return "El dni ya está registrado";
+                                                    const res = await fetch(`${envs.next_public_api_url}/users/validate-unique`, {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({ field: 'dni', dniValue: value }),
+                                                    });
+                                                    if (res.status === 409) return 'El dni ya está registrado';
                                                 } catch {
-                                                return "Error de conexión";
+                                                    return 'Error de conexión';
                                                 }
                                             }}
-                                            className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"    
-                                            />
+                                            className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
+                                        />
                                         <ErrorMessage name="dni" component="div" className="mt-1 text-red-500" />
-                                </div>
-                            </div>
-
-                            {/* Contraseñas */}
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div>
-                                    <CustomPasswordInput
-                                        onChange={handleChange}
-                                        label="Contraseña *"
-                                        name="password"
-                                        id="password"
-                                        
-                                        value={values.password}
-                                        className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
-                                    />
-                                    <ErrorMessage name="password" component="div" className="mt-1 text-sm text-red-500" />
-                                </div>
-                                <div>
-                                    <CustomPasswordInput
-                                        label='Confirmar Contraseña *'
-                                        name="confirmPassword"
-                                        id="confirmPassword"
-                                        onChange={handleChange}
-                                        value={values.confirmPassword}
-                                        className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
-                                    />
-                                    <ErrorMessage name="confirmPassword" component="div" className="mt-1 text-sm text-red-500" />
-                                </div>
-                            </div>
-
-                            {/* Subidas de imágenes */}
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <Field name="profile_picture">
-                                {({ form: { setFieldValue, values, setFieldTouched, errors, touched} }: any) => {
-
-                                    useEffect(() => {
-                                    if (profileImageFile && values.profile_picture !== profileImageFile) {
-                                        setFieldValue("profile_picture", profileImageFile);
-                                    }
-                                    }, [profileImageFile, setFieldValue, values.profile_picture]);
-
-                                    return (
-                                    <div>
-                                        <label htmlFor="profile_picture" className="text-sm font-medium text-gray-700">
-                                            Foto de perfil profesional *
-                                        </label>
-                                        <div className="flex items-center mt-2 space-x-4">
-                                            {profileImagePreview && (
-                                                <img
-                                                    src={profileImagePreview}
-                                                    alt="Preview"
-                                                    width={120}
-                                                    height={120}
-                                                    className="object-cover border border-gray-300 rounded-full"
-                                                />
-                                            )}
-                                            <div>
-                                                <input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    onChange={(e) => {
-                                                        const file = e.target.files?.[0] ?? null;
-                                                        handleImageUpload(e); // contexto
-                                                        setFieldValue("profile_picture", file); // Formik
-                                                        setFieldTouched("profile_picture", true, true);
-                                                    }}
-                                                    className="hidden"
-                                                    id="profile_picture"
-                                                />
-                                                <label
-                                                    htmlFor="profile_picture"
-                                                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-white transition rounded-lg cursor-pointer bg-violet-600 hover:bg-violet-700"
-                                                >
-                                                    <Upload className="w-4 h-4 mr-2" />
-                                                    Subir Foto
-                                                </label>
-                                            </div>
-                                        </div>
-                                        {touched.profile_picture && errors.profile_picture && (
-                                            <div className="mt-1 text-sm text-red-500">{errors.profile_picture}</div>
-                                        )}
                                     </div>
-                                    );
-                                }}
-                                </Field>
-                            </div>
-                            <button
-                                type="submit"
-                                className="px-4 py-1 mt-10 text-white rounded-xl bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                                disabled={!isValid || isSubmitting}
-                            >
-                                Continuar
-                            </button>
-                        </Form>
-                    )}
-                
-                    }
+                                </div>
+
+                                {/* Contraseñas */}
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    <div>
+                                        <CustomPasswordInput
+                                            onChange={handleChange}
+                                            label="Contraseña *"
+                                            name="password"
+                                            id="password"
+                                            value={values.password}
+                                            className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
+                                        />
+                                        <ErrorMessage name="password" component="div" className="mt-1 text-sm text-red-500" />
+                                    </div>
+                                    <div>
+                                        <CustomPasswordInput
+                                            label="Confirmar Contraseña *"
+                                            name="confirmPassword"
+                                            id="confirmPassword"
+                                            onChange={handleChange}
+                                            value={values.confirmPassword}
+                                            className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
+                                        />
+                                        <ErrorMessage name="confirmPassword" component="div" className="mt-1 text-sm text-red-500" />
+                                    </div>
+                                </div>
+
+                                {/* Subidas de imágenes */}
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    <ProfilePictureField />
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-1 mt-10 text-white rounded-xl bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled={!isValid || isSubmitting}
+                                >
+                                    Continuar
+                                </button>
+                            </Form>
+                        );
+                    }}
                 </Formik>
-                </div>
-                </div>
-            );
+            </div>
+        </div>
+    );
 };
 
 export default PersonalInformation;

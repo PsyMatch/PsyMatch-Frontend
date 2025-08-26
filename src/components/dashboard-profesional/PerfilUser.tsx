@@ -56,8 +56,8 @@ const extractUserFromToken = (token: string) => {
             id: payload.id || payload.sub || payload.userId,
             email: payload.email,
         };
-    } catch (error) {
-        console.error('Error al extraer información del token:', error);
+    } catch (_error) {
+        console.error('Error al extraer información del token:', _error);
         Cookies.remove('auth_token');
         throw new Error('Invalid token');
     }
@@ -104,7 +104,7 @@ const PerfilUser = () => {
     // Estados para autocompletado de direcciones
     const [addressSuggestions, setAddressSuggestions] = useState<MapboxSuggestion[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-    const [selectedCoordinates, setSelectedCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+    const [_selectedCoordinates, setSelectedCoordinates] = useState<{ lat: number; lng: number } | null>(null);
     const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
     const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
     const addressInputRef = useRef<HTMLInputElement>(null);
@@ -143,7 +143,7 @@ const PerfilUser = () => {
             } else {
                 setAddressSuggestions([]);
             }
-        } catch (error) {
+        } catch (_error) {
             setAddressSuggestions([]);
         } finally {
             setIsLoadingSuggestions(false);
@@ -232,8 +232,8 @@ const PerfilUser = () => {
                         userData.profile_picture ||
                         `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.fullName || userData.name || 'Usuario')}`
                 );
-            } catch (err) {
-                setErrorMsg(`${err}, Error al obtener usuario`);
+            } catch (_error) {
+                setErrorMsg(`${_error}, Error al obtener usuario`);
                 setLoading(false);
             }
         };
@@ -331,9 +331,9 @@ const PerfilUser = () => {
             setEditable(false);
             setProfileFile(null);
             setSuccessMsg('¡Datos guardados correctamente!');
-        } catch (error) {
+        } catch (_error) {
             setErrorMsg('Error al guardar los datos.');
-            console.error('Error al guardar:', error);
+            console.error('Error al guardar:', _error);
         } finally {
             setLoading(false);
         }

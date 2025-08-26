@@ -86,7 +86,7 @@ export default function RegisterForm() {
 
     const [addressSuggestions, setAddressSuggestions] = useState<MapboxSuggestion[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-    const [selectedCoordinates, setSelectedCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+    const [_selectedCoordinates, setSelectedCoordinates] = useState<{ lat: number; lng: number } | null>(null);
     const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
     const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
     const addressInputRef = useRef<HTMLInputElement>(null);
@@ -312,7 +312,7 @@ export default function RegisterForm() {
                                     label="Nombre Completo *"
                                     id="fullName"
                                     name="fullName"
-                                    placeholder='Nombre Apellido'
+                                    placeholder="Nombre Apellido"
                                     onChange={handleChange}
                                     onBlur={handleBlur}
                                     value={values.fullName}
@@ -325,7 +325,7 @@ export default function RegisterForm() {
                                     label="Alias"
                                     id="alias"
                                     name="alias"
-                                    placeholder='Alias'
+                                    placeholder="Alias"
                                     onChange={handleChange}
                                     onBlur={handleBlur}
                                     value={values.alias}
@@ -352,7 +352,7 @@ export default function RegisterForm() {
                                     id="email"
                                     type="email"
                                     name="email"
-                                    placeholder='ejemplo@correo.com'
+                                    placeholder="ejemplo@correo.com"
                                     onChange={handleChange}
                                     onBlur={handleBlur}
                                     value={values.email}
