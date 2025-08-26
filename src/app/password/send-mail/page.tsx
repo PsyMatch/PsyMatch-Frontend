@@ -50,7 +50,6 @@ const SendMail = () => {
             }),
         });
         const response = await res.json();
-        console.log('Respuesta', response);
 
         const mail = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emails/new-password`, {
             method: 'POST',
@@ -62,7 +61,6 @@ const SendMail = () => {
             }),
         });
 
-        console.log(mail);
 
         toast.success(`${response.message}`, {
             position: 'top-center',

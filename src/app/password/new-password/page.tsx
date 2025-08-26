@@ -69,7 +69,6 @@ const ChangePasswordForm = () => {
                             });
                         }
                     } catch (err) {
-                        console.log('Error', err);
                         toast.error('Error de conexión. Inténtalo de nuevo.', {
                             position: 'top-center',
                             type: 'error',
@@ -86,7 +85,7 @@ const ChangePasswordForm = () => {
                 {({ isSubmitting, handleChange, handleBlur, values, errors, touched }) => (
                     <Form className="flex flex-col items-center h-56 w-[30%]">
                         <h1 className="text-[26px] font-bold mb-5">Crea una nueva contraseña</h1>
-                        <div className="mt-2 w-full">
+                        <div className="w-full mt-2">
                             <CustomPasswordInput
                                 label="Nueva contraseña"
                                 id="newPassword"
@@ -97,7 +96,7 @@ const ChangePasswordForm = () => {
                                 error={errors.newPassword && touched.newPassword && errors.newPassword}
                             />
                         </div>
-                        <div className="my-2 w-full">
+                        <div className="w-full my-2">
                             <CustomPasswordInput
                                 label="Confirmar contraseña"
                                 id="confirmPassword"
@@ -108,7 +107,7 @@ const ChangePasswordForm = () => {
                                 error={errors.confirmPassword && touched.confirmPassword && errors.confirmPassword}
                             />
                         </div>
-                        <span className="text-xs my-2 text-center">Una vez hecho el cambio te redirigiremos a iniciar sesión</span>
+                        <span className="my-2 text-xs text-center">Una vez hecho el cambio te redirigiremos a iniciar sesión</span>
                         <div className="flex flex-col pt-2 space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">
                             <Button
                                 type="submit"
