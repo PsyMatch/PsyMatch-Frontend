@@ -7,7 +7,8 @@ import { useRouter } from 'next/navigation';
 import { dataToSave, getCookieObject } from '@/helpers/formRegister/helpers';
 import { useFotoDePerfil } from '@/context/fotoDePerfil';
 import { useAuthProfessionalContext } from '@/context/registerProfessional';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { useNotifications } from '@/hooks/useNotifications';
 import { envs } from '@/config/envs.config';
 import { triggerAuthStateChange } from '@/utils/auth';
@@ -78,62 +79,62 @@ const obrasSociales = [
 ];
 
 const getInitialValues = (): typeof initialValuesTipos => {
-  const cookieData = getCookieObject();
-  return cookieData
-    ? {
-        name: cookieData.name || '',
-        email: cookieData.email || '',
-        phone: cookieData.phone || '',
-        password: cookieData.password || '',
-        confirmPassword: cookieData.confirmPassword || '',
-        birthdate: cookieData.birthdate || '',
-        dni: cookieData.dni || '',
-        profile_picture: null,
-        personal_biography: cookieData.personal_biography || '',
-        languages: cookieData.languages || [],
-        license_number: cookieData.license_number || '',
-        professional_title: cookieData.professional_title || '',
-        professional_experience: cookieData.professional_experience || '',
-        office_address: cookieData.office_address || '',
+    const cookieData = getCookieObject();
+    return cookieData
+        ? {
+              name: cookieData.name || '',
+              email: cookieData.email || '',
+              phone: cookieData.phone || '',
+              password: cookieData.password || '',
+              confirmPassword: cookieData.confirmPassword || '',
+              birthdate: cookieData.birthdate || '',
+              dni: cookieData.dni || '',
+              profile_picture: null,
+              personal_biography: cookieData.personal_biography || '',
+              languages: cookieData.languages || [],
+              license_number: cookieData.license_number || '',
+              professional_title: cookieData.professional_title || '',
+              professional_experience: cookieData.professional_experience || '',
+              office_address: cookieData.office_address || '',
 
-        specialities: cookieData.specialities || [],
-        therapy_approaches: cookieData.therapy_approaches || [],
-        session_types: cookieData.session_types || [],
-        modality: cookieData.modality || '',
-        insurance_accepted: cookieData.insurance_accepted || [],
-        availability: cookieData.availability || [],
-        consultation_fee: cookieData.consultation_fee || 0,
-      }
-    : {
-        name: '',
-        email: '',
-        phone: '',
-        password: '',
-        confirmPassword: '',
-        birthdate: '',
-        dni: '',
-        profile_picture: null,
-        personal_biography: '',
-        languages: [],
-        license_number: '',
-        professional_title: '',
-        professional_experience: '',
-        office_address: '',
+              specialities: cookieData.specialities || [],
+              therapy_approaches: cookieData.therapy_approaches || [],
+              session_types: cookieData.session_types || [],
+              modality: cookieData.modality || '',
+              insurance_accepted: cookieData.insurance_accepted || [],
+              availability: cookieData.availability || [],
+              consultation_fee: cookieData.consultation_fee || 0,
+          }
+        : {
+              name: '',
+              email: '',
+              phone: '',
+              password: '',
+              confirmPassword: '',
+              birthdate: '',
+              dni: '',
+              profile_picture: null,
+              personal_biography: '',
+              languages: [],
+              license_number: '',
+              professional_title: '',
+              professional_experience: '',
+              office_address: '',
 
-        specialities: [],
-        therapy_approaches: [],
-        session_types: [],
-        modality: '',
-        insurance_accepted: [],
-        availability: [],
-        consultation_fee: 0,
-      };
+              specialities: [],
+              therapy_approaches: [],
+              session_types: [],
+              modality: '',
+              insurance_accepted: [],
+              availability: [],
+              consultation_fee: 0,
+          };
 };
 
 const saveMerged = (newValues: Record<string, unknown>) => {
-  const existing = getCookieObject() || {};
-  const merged = { ...existing, ...newValues };
-  Cookies.set('userDataCompleta', JSON.stringify(merged), { path: '/' });
+    const existing = getCookieObject() || {};
+    const merged = { ...existing, ...newValues };
+    Cookies.set('userDataCompleta', JSON.stringify(merged), { path: '/' });
 };
 
 const Services_Prices = () => {
@@ -143,9 +144,7 @@ const Services_Prices = () => {
     const { profileImageFile } = useFotoDePerfil();
     const { saveUserData } = useAuthProfessionalContext();
 
-    const [initialValues, setInitialValues] = useState<typeof initialValuesTipos>(
-        getInitialValues
-    );
+    const [initialValues, setInitialValues] = useState<typeof initialValuesTipos>(getInitialValues);
 
     const handleSubmit = async (values: Valores) => {
         const toSave = dataToSave(values as unknown as Record<string, unknown>);
@@ -215,8 +214,8 @@ const Services_Prices = () => {
                     Cookies.set('role', data.data.role, { path: '/' });
                 }
 
-                if(data.data.verified) {
-                    Cookies.set("verified", data.data.verified, { path:"/" })
+                if (data.data.verified) {
+                    Cookies.set('verified', data.data.verified, { path: '/' });
                 }
 
                 // Disparar evento para actualizar la Navbar
@@ -267,7 +266,7 @@ const Services_Prices = () => {
                                     <input
                                         type="checkbox"
                                         name="specialities"
-                                        className='mb-1 mr-1 border-gray-600'
+                                        className="mb-1 mr-1 border-gray-600"
                                         value={option}
                                         checked={values.specialities.includes(option)}
                                         onChange={() => {
@@ -301,16 +300,16 @@ const Services_Prices = () => {
                                         type="checkbox"
                                         name="therapy_approaches"
                                         value={enfoque}
-                                        className='mb-1 mr-1 border-gray-600'
+                                        className="mb-1 mr-1 border-gray-600"
                                         checked={values.therapy_approaches.includes(enfoque)}
                                         onChange={() => {
                                             let newTherapyApproaches;
                                             if (values.therapy_approaches.includes(enfoque)) {
-                                            // SACAR OPCION SI ESTA SELECCIONADA
-                                            newTherapyApproaches = values.therapy_approaches.filter((item) => item !== enfoque);
+                                                // SACAR OPCION SI ESTA SELECCIONADA
+                                                newTherapyApproaches = values.therapy_approaches.filter((item) => item !== enfoque);
                                             } else {
-                                            // AGREGAR LA OPCION
-                                            newTherapyApproaches = [...values.therapy_approaches, enfoque];
+                                                // AGREGAR LA OPCION
+                                                newTherapyApproaches = [...values.therapy_approaches, enfoque];
                                             }
 
                                             // actualizar Formik
@@ -334,7 +333,7 @@ const Services_Prices = () => {
                                         type="checkbox"
                                         name="session_type"
                                         value={tipo}
-                                        className='mb-1 mr-1 border-gray-600'
+                                        className="mb-1 mr-1 border-gray-600"
                                         checked={values.session_types.includes(tipo)}
                                         onChange={() => {
                                             let newSessionTypes;
@@ -368,7 +367,7 @@ const Services_Prices = () => {
                                 id="consultation_fee"
                                 className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                    handleChange(e);                  // actualiza Formik
+                                    handleChange(e); // actualiza Formik
                                     saveMerged({ [e.target.name]: e.target.value }); // actualiza cookie con la clave correcta
                                 }}
                             />
@@ -377,14 +376,14 @@ const Services_Prices = () => {
 
                         <div className="mt-12 text-sm font-medium text-gray-700">Modalidad del Servicio *</div>
                         <ErrorMessage name="modality" component="div" className="mt-1 text-sm text-red-600" />
-                            <span className='text-xs'>En caso de ofrecer atención tanto presencial como en línea, seleccione la opción Híbrido.</span>
-                            <div className="grid grid-cols-3 gap-5 mt-5 mb-10">
+                        <span className="text-xs">En caso de ofrecer atención tanto presencial como en línea, seleccione la opción Híbrido.</span>
+                        <div className="grid grid-cols-3 gap-5 mt-5 mb-10">
                             {modalidades.map((modalidad) => (
                                 <label key={modalidad} className="text-[12px] font-bold">
                                     <input
                                         type="radio"
                                         name="modality"
-                                        className='mb-1 mr-1 border-gray-600'
+                                        className="mb-1 mr-1 border-gray-600"
                                         value={modalidad}
                                         checked={values.modality === modalidad}
                                         onChange={() => {
@@ -407,7 +406,7 @@ const Services_Prices = () => {
                                     <input
                                         type="checkbox"
                                         name="insurance_accepted"
-                                        className='mb-1 mr-1 border-gray-600'
+                                        className="mb-1 mr-1 border-gray-600"
                                         value={obra}
                                         checked={values.insurance_accepted.includes(obra)}
                                         onChange={() => {
@@ -440,7 +439,7 @@ const Services_Prices = () => {
                                     <input
                                         type="checkbox"
                                         name="availability"
-                                        className='mb-1 mr-1 border-gray-600'
+                                        className="mb-1 mr-1 border-gray-600"
                                         value={dia}
                                         checked={values.availability.includes(dia)}
                                         onChange={() => {
