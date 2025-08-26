@@ -124,16 +124,16 @@ export const usersApi = {
     
     // Debug: log para verificar qué campos faltan
     if (missingFields.length > 0) {
-      console.log('Usuario registrado con Google - Campos faltantes:', missingFields);
-      console.log('Datos del usuario:', {
-        provider: user.provider,
-        alias: user.alias,
-        phone: user.phone,
-        birthdate: user.birthdate,
-        address: user.address,
-        emergency_contact: user.emergency_contact,
-        health_insurance: user.health_insurance
-      });
+      // console.log('Usuario registrado con Google - Campos faltantes:', missingFields);
+      // console.log('Datos del usuario:', {
+      //   provider: user.provider,
+      //   alias: user.alias,
+      //   phone: user.phone,
+      //   birthdate: user.birthdate,
+      //   address: user.address,
+      //   emergency_contact: user.emergency_contact,
+      //   health_insurance: user.health_insurance
+      // });
     }
     
     return missingFields.length > 0;
