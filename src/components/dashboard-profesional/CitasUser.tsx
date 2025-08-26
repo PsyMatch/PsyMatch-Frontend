@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { appointmentsService, AppointmentResponse } from '@/services/appointments';
 import { getAppointmentDisplayStatus, AppointmentWithPayment, StatusInfo } from '@/services/appointmentStatus';
 import { useNotifications } from '@/hooks/useNotifications';
+import showConfirm from '@/components/ui/ConfirmToast';
 
 const CitasUser = () => {
     const [citas, setCitas] = useState<AppointmentResponse[]>([]);
@@ -35,12 +36,14 @@ const CitasUser = () => {
         };
 
         loadAppointments();
+        // Llamar solo al montar. `notifications` es un hook que puede devolver
+        // una referencia nueva en cada render y provocar re-ejecuciones.
+        // Si el hook `useNotifications` retorna funciones estables, se podría
+        // incluir aquí en las dependencias, pero por ahora evitamos llamadas
+        // repetidas al backend y manejamos notificaciones desde dentro.
     }, [notifications]);
 
-    // Función para cancelar cita usando el nuevo servicio (legacy)
-    const _cancelarCita = async (id: string) => {
-        return handleCancelAppointment(id);
-    };
+    // ...existing code... (removed unused legacy wrapper)
 
     // Función para marcar como completada (nuevo)
     const handleMarkCompleted = async (id: string) => {
@@ -66,9 +69,8 @@ const CitasUser = () => {
 
     // Función para cancelar cita (nueva versión)
     const handleCancelAppointment = async (id: string) => {
-        if (!window.confirm('¿Estás seguro que deseas cancelar esta cita? Esta acción no se puede deshacer.')) {
-            return;
-        }
+        const confirmed = await showConfirm('¿Estás seguro que deseas cancelar esta cita? Esta acción no se puede deshacer.');
+        if (!confirmed) return;
 
         try {
             await appointmentsService.cancelAppointment(id);
@@ -140,113 +142,106 @@ const CitasUser = () => {
             <div>
                 {citas.length > 0 ? (
                     <ul className="space-y-4">
-                        {citas.map((cita, idx) => (
-                            <li key={cita.id || idx} className="border rounded-lg p-6 flex flex-col gap-3 bg-white shadow-sm">
-                                <div className="flex justify-between items-start">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className="font-bold text-lg">Fecha y Hora:</span>
-                                            <span className="text-gray-700">{formatDate(cita.date)}</span>
-                                        </div>
+                        {citas.map((cita, idx) => {
+                            const statusInfo = getStatusInfo(cita);
+                            return (
+                                <li key={cita.id || idx} className="border rounded-lg p-6 flex flex-col gap-3 bg-white shadow-sm">
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span className="font-bold text-lg">Fecha y Hora:</span>
+                                                <span className="text-gray-700">{formatDate(cita.date)}</span>
+                                            </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                                            <div>
-                                                <span className="font-semibold">Modalidad:</span>
-                                                <span className="ml-2 text-gray-700">{cita.modality}</span>
-                                            </div>
-                                            <div>
-                                                <span className="font-semibold">Duración:</span>
-                                                <span className="ml-2 text-gray-700">{cita.duration} min</span>
-                                            </div>
-                                            {cita.session_type && (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                                                 <div>
-                                                    <span className="font-semibold">Tipo de Sesión:</span>
-                                                    <span className="ml-2 text-gray-700">{cita.session_type}</span>
+                                                    <span className="font-semibold">Modalidad:</span>
+                                                    <span className="ml-2 text-gray-700">{cita.modality}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="font-semibold">Duración:</span>
+                                                    <span className="ml-2 text-gray-700">{cita.duration} min</span>
+                                                </div>
+                                                {cita.session_type && (
+                                                    <div>
+                                                        <span className="font-semibold">Tipo de Sesión:</span>
+                                                        <span className="ml-2 text-gray-700">{cita.session_type}</span>
+                                                    </div>
+                                                )}
+                                                {cita.therapy_approach && (
+                                                    <div>
+                                                        <span className="font-semibold">Enfoque Terapéutico:</span>
+                                                        <span className="ml-2 text-gray-700">{cita.therapy_approach}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {cita.psychologist && (
+                                                <div className="mb-3">
+                                                    <span className="font-semibold">Profesional:</span>
+                                                    <span className="ml-2 text-gray-700">{cita.psychologist.name}</span>
+                                                    <br />
+                                                    <span className="text-sm text-gray-500">{cita.psychologist.email}</span>
                                                 </div>
                                             )}
-                                            {cita.therapy_approach && (
-                                                <div>
-                                                    <span className="font-semibold">Enfoque Terapéutico:</span>
-                                                    <span className="ml-2 text-gray-700">{cita.therapy_approach}</span>
+
+                                            {cita.notes && (
+                                                <div className="mb-3">
+                                                    <span className="font-semibold">Notas:</span>
+                                                    <p className="mt-1 text-gray-700 text-sm">{cita.notes}</p>
+                                                </div>
+                                            )}
+
+                                            {cita.price && (
+                                                <div className="mb-3">
+                                                    <span className="font-semibold">Precio:</span>
+                                                    <span className="ml-2 text-gray-700">${cita.price.toLocaleString()}</span>
                                                 </div>
                                             )}
                                         </div>
 
-                                        {cita.psychologist && (
-                                            <div className="mb-3">
-                                                <span className="font-semibold">Profesional:</span>
-                                                <span className="ml-2 text-gray-700">{cita.psychologist.name}</span>
-                                                <br />
-                                                <span className="text-sm text-gray-500">{cita.psychologist.email}</span>
-                                            </div>
-                                        )}
+                                        <div className="flex flex-col items-end gap-2">
+                                            <span
+                                                className={`px-3 py-1 rounded-full text-xs font-semibold ${statusInfo.color}`}
+                                                title={statusInfo.description}
+                                            >
+                                                {statusInfo.label}
+                                            </span>
 
-                                        {cita.notes && (
-                                            <div className="mb-3">
-                                                <span className="font-semibold">Notas:</span>
-                                                <p className="mt-1 text-gray-700 text-sm">{cita.notes}</p>
+                                            <div className="flex gap-2 flex-wrap">
+                                                {statusInfo.canPay && (
+                                                    <button
+                                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                                                        onClick={() => {
+                                                            // Redirigir a pago
+                                                            window.location.href = `/payment?appointmentId=${cita.id}`;
+                                                        }}
+                                                    >
+                                                        Pagar
+                                                    </button>
+                                                )}
+                                                {statusInfo.canConfirmCompletion && (
+                                                    <button
+                                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                                                        onClick={() => handleMarkCompleted(cita.id)}
+                                                    >
+                                                        Confirmar realización
+                                                    </button>
+                                                )}
+                                                {statusInfo.canCancel && (
+                                                    <button
+                                                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                                                        onClick={() => handleCancelAppointment(cita.id)}
+                                                    >
+                                                        Cancelar cita
+                                                    </button>
+                                                )}
                                             </div>
-                                        )}
-
-                                        {cita.price && (
-                                            <div className="mb-3">
-                                                <span className="font-semibold">Precio:</span>
-                                                <span className="ml-2 text-gray-700">${cita.price.toLocaleString()}</span>
-                                            </div>
-                                        )}
+                                        </div>
                                     </div>
-
-                                    <div className="flex flex-col items-end gap-2">
-                                        {(() => {
-                                            const statusInfo = getStatusInfo(cita);
-                                            return (
-                                                <span
-                                                    className={`px-3 py-1 rounded-full text-xs font-semibold ${statusInfo.color}`}
-                                                    title={statusInfo.description}
-                                                >
-                                                    {statusInfo.label}
-                                                </span>
-                                            );
-                                        })()}
-
-                                        {(() => {
-                                            const statusInfo = getStatusInfo(cita);
-                                            return (
-                                                <div className="flex gap-2 flex-wrap">
-                                                    {statusInfo.canPay && (
-                                                        <button
-                                                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
-                                                            onClick={() => {
-                                                                // Redirigir a pago
-                                                                window.location.href = `/payment?appointmentId=${cita.id}`;
-                                                            }}
-                                                        >
-                                                            Pagar
-                                                        </button>
-                                                    )}
-                                                    {statusInfo.canConfirmCompletion && (
-                                                        <button
-                                                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                                                            onClick={() => handleMarkCompleted(cita.id)}
-                                                        >
-                                                            Confirmar realización
-                                                        </button>
-                                                    )}
-                                                    {statusInfo.canCancel && (
-                                                        <button
-                                                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
-                                                            onClick={() => handleCancelAppointment(cita.id)}
-                                                        >
-                                                            Cancelar cita
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            );
-                                        })()}
-                                    </div>
-                                </div>
-                            </li>
-                        ))}
+                                </li>
+                            );
+                        })}
                     </ul>
                 ) : (
                     <div className="text-center py-8">
