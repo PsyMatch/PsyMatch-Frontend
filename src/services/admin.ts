@@ -19,6 +19,27 @@ const getAuthHeaders = () => {
 
 export const adminService = {
 
+    // Obtener psicólogos pendientes de aprobación
+    getPendingPsychologists: async (): Promise<{ success: boolean; data?: unknown[]; message?: string }> => {
+        try {
+            const response = await fetch(`${envs.next_public_api_url}/admin`, {
+                method: 'GET',
+                headers: getAuthHeaders(),
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                return { success: true, data: data.data || data, message: 'Psicólogos pendientes obtenidos exitosamente' };
+            } else {
+                const errorData = await response.text();
+                return { success: false, message: errorData };
+            }
+        } catch (error) {
+            console.error('Error obteniendo psicólogos pendientes:', error);
+            return { success: false, message: 'Error de conexión' };
+        }
+    },
+
     // Verificar/Aprobar psicólogo
     verifyPsychologist: async (psychologistId: string): Promise<{ success: boolean; message?: string; data?: unknown }> => {
         try {
@@ -111,15 +132,13 @@ export const adminService = {
                 document.cookie.split(";").forEach(function(c) { 
                     document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
                 });
-                console.error('❌ Token expirado, limpiando almacenamiento');
                 return { success: false, message: 'Token expirado. Por favor, inicia sesión de nuevo.' };
             } else {
                 const errorData = await response.text();
-                console.error('❌ Error response:', errorData);
                 return { success: false, message: errorData };
             }
         } catch (error) {
-            console.error('💥 Error obteniendo usuarios:', error);
+            console.error('Error obteniendo usuarios:', error);
             return { success: false, message: 'Error de conexión' };
         }
     },

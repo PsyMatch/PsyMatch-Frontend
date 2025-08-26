@@ -1,6 +1,6 @@
 'use client';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { adminService } from '@/services/admin';
 import { useNotifications } from '@/hooks/useNotifications';
 
@@ -32,7 +32,54 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
     } | null>(null);
     const [localData, setLocalData] = useState(data);
     const [selectedProfile, setSelectedProfile] = useState<Paciente | null>(null);
+    const [loadingPending, setLoadingPending] = useState(false);
     const notifications = useNotifications();
+
+    // Cargar psicólogos al montar el componente
+    useEffect(() => {
+        const loadPsychologists = async () => {
+            setLoadingPending(true);
+            try {
+                // Primero obtenemos los pendientes
+                const pendingResult = await adminService.getPendingPsychologists();
+                
+                let allPsychologists: Paciente[] = [];
+                
+                if (pendingResult.success && pendingResult.data) {
+                    allPsychologists = [...allPsychologists, ...(pendingResult.data as Paciente[])];
+                }
+                
+                // Luego obtenemos los verificados
+                const verifiedResult = await adminService.getUsers({ limit: 100 });
+                
+                if (verifiedResult.success && verifiedResult.data) {
+                    // Filtrar solo psicólogos del resultado general
+                    const psychologists = (verifiedResult.data as Paciente[]).filter(user => 
+                        user.role === "Psicólogo" && user.verified !== "Pendiente"
+                    );
+                    allPsychologists = [...allPsychologists, ...psychologists];
+                }
+                
+                // Remover duplicados basado en ID
+                const uniquePsychologists = allPsychologists.filter((psy, index, self) => 
+                    index === self.findIndex(p => p.id === psy.id)
+                );
+                
+                setLocalData(uniquePsychologists);
+                
+                if (allPsychologists.length === 0) {
+                    notifications.info('No se encontraron psicólogos registrados');
+                }
+            } catch (error) {
+                console.error('Error cargando psicólogos:', error);
+                notifications.error('Error al cargar psicólogos');
+            } finally {
+                setLoadingPending(false);
+            }
+        };
+
+        loadPsychologists();
+    }, [notifications]);
 
     const handleUserAction = async (userId: string, action: 'promote' | 'ban' | 'unban' | 'verify' | 'reject') => {
         setLoading(userId);
@@ -94,26 +141,6 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
         }
     };
 
-    const handleAccept = async (id: string) => {
-        try {
-            await adminService.verifyPsychologist(id);
-            
-            // Actualizar el estado local
-            setLocalData(prevData => 
-                prevData.map(psicologo => 
-                    psicologo.id === id 
-                        ? { ...psicologo, isVerified: true }
-                        : psicologo
-                )
-            );
-            
-            notifications.success("Psicólogo aprobado exitosamente");
-        } catch (error) {
-            console.error("Error al aprobar psicólogo:", error);
-            notifications.error("Error al aprobar psicólogo");
-        }
-    };
-
     const [filter, setFilter] = useState<'Pendiente' | 'Validado' | 'Rechazado'>('Pendiente');
 
         // Función para obtener solo los profesionales (role === "Psicólogo")
@@ -164,7 +191,19 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
             </div>
 
             <div className="flex-1">
-                {filtrados.length === 0 ? (
+                {loadingPending ? (
+                    <div className="bg-gradient-to-r from-[#5046E7]/10 to-[#6366F1]/10 border border-[#5046E7]/20 rounded-lg p-12 text-center">
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#5046E7]"></div>
+                            <h3 className="text-xl font-semibold text-gray-700">
+                                Cargando psicólogos...
+                            </h3>
+                            <p className="text-gray-500">
+                                Obteniendo la lista de psicólogos registrados
+                            </p>
+                        </div>
+                    </div>
+                ) : filtrados.length === 0 ? (
                     <div className="bg-gradient-to-r from-[#5046E7]/10 to-[#6366F1]/10 border border-[#5046E7]/20 rounded-lg p-12 text-center">
                         <div className="flex flex-col items-center gap-4">
                             <h3 className="text-xl font-semibold text-gray-700">
@@ -333,10 +372,8 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                                             <div className="flex justify-center gap-4">
                                                 <button
                                                     onClick={async () => {
-                                                        await handleAccept(psicologo.id);
+                                                        await handleUserAction(psicologo.id, 'verify');
                                                         setAlerta(false);
-                                                        // En lugar de recargar la página, podrías actualizar el estado local
-                                                        // setFilter(current => current === "Pendiente" ? "Validado" : current);
                                                     }}
                                                     className="px-6 py-2 text-white transition-colors bg-green-600 rounded-md hover:bg-green-700"
                                                 >

@@ -13,13 +13,23 @@ const DashboardUser = () => {
     const [dataCompleted, setDataCompleted] = useState(false);
     const notifications = useNotifications();
 
-    useEffect(() => {
-        if (!loading && user && !dataCompleted) {
-            const hasMissingData = checkMissingData();
-            setShowMissingDataModal(hasMissingData);
-        }
-    }, [user, loading, checkMissingData, dataCompleted]);
+   useEffect(() => {
+            // Captura el token de la URL y lo guarda en localStorage
+            if (typeof window !== 'undefined') {
+                const params = new URLSearchParams(window.location.search);
+                const token = params.get('token');
+                if (token) {
+                    localStorage.setItem('auth_token', token);
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            }
 
+            if (!loading && user && !dataCompleted) {
+                const hasMissingData = checkMissingData();
+                setShowMissingDataModal(hasMissingData);
+            }
+        }, [user, loading, checkMissingData, dataCompleted]);
+        
     const handleSaveMissingData = async (data: UpdateUserData) => {
         try {
             await updateUserProfile(data);
