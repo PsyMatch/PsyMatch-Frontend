@@ -3,7 +3,7 @@ import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { toast } from 'react-toastify';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface FormData {
     email: string;
@@ -21,6 +21,7 @@ const validate = (input: FormData) => {
 
 const SendMail = () => {
     const router = useRouter();
+    const notifications = useNotifications();
 
     const [formData, setFormData] = useState<FormData>({ email: '' });
 
@@ -62,17 +63,10 @@ const SendMail = () => {
         });
 
 
-        toast.success(`${response.message}`, {
-            position: 'top-center',
-            type: 'success',
-            isLoading: false,
-            autoClose: 2500,
-            closeOnClick: true,
-            draggable: true,
-        });
+        notifications.success(`${response.message}`);
         setTimeout(() => {
             router.push('/');
-        }, 3200);
+        }, 2000);
     };
 
     return (

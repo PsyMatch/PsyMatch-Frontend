@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { appointmentsService, AppointmentResponse } from '@/services/appointments';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface PatientInfo {
     id: string;
@@ -14,6 +15,7 @@ interface PatientInfo {
 const Pacientes = () => {
     const [patients, setPatients] = useState<PatientInfo[]>([]);
     const [loading, setLoading] = useState(true);
+    const notifications = useNotifications();
 
     useEffect(() => {
         const loadPatients = async () => {
@@ -69,10 +71,10 @@ const Pacientes = () => {
 
                 const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
                 if (errorMessage.includes('Authentication failed') || errorMessage.includes('Token expired')) {
-                    alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                    notifications.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
                     window.location.href = '/login';
                 } else {
-                    alert('Ocurrió un error al cargar la lista de pacientes. Por favor, recarga la página.');
+                    notifications.error('Ocurrió un error al cargar la lista de pacientes. Por favor, recarga la página.');
                 }
             } finally {
                 setLoading(false);

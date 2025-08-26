@@ -3,7 +3,7 @@ import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import { useState, Suspense } from 'react';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
-import { toast } from 'react-toastify';
+import { useNotifications } from '@/hooks/useNotifications';
 import { useRouter, useSearchParams } from 'next/navigation';
 import CustomPasswordInput from '@/components/ui/Custom-password-input';
 
@@ -11,6 +11,7 @@ const ChangePasswordForm = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const token = searchParams?.get('token');
+    const notifications = useNotifications();
 
     const [boton, setBoton] = useState(false);
 
@@ -47,35 +48,16 @@ const ChangePasswordForm = () => {
                         const response = await res.json();
 
                         if (res.ok) {
-                            toast.success(`${response.message}`, {
-                                position: 'top-center',
-                                type: 'success',
-                                isLoading: false,
-                                autoClose: 2500,
-                                closeOnClick: true,
-                                draggable: true,
-                            });
+                            notifications.success(`${response.message}`);
 
                             setTimeout(() => {
                                 router.push('/login');
-                            }, 3300);
+                            }, 2000);
                         } else {
-                            toast.error(`${response.message || 'Error al cambiar la contraseña'}`, {
-                                position: 'top-center',
-                                type: 'error',
-                                autoClose: 3000,
-                                closeOnClick: true,
-                                draggable: true,
-                            });
+                            notifications.error(`${response.message || 'Error al cambiar la contraseña'}`);
                         }
                     } catch (err) {
-                        toast.error('Error de conexión. Inténtalo de nuevo.', {
-                            position: 'top-center',
-                            type: 'error',
-                            autoClose: 3000,
-                            closeOnClick: true,
-                            draggable: true,
-                        });
+                        notifications.error('Error de conexión. Inténtalo de nuevo.');
                     } finally {
                         setSubmitting(false);
                         setBoton(false);

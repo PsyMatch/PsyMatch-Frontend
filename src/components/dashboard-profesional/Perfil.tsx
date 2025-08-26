@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { Camera, MapPinIcon } from 'lucide-react';
 import ModalContraseña from './ModalContraseña';
 import { useModalContext } from '@/context/modalContraseña';
-import { toast } from 'react-toastify';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface MapboxSuggestion {
     id: string;
@@ -47,6 +47,7 @@ interface ResponseDataProfile {
 }
 
 const Perfil = () => {
+    const notifications = useNotifications();
     const [perfil, setPerfil] = useState<ResponseDataProfile | null>({
         name: '',
         email: '',
@@ -218,14 +219,7 @@ const Perfil = () => {
                 bodySend = {};
                 setEditable(false);
                 
-                toast.success(`${response.message}`, {
-                    position: "top-center",
-                    type: 'success',
-                    isLoading: false,
-                    autoClose: 2500,
-                    closeOnClick: true,
-                    draggable: true,
-                });
+                notifications.success(`${response.message}`);
             })
             .catch((error) => {
                 console.error('Error al actualizar el perfil:', error.message);

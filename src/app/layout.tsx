@@ -45,15 +45,16 @@ export default function RootLayout({
                             <Footer />
                             <ToastContainer
                                 position="top-right"
-                                autoClose={5000}
+                                autoClose={false}
                                 hideProgressBar={false}
                                 newestOnTop={false}
-                                closeOnClick
+                                closeOnClick={false}
                                 rtl={false}
                                 pauseOnFocusLoss
                                 draggable
                                 pauseOnHover
                                 theme="light"
+                                closeButton={true}
                             />
                         </AuthProfessionalProvider>
                     </FotoDePerfilProvider>
