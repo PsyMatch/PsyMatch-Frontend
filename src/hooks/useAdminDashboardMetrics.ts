@@ -59,7 +59,7 @@ export function useAdminDashboardMetrics(pollInterval = 8000000) {
                     }
                 } catch {
                     // Si el endpoint no existe o falla, generamos datos basados en métricas existentes
-                    console.log('Endpoint de page visits no disponible, usando datos calculados');
+                    // console.log('Endpoint de page visits no disponible, usando datos calculados');
                     pageVisitsData = [
                         { page: 'Dashboard Principal', visits: Math.round(metricsData.users * 0.85) },
                         { page: 'Búsqueda de Psicólogos', visits: Math.round(metricsData.users * 0.72) },
