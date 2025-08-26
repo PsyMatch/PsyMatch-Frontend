@@ -272,7 +272,7 @@ const InfoProfesional = () => {
                             <label className="text-sm font-medium text-gray-700" htmlFor="license_number">
                                 Nro de Matricula Profesional *
                             </label>
-                            <ErrorMessage name="license_number" component="div" className="mt-1 text-red-500" />
+                            <ErrorMessage name="license" component="div" className="mt-1 text-red-500" />
                             <Field
                                 name="license_number"
                                 type="number"
