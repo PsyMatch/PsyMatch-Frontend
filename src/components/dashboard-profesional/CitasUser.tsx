@@ -72,10 +72,8 @@ const CitasUser = () => {
 
         try {
             await appointmentsService.cancelAppointment(id);
-
-            // Actualizar la lista local - eliminar la cita cancelada
-            setCitas((prev) => prev.filter((cita) => cita.id !== id));
-            
+            // Actualizar la lista local - marcar la cita como cancelada
+            setCitas((prev) => prev.map((cita) => cita.id === id ? { ...cita, status: 'cancelled' } : cita));
             notifications.success('Cita cancelada exitosamente.');
         } catch (error) {
             console.error('Error cancelling appointment:', error);
