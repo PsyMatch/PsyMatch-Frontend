@@ -7,7 +7,8 @@ import { useRouter } from 'next/navigation';
 import { dataToSave, getCookieObject } from '@/helpers/formRegister/helpers';
 import { useFotoDePerfil } from '@/context/fotoDePerfil';
 import { useAuthProfessionalContext } from '@/context/registerProfessional';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
+import { useNotifications } from '@/hooks/useNotifications';
 import { envs } from '@/config/envs.config';
 import { triggerAuthStateChange } from '@/utils/auth';
 
@@ -137,6 +138,7 @@ const saveMerged = (newValues: Record<string, unknown>) => {
 
 const Services_Prices = () => {
     const router = useRouter();
+    const notifications = useNotifications();
 
     const { profileImageFile } = useFotoDePerfil();
     const { saveUserData } = useAuthProfessionalContext();
@@ -221,14 +223,9 @@ const Services_Prices = () => {
                 triggerAuthStateChange();
             }
 
-            toast.update(toastId, {
-                render: 'Registrado con éxito!',
-                type: 'success',
-                isLoading: false,
-                autoClose: 3000,
-                closeOnClick: true,
-                draggable: true,
-            });
+            // Dismiss loading toast
+            toast.dismiss(toastId);
+            notifications.success('Registrado con éxito!');
             Cookies.remove('userDataCompleta');
 
             const rol = Cookies.get('role');
@@ -245,14 +242,9 @@ const Services_Prices = () => {
         } catch (error: unknown) {
             console.error('Error:', error);
             const errorMessage = error instanceof Error ? error.message : 'Error al registrar!';
-            toast.update(toastId, {
-                render: errorMessage,
-                type: 'error',
-                isLoading: false,
-                autoClose: 3000,
-                closeOnClick: true,
-                draggable: true,
-            });
+            // Dismiss loading toast
+            toast.dismiss(toastId);
+            notifications.error(errorMessage);
         }
     };
 

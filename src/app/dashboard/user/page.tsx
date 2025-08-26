@@ -5,12 +5,13 @@ import MenuNavegacionUser from "@/components/dashboard-profesional/MenuNavegacio
 import { MissingDataModal } from "@/components/MissingDataModal";
 import { useAuth } from "@/hooks/useAuth";
 import { UpdateUserData } from "@/services/users";
-import { toast } from 'react-toastify';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const DashboardUser = () => {
     const { user, loading, checkMissingData, updateUserProfile, refetchUser } = useAuth();
     const [showMissingDataModal, setShowMissingDataModal] = useState(false);
     const [dataCompleted, setDataCompleted] = useState(false);
+    const notifications = useNotifications();
 
     useEffect(() => {
         if (!loading && user && !dataCompleted) {
@@ -25,7 +26,7 @@ const DashboardUser = () => {
             await refetchUser();
             setDataCompleted(true);
             setShowMissingDataModal(false);
-            toast.success('¡Perfil completado exitosamente! Ahora puedes usar la aplicación.');
+            notifications.success('¡Perfil completado exitosamente! Ahora puedes usar la aplicación.');
         } catch (error) {
             console.error('Error al actualizar perfil:', error);
             throw error;

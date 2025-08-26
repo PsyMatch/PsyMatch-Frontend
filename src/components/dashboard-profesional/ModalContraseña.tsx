@@ -5,11 +5,12 @@ import { X } from "lucide-react"
 import Button from "../ui/button"
 import Cookies from "js-cookie"
 import Input from "../ui/input"
-import { Bounce, toast, ToastContainer } from "react-toastify"
+import { useNotifications } from '@/hooks/useNotifications'
 import { useEffect, useState } from "react"
 
 const ModalContraseña = () => {
     const {cerrarModal} = useModalContext()
+    const notifications = useNotifications();
     const token = Cookies.get("authToken") || Cookies.get("auth_token");
     const [disabled, setDisabled] = useState(false);
 
@@ -67,17 +68,7 @@ const ModalContraseña = () => {
                             const response = await res.text();
                             setDisabled(true);
 
-                            toast.success("Contraseña cambiada correctamente", {
-                                position: "top-center",
-                                autoClose: 2000,
-                                hideProgressBar: false,
-                                closeOnClick: false,
-                                pauseOnHover: true,
-                                draggable: true,
-                                progress: undefined,
-                                theme: "light",
-                                transition: Bounce,
-                            })
+                            notifications.success("Contraseña cambiada correctamente");
                             
                             setTimeout(() => {
                                 cerrarModal()

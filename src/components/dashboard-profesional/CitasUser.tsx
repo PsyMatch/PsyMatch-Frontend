@@ -2,10 +2,12 @@
 import { useEffect, useState } from 'react';
 import { appointmentsService, AppointmentResponse } from '@/services/appointments';
 import { getAppointmentDisplayStatus, AppointmentWithPayment, StatusInfo } from '@/services/appointmentStatus';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const CitasUser = () => {
     const [citas, setCitas] = useState<AppointmentResponse[]>([]);
     const [loading, setLoading] = useState(true);
+    const notifications = useNotifications();
 
     useEffect(() => {
         const loadAppointments = async () => {
@@ -22,10 +24,10 @@ const CitasUser = () => {
                 // Manejar errores específicos
                 const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
                 if (errorMessage.includes('Authentication failed') || errorMessage.includes('Token expired')) {
-                    alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                    notifications.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
                     window.location.href = '/login';
                 } else {
-                    alert('Ocurrió un error al cargar las citas. Por favor, recarga la página.');
+                    notifications.error('Ocurrió un error al cargar las citas. Por favor, recarga la página.');
                 }
             } finally {
                 setLoading(false);
@@ -48,16 +50,16 @@ const CitasUser = () => {
             // Actualizar la lista local
             setCitas((prev) => prev.map((cita) => (cita.id === id ? { ...cita, status: 'completed' } : cita)));
             
-            alert('Cita marcada como realizada exitosamente.');
+            notifications.success('Cita marcada como realizada exitosamente.');
         } catch (error) {
             console.error('Error marking appointment as completed:', error);
             
             const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
             if (errorMessage.includes('Authentication failed')) {
-                alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                notifications.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
                 window.location.href = '/login';
             } else {
-                alert(errorMessage || 'Ocurrió un error al marcar la cita como realizada. Intenta nuevamente.');
+                notifications.error(errorMessage || 'Ocurrió un error al marcar la cita como realizada. Intenta nuevamente.');
             }
         }
     };
@@ -74,16 +76,16 @@ const CitasUser = () => {
             // Actualizar la lista local - eliminar la cita cancelada
             setCitas((prev) => prev.filter((cita) => cita.id !== id));
             
-            alert('Cita cancelada exitosamente.');
+            notifications.success('Cita cancelada exitosamente.');
         } catch (error) {
             console.error('Error cancelling appointment:', error);
 
             const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
             if (errorMessage.includes('Authentication failed')) {
-                alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                notifications.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
                 window.location.href = '/login';
             } else {
-                alert('Ocurrió un error al cancelar la cita. Intenta nuevamente.');
+                notifications.error('Ocurrió un error al cancelar la cita. Intenta nuevamente.');
             }
         }
     };

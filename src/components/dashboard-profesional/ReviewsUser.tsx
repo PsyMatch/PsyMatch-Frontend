@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Star, Edit, Trash2, Save, X } from "lucide-react"
+import { useNotifications } from '@/hooks/useNotifications'
 
 type EditFormData = {
   rating: number
@@ -19,6 +20,7 @@ function ReviewsUser() {
   })
   const [loading, setLoading] = useState(true)
   const [reviews, setReviews] = useState<ReviewResponse[]>([])
+  const notifications = useNotifications()
 
   useEffect(() => {
     const loadReviews = async () => {
@@ -34,14 +36,14 @@ function ReviewsUser() {
         if (errorMessage.includes("Authentication failed") || 
             errorMessage.includes("Token expired") ||
             errorMessage.includes("401")) {
-          alert("Tu sesión ha expirado. Por favor, inicia sesión nuevamente.")
+          notifications.error("Tu sesión ha expirado. Por favor, inicia sesión nuevamente.")
           window.location.href = "/auth/login"
         } else if (errorMessage.includes("fetch")) {
           // Error de conexión
-          alert("No se pudo conectar al servidor. Verifica tu conexión a internet.")
+          notifications.error("No se pudo conectar al servidor. Verifica tu conexión a internet.")
         } else {
           // Otros errores
-          alert("Ocurrió un error al cargar las reseñas. Por favor, recarga la página.")
+          notifications.error("Ocurrió un error al cargar las reseñas. Por favor, recarga la página.")
         }
       } finally {
         setLoading(false)
@@ -96,16 +98,16 @@ function ReviewsUser() {
       ))
 
       setEditingReview(null)
-      alert("Reseña actualizada exitosamente.")
+      notifications.success("Reseña actualizada exitosamente.")
     } catch (error) {
       console.error("Error updating review:", error)
 
       const errorMessage = error instanceof Error ? error.message : "Error desconocido"
       if (errorMessage.includes("Authentication failed") || errorMessage.includes("401")) {
-        alert("Tu sesión ha expirado. Por favor, inicia sesión nuevamente.")
+        notifications.error("Tu sesión ha expirado. Por favor, inicia sesión nuevamente.")
         window.location.href = "/auth/login"
       } else {
-        alert("Ocurrió un error al actualizar la reseña. Intenta nuevamente.")
+        notifications.error("Ocurrió un error al actualizar la reseña. Intenta nuevamente.")
       }
     }
   }

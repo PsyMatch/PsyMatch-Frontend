@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { adminService } from '@/services/admin';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface BannedUser {
     id: string;
@@ -22,6 +23,7 @@ const BannedUsers = () => {
     const [bannedUsers, setBannedUsers] = useState<BannedUser[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
+    const notifications = useNotifications();
     const [error, setError] = useState<string | null>(null);
     const [confirmAction, setConfirmAction] = useState<{
         userId: string;
@@ -64,13 +66,13 @@ const BannedUsers = () => {
                 // Remover el usuario de la lista local
                 setBannedUsers(prev => prev.filter(user => user.id !== userId));
                 setConfirmAction(null);
-                alert('Usuario desbaneado exitosamente');
+                notifications.success('Usuario desbaneado exitosamente');
             } else {
-                alert(result.message || 'Error al desbanear usuario');
+                notifications.error(result.message || 'Error al desbanear usuario');
             }
         } catch (error) {
             console.error('Error desbaneando usuario:', error);
-            alert('Error de conexión al desbanear usuario');
+            notifications.error('Error de conexión al desbanear usuario');
         } finally {
             setActionLoading(null);
         }

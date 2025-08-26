@@ -4,44 +4,48 @@ export const useNotifications = () => {
   const success = (message: string) => {
     toast.success(message, {
       position: 'top-right',
-      autoClose: 3000,
+      autoClose: false,
       hideProgressBar: false,
-      closeOnClick: true,
+      closeOnClick: false,
       pauseOnHover: true,
       draggable: true,
+      closeButton: true,
     });
   };
 
   const error = (message: string) => {
     toast.error(message, {
       position: 'top-right',
-      autoClose: 5000,
+      autoClose: false,
       hideProgressBar: false,
-      closeOnClick: true,
+      closeOnClick: false,
       pauseOnHover: true,
       draggable: true,
+      closeButton: true,
     });
   };
 
   const warning = (message: string) => {
     toast.warning(message, {
       position: 'top-right',
-      autoClose: 4000,
+      autoClose: false,
       hideProgressBar: false,
-      closeOnClick: true,
+      closeOnClick: false,
       pauseOnHover: true,
       draggable: true,
+      closeButton: true,
     });
   };
 
   const info = (message: string) => {
     toast.info(message, {
       position: 'top-right',
-      autoClose: 3000,
+      autoClose: false,
       hideProgressBar: false,
-      closeOnClick: true,
+      closeOnClick: false,
       pauseOnHover: true,
       draggable: true,
+      closeButton: true,
     });
   };
 

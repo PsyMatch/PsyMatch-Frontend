@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import Cookies from 'js-cookie';
 import { adminService } from '@/services/admin';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface Paciente {
     id: string;
@@ -31,6 +32,7 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
         action: 'promote' | 'ban' | 'unban';
         userName: string;
     } | null>(null);
+    const notifications = useNotifications();
 
     const handleUserAction = async (userId: string, action: 'promote' | 'ban' | 'unban') => {
         setLoading(userId);
@@ -55,14 +57,14 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
             if (result.success) {
                 const actionText = action === 'promote' ? 'promovido' : 
                                 action === 'ban' ? 'baneado' : 'desbaneado';
-                alert(`Usuario ${actionText} exitosamente`);
+                notifications.success(`Usuario ${actionText} exitosamente`);
                 window.location.reload(); // Recargar para ver cambios
             } else {
-                alert(`Error: ${result.message}`);
+                notifications.error(`Error: ${result.message}`);
             }
         } catch (error) {
             console.error('Error en la acción:', error);
-            alert('Error al ejecutar la acción');
+            notifications.error('Error al ejecutar la acción');
         } finally {
             setLoading(null);
             setConfirmAction(null);
@@ -197,7 +199,7 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                                             onClick={() => {
                                                 // Aquí podrías abrir un modal con el perfil completo
                                                 // en lugar de navegar a otra página
-                                                alert(`Ver perfil completo de ${psicologo.name} - ID: ${psicologo.id}`);
+                                                notifications.info(`Ver perfil completo de ${psicologo.name} - ID: ${psicologo.id}`);
                                             }}
                                         >
                                             Ver Perfil
