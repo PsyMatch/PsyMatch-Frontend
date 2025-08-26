@@ -1,8 +1,7 @@
 'use client';
 import Button from '@/components/ui/button';
-import Input from '@/components/ui/input';
 import { useState, Suspense } from 'react';
-import { ErrorMessage, Field, Form, Formik } from 'formik';
+import { Form, Formik } from 'formik';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useRouter, useSearchParams } from 'next/navigation';
 import CustomPasswordInput from '@/components/ui/Custom-password-input';
@@ -13,7 +12,7 @@ const ChangePasswordForm = () => {
     const token = searchParams?.get('token');
     const notifications = useNotifications();
 
-    const [boton, setBoton] = useState(false);
+    const [_boton, _setBoton] = useState(false);
 
     return (
         <div className="flex flex-col items-center min-h-screen gap-4 pt-16 bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -33,7 +32,7 @@ const ChangePasswordForm = () => {
                 }}
                 onSubmit={async (values, { setSubmitting }) => {
                     try {
-                        setBoton(true);
+                        _setBoton(true);
                         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password`, {
                             method: 'POST',
                             headers: {
@@ -56,11 +55,11 @@ const ChangePasswordForm = () => {
                         } else {
                             notifications.error(`${response.message || 'Error al cambiar la contraseña'}`);
                         }
-                    } catch (err) {
+                    } catch (_err) {
                         notifications.error('Error de conexión. Inténtalo de nuevo.');
                     } finally {
                         setSubmitting(false);
-                        setBoton(false);
+                        _setBoton(false);
                     }
                 }}
             >

@@ -80,7 +80,7 @@ export const AuthProfessionalProvider: FC<{ children: ReactNode }> = ({ children
                 return;
             }
         }
-    }, []);
+    }, [token]);
 
     const saveUserData = (data: RegisterResponse) => {
         setToken(data.token);
@@ -96,7 +96,7 @@ export const AuthProfessionalProvider: FC<{ children: ReactNode }> = ({ children
 
         localStorage.removeItem('authToken');
         localStorage.removeItem('role');
-        Cookies.remove("verified")
+        Cookies.remove('verified');
         Cookies.remove('userDataCompleta');
         Cookies.remove('auth_token');
         Cookies.remove('role');

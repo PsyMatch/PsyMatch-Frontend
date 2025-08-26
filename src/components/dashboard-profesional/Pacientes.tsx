@@ -82,7 +82,7 @@ const Pacientes = () => {
         };
 
         loadPatients();
-    }, []);
+    }, [notifications]);
 
     // Función para formatear la fecha
     const formatDate = (dateString: string): string => {
