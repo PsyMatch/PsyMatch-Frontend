@@ -15,9 +15,8 @@ export function middleware(request: NextRequest) {
         response.headers.set('x-auth-change', 'true');
     }
 
-    if (
+   if (
         (pathname === '/dashboard/professional' ||
-            pathname === '/dashboard/user' ||
             pathname === '/dashboard/admin' ||
             pathname.startsWith('/professionalProfile') ||
             pathname === '/search-professionals' ||
@@ -27,6 +26,15 @@ export function middleware(request: NextRequest) {
     ) {
         const homeUrl = new URL('/', origin);
         return NextResponse.redirect(homeUrl);
+    }
+
+    if (pathname === '/dashboard/user' && !authToken) {
+        // Si el token está en la URL, permitir acceso
+        const params = request.nextUrl.searchParams;
+        if (!params.get('token')) {
+            const homeUrl = new URL('/', origin);
+            return NextResponse.redirect(homeUrl);
+        }
     }
 
     if ((pathname === '/login' || pathname === '/register-user' || pathname === '/register-professional') && authToken) {
