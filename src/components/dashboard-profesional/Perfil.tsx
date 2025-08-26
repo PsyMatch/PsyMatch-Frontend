@@ -42,6 +42,8 @@ interface ResponseDataProfile {
     specialities?: string[];
     availability?: string[];
     consultation_fee?: number;
+
+    profile_picture?: string;
 }
 
 const Perfil = () => {
@@ -61,6 +63,8 @@ const Perfil = () => {
         specialities: [],
         availability: [],
         consultation_fee: 0,
+
+        profile_picture: ""
     });
 
     const [cambios, setCambios] = useState<Partial<ResponseDataProfile>>({});
@@ -87,6 +91,11 @@ const Perfil = () => {
             .then((res) => res.json())
             .then((response) => {
                 setPerfil(response.data);
+                setProfileImage(
+                    response.data.profileImage ||
+                        response.data.profile_picture ||
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(response.data.fullName || response.data.name || 'Usuario')}`
+                );
             })
             .catch(console.error);
     }, []);
@@ -171,14 +180,24 @@ const Perfil = () => {
     }, []);
 
     const handleUpdateProfile = (cambios: Partial<ResponseDataProfile>, original: ResponseDataProfile) => {
-        const token = Cookies.get('auth_token');
+        const token = Cookies.get('auth_token') || Cookies.get('authToken');
         if (!token) return;
 
         let bodySend = Object.fromEntries(Object.entries(cambios).filter(([key, value]) => value !== original[key as keyof ResponseDataProfile]));
 
-        if (Object.keys(bodySend).length === 0) {
+        if (Object.keys(bodySend).length === 0 && !profileFile) {
             console.log('No hay cambios para enviar');
             return;
+        }
+
+        const formData = new FormData();
+
+        Object.entries(bodySend).forEach(([key, value]) => {
+            formData.append(key, value as string);
+        });
+
+        if (profileFile) {
+            formData.append('profile_picture', profileFile);
         }
 
         console.log('Cuerpo de la solicitud:', bodySend);
@@ -186,16 +205,20 @@ const Perfil = () => {
         fetch(`${envs.next_public_api_url}/psychologist/me`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify(bodySend),
+            body: formData,
         })
             .then((res) => res.json())
             .then((response) => {
-                console.log('Respuesta:', response.message);
+                console.log('Respuesta:', response);
 
                 setPerfil((prev) => ({ ...prev, ...response }));
+                setProfileImage(
+                    response.profileImage ||
+                        response.profile_picture ||
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(response.fullName || response.name || response.fullName || 'Usuario')}`
+                );
                 setCambios({});
                 bodySend = {};
                 setEditable(false);
@@ -228,56 +251,65 @@ const Perfil = () => {
     const [menuAvailability, setMenuAvailability] = useState<boolean>(false);
 
     return (
-        <div className="flex flex-col w-full gap-8 px-2 py-8 md:flex-row bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl">
+        <div className="flex flex-col items-center w-full min-h-screen px-2 py-8 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl">
             {modal && <ModalContraseña />}
-            {/* Panel imagen */}
-            <div className="flex flex-col items-center w-full md:w-1/2">
-                <div className="flex flex-col items-center w-full p-8 bg-white rounded-lg shadow">
-                    <div className="relative mb-4">
-                        <Image
-                            src={
-                                profileImage && typeof profileImage === 'string' && profileImage.trim() !== ''
-                                    ? profileImage
-                                    : `https://ui-avatars.com/api/?name=${encodeURIComponent(perfil?.name || 'Usuario')}`
+            {/* Panel imagen y contraseña */}
+            <div className="flex flex-col items-center w-full max-w-lg p-4 mb-8 bg-white rounded-lg shadow md:p-8">
+                <div className="relative mb-4">
+                    <Image
+                        src={
+                            profileImage && typeof profileImage === 'string' && profileImage.trim() !== ''
+                                ? profileImage
+                                : `https://ui-avatars.com/api/?name=${encodeURIComponent(perfil?.name || 'Usuario')}`
+                        }
+                        alt="profile"
+                        width={128}
+                        height={128}
+                        className="object-cover w-24 h-24 bg-gray-200 rounded-full md:w-32 md:h-32"
+                        onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            if (!target.src.includes('ui-avatars.com')) {
+                                target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(perfil?.name || 'Usuario')}`;
                             }
-                            alt="profile"
-                            width={128}
-                            height={128}
-                            className="object-cover w-32 h-32 bg-gray-200 rounded-full"
-                            onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                if (!target.src.includes('ui-avatars.com')) {
-                                    target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(perfil?.name || 'Usuario')}`;
-                                }
-                            }}
-                        />
-                        {editable && (
-                            <>
-                                <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="profile-upload" />
-                                <label
-                                    htmlFor="profile-upload"
-                                    className="absolute p-2 bg-gray-200 rounded-full shadow cursor-pointer bottom-2 right-2 hover:bg-gray-300"
-                                >
-                                    <Camera className="w-5 h-5 text-gray-600" />
-                                </label>
-                            </>
-                        )}
-                    </div>
-                    <h3 className="mb-1 text-xl font-semibold">{perfil?.name}</h3>
-                    <p className="mb-2 text-gray-500">{perfil?.email}</p>
-                    <div className="mb-2 text-sm text-gray-400">{perfil?.phone}</div>
-                    <div className="text-xs text-gray-400">Idiomas: {perfil?.languages || 'No especificados'}</div>
-                    <div>
-                        <button onClick={abrirModal} className="px-4 mt-6 text-violet-600 hover:underline">
-                            ¿Quieres cambiar tu contraseña?
-                        </button>
-                    </div>
+                        }}
+                    />
+                    {editable && (
+                        <>
+                            <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="profile-upload" />
+                            <label
+                                htmlFor="profile-upload"
+                                className="absolute p-2 bg-gray-200 rounded-full shadow cursor-pointer bottom-2 right-2 hover:bg-gray-300"
+                            >
+                                <Camera className="w-5 h-5 text-gray-600" />
+                            </label>
+                        </>
+                    )}
+                </div>
+                <h3 className="mb-1 text-lg font-semibold md:text-xl">{perfil?.name}</h3>
+                <p className="mb-2 text-gray-500 break-all">{perfil?.email}</p>
+                <div className="mb-2 text-sm text-gray-400">{perfil?.phone}</div>
+                <div className="text-sm text-gray-400">Idiomas: 
+                    {perfil?.languages?.map((idioma: string, index: number) => (
+                        <span
+                            key={index}
+                            className="pl-2 py-[2px] text-xs mb-1"
+                        >
+                            {idioma}
+                            {index < (perfil?.languages?.length ?? 0) - 1 && ','}
+                        </span>
+                    ))}
+                </div>
+                <div>
+                    <button onClick={abrirModal} className="px-4 mt-6 text-violet-600 hover:underline">
+                        ¿Quieres cambiar tu contraseña?
+                    </button>
                 </div>
             </div>
-            <div className="flex flex-col w-full md:w-1/2">
-                <div className="p-8 bg-white rounded-lg shadow-md">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-bold">Mi cuenta profesional</h2>
+            {/* Mi cuenta profesional */}
+            <div className="flex flex-col w-full max-w-5xl">
+                <div className="p-4 bg-white rounded-lg shadow-md md:p-8">
+                    <div className="flex flex-col items-start justify-between gap-2 mb-6 md:flex-row md:items-center">
+                        <h2 className="text-xl font-bold md:text-2xl">Mi cuenta profesional</h2>
                         <button onClick={() => setEditable((e) => !e)} className="px-4 py-2 text-white rounded bg-violet-600 hover:bg-violet-700">
                             {editable ? 'Cancelar' : 'Editar'}
                         </button>
@@ -305,201 +337,201 @@ const Perfil = () => {
                     >
                         {({ values, setFieldValue }) => (
                             <Form className="space-y-6">
-                                <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
-                                    <div>
-                                        <label className="block mb-1 text-sm font-medium">Nombre Completo</label>
-                                        <Field type="text" name="name" className="w-full px-3 py-2 border rounded" disabled={!editable} />
-                                    </div>
-                                    <div>
-                                        <label className="block mb-1 text-sm font-medium">Título Profesional</label>
-                                        <Field
-                                            type="text"
-                                            name="professional_title"
-                                            className="w-full px-3 py-2 border rounded"
-                                            disabled={!editable}
-                                        />
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <label className="block mb-1 text-sm font-medium">Biografía Profesional</label>
-                                        <Field
-                                            type="textarea"
-                                            name="personal_biography"
-                                            className="w-full px-3 py-2 border rounded resize-none"
-                                            disabled={!editable}
-                                        />
-                                    </div>
-                                    <div className="md:col-span-2 relative">
-                                        <label className="block mb-1 text-sm font-medium">Dirección del consultorio</label>
-                                        <div ref={addressInputRef}>
-                                            <input
-                                                name="office_address"
-                                                type="text"
-                                                placeholder="Av. Corrientes 123, Buenos Aires, Argentina"
-                                                value={values.office_address || ''}
-                                                disabled={!editable}
-                                                onChange={(e) => {
-                                                    setFieldValue('office_address', e.target.value);
-                                                    setSelectedCoordinates(null);
-                                                    setSelectedPlaceId(null);
-                                                    setTimeout(() => {
-                                                        if (e.target.value && !selectedPlaceId && editable) {
-                                                            searchAddresses(e.target.value);
-                                                        }
-                                                    }, 300);
-                                                }}
-                                                className="w-full px-3 py-2 border rounded resize-none"
-                                                autoComplete="off"
-                                            />
-                                        </div>
-                                        {showSuggestions && editable && (
-                                            <div
-                                                ref={suggestionsRef}
-                                                className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto mt-1"
-                                            >
-                                                {isLoadingSuggestions ? (
-                                                    <div className="p-3 text-sm font-medium flex items-center gap-2">
-                                                        <div className="w-4 h-4 border-2 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
-                                                        Buscando direcciones en Argentina...
-                                                    </div>
-                                                ) : addressSuggestions.length > 0 ? (
-                                                    addressSuggestions.map((suggestion) => (
-                                                        <button
-                                                            key={suggestion.id}
-                                                            type="button"
-                                                            className="w-full text-left p-3 hover:bg-gray-50 text-sm border-b border-gray-200 last:border-b-0 transition-colors"
-                                                            onClick={() => selectAddress(suggestion, setFieldValue)}
-                                                        >
-                                                            <div className="flex items-center gap-2">
-                                                                <MapPinIcon className="w-4 h-4 text-violet-500 mt-0.5 flex-shrink-0" />
-                                                                <div className="flex-1 min-w-0">
-                                                                    <div className="text-sm flex items-center gap-2">{suggestion.place_name}</div>
-                                                                </div>
+                                <div className="grid grid-cols-1 gap-6 md:gap-10 md:grid-cols-2">
+                                    <div className="w-full col-span-2">
+                                        <div className="flex flex-col gap-6 md:grid md:grid-cols-2 md:gap-10">
+                                            <div>
+                                                <label className="block mb-1 text-sm font-medium">Nombre Completo</label>
+                                                <div className="w-full px-3 py-2 border rounded bg-gray-50">{perfil?.name}</div>
+                                            </div>
+                                            <div>
+                                                <label className="block mb-1 text-sm font-medium">Título Profesional</label>
+                                                <Field
+                                                    type="text"
+                                                    name="professional_title"
+                                                    className="w-full px-3 py-2 border rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                                                    disabled={!editable}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block mb-1 text-sm font-medium">Biografía Profesional</label>
+                                                <Field
+                                                    type="textarea"
+                                                    name="personal_biography"
+                                                    className="w-full px-3 py-2 overflow-x-hidden border border-black rounded resize-y h-fit bg-gray-50 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                                                    disabled={!editable}
+                                                />
+                                            </div>
+                                            <div className="relative">
+                                                <label className="block mb-1 text-sm font-medium">Dirección del consultorio</label>
+                                                <div ref={addressInputRef}>
+                                                    <input
+                                                        name="office_address"
+                                                        type="text"
+                                                        placeholder="Av. Corrientes 123, Buenos Aires, Argentina"
+                                                        value={values.office_address || ''}
+                                                        disabled={!editable}
+                                                        onChange={(e) => {
+                                                            setFieldValue('office_address', e.target.value);
+                                                            setSelectedCoordinates(null);
+                                                            setSelectedPlaceId(null);
+                                                            setTimeout(() => {
+                                                                if (e.target.value && !selectedPlaceId && editable) {
+                                                                    searchAddresses(e.target.value);
+                                                                }
+                                                            }, 300);
+                                                        }}
+                                                        className="w-full px-3 py-2 border rounded resize-none bg-gray-50 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                                                        autoComplete="off"
+                                                    />
+                                                </div>
+                                                {showSuggestions && editable && (
+                                                    <div
+                                                        ref={suggestionsRef}
+                                                        className="absolute left-0 right-0 z-50 mt-1 overflow-y-auto bg-white border border-gray-300 rounded-md shadow-lg top-full max-h-60"
+                                                    >
+                                                        {isLoadingSuggestions ? (
+                                                            <div className="flex items-center gap-2 p-3 text-sm font-medium">
+                                                                <div className="w-4 h-4 border-2 rounded-full border-violet-500 border-t-transparent animate-spin"></div>
+                                                                Buscando direcciones en Argentina...
                                                             </div>
-                                                        </button>
-                                                    ))
-                                                ) : (
-                                                    <div className="p-3 text-sm text-gray-600 text-center">
-                                                        No se encontraron direcciones en Argentina. Intente con una búsqueda más específica.
+                                                        ) : addressSuggestions.length > 0 ? (
+                                                            addressSuggestions.map((suggestion) => (
+                                                                <button
+                                                                    key={suggestion.id}
+                                                                    type="button"
+                                                                    className="w-full p-3 text-sm text-left transition-colors border-b border-gray-200 hover:bg-violet-50 last:border-b-0"
+                                                                    onClick={() => selectAddress(suggestion, setFieldValue)}
+                                                                >
+                                                                    <div className="flex items-center gap-2">
+                                                                        <MapPinIcon className="w-4 h-4 text-violet-500 mt-0.5 flex-shrink-0" />
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <div className="flex items-center gap-2 text-sm">{suggestion.place_name}</div>
+                                                                        </div>
+                                                                    </div>
+                                                                </button>
+                                                            ))
+                                                        ) : (
+                                                            <div className="p-3 text-sm text-center text-gray-600">
+                                                                No se encontraron direcciones en Argentina. Intente con una búsqueda más específica.
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
-                                        )}
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <label className="block mb-1 text-sm font-medium">Valor de las Sesiones</label>
-                                        <Field
-                                            type="text"
-                                            name="consultation_fee"
-                                            className="w-full px-3 py-2 border rounded resize-none"
-                                            disabled={!editable}
-                                        />
+                                            <div>
+                                                <label className="block mb-1 text-sm font-medium">Valor de las Sesiones</label>
+                                                <Field
+                                                    type="text"
+                                                    name="consultation_fee"
+                                                    className="w-full px-3 py-2 border rounded resize-none bg-gray-50 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                                                    disabled={!editable}
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div
-                                        className={`grid w-full grid-cols-2 col-span-2 gap-4 ${editable ? 'md:grid-cols-1 gap-8' : 'md:grid-cols-2'}`}
+                                        className={`grid w-full grid-cols-1 gap-6 md:grid-cols-2 col-span-2`}
                                     >
                                         <div>
                                             <label className="block mb-1 text-sm font-medium">Enfoques Terapéuticos</label>
                                             <ul>
                                                 {perfil?.therapy_approaches?.map((serv: string, index: number) => (
-                                                    <li key={index} className="bg-white-400 px-4 py-[2px] text-sm font-bold rounded-xl">
+                                                    <li key={index} className="bg-violet-50 px-4 py-[2px] text-sm font-bold rounded-xl mb-1">
                                                         {serv}
                                                     </li>
                                                 ))}
-
-                                                {/* PONER INPUT */}
                                                 {editable && (
                                                     <button
                                                         type="button"
-                                                        className="px-5 text-xs text-white bg-violet-800"
+                                                        className="px-5 py-1 mt-2 text-xs text-white rounded bg-violet-800 hover:bg-violet-700"
                                                         onClick={() => {
                                                             setMenuEnfoques(!menuEnfoques);
                                                         }}
                                                     >
-                                                        Agregar Enfoque
+                                                        {menuEnfoques ? "cerrar" : "Agregar Enfoque"}
                                                     </button>
                                                 )}
                                                 {menuEnfoques && editable && (
-                                                        <div>
-                                                            <div className="text-sm text-gray-500 ">
-                                                                Manetene apretado ctrl para seleccionar múltiples
-                                                            </div>
-                                                            <select
-                                                                className="mt-4"
-                                                                id="therapy_approaches"
-                                                                name="therapy_approaches"
-                                                                multiple
-                                                                value={values.therapy_approaches}
-                                                                onChange={(e) => {
-                                                                    const valuesArray = Array.from(
-                                                                        e.target.selectedOptions,
-                                                                        (option) => option.value
-                                                                    );
-                                                                    setFieldValue('therapy_approaches', valuesArray);
-                                                                }}
-                                                                style={{ height: '120px' }}
-                                                            >
-                                                                <option value="Terapia cognitivo-conductual">Terapia cognitivo-conductual</option>
-                                                                <option value="Terapia de aceptación y compromiso">Terapia de aceptación y compromiso</option>
-                                                                <option value="Terapia psicodinámica">Terapia psicodinámica</option>
-                                                                <option value="Terapia de sistemas familiares">Terapia de sistemas familiares</option>
-                                                                <option value="Terapia breve centrada en soluciones">Terapia breve centrada en soluciones</option>
-                                                                <option value="Terapia de juego">Terapia de juego</option>
-                                                                <option value="Terapia dialéctico-conductual">Terapia dialéctico-conductual</option>
-                                                                <option value="Desensibilización y reprocesamiento por movimientos oculares">
-                                                                    Desensibilización y reprocesamiento por movimientos oculares
-                                                                </option>
-                                                                <option value="Terapia centrada en la persona">Terapia centrada en la persona</option>
-                                                                <option value="Terapia basada en la atención plena">Terapia basada en la atención plena</option>
-                                                                <option value="Terapia Gestalt">Terapia Gestalt</option>
-                                                                <option value="Terapia de arte">Terapia de arte</option>
-                                                                <option value="Terapia de grupo">Terapia de grupo</option>
-                                                            </select>
+                                                    <div className="mt-2">
+                                                        <div className="mb-1 text-sm text-gray-500">
+                                                            Mantén apretado ctrl para seleccionar múltiples
                                                         </div>
-                                                    )}
+                                                        <select
+                                                            className="w-full px-3 py-2 border rounded bg-violet-50 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                                                            id="therapy_approaches"
+                                                            name="therapy_approaches"
+                                                            multiple
+                                                            value={values.therapy_approaches}
+                                                            onChange={(e) => {
+                                                                const valuesArray = Array.from(
+                                                                    e.target.selectedOptions,
+                                                                    (option) => option.value
+                                                                );
+                                                                setFieldValue('therapy_approaches', valuesArray);
+                                                            }}
+                                                            style={{ height: '120px' }}
+                                                        >
+                                                            <option value="Terapia cognitivo-conductual">Terapia cognitivo-conductual</option>
+                                                            <option value="Terapia de aceptación y compromiso">Terapia de aceptación y compromiso</option>
+                                                            <option value="Terapia psicodinámica">Terapia psicodinámica</option>
+                                                            <option value="Terapia de sistemas familiares">Terapia de sistemas familiares</option>
+                                                            <option value="Terapia breve centrada en soluciones">Terapia breve centrada en soluciones</option>
+                                                            <option value="Terapia de juego">Terapia de juego</option>
+                                                            <option value="Terapia dialéctico-conductual">Terapia dialéctico-conductual</option>
+                                                            <option value="Desensibilización y reprocesamiento por movimientos oculares">
+                                                                Desensibilización y reprocesamiento por movimientos oculares
+                                                            </option>
+                                                            <option value="Terapia centrada en la persona">Terapia centrada en la persona</option>
+                                                            <option value="Terapia basada en la atención plena">Terapia basada en la atención plena</option>
+                                                            <option value="Terapia Gestalt">Terapia Gestalt</option>
+                                                            <option value="Terapia de arte">Terapia de arte</option>
+                                                            <option value="Terapia de grupo">Terapia de grupo</option>
+                                                        </select>
+                                                    </div>
+                                                )}
                                             </ul>
                                         </div>
                                         <div>
                                             <label className="block mb-1 text-sm font-medium">Especialidades</label>
                                             <ul>
                                                 {perfil?.specialities?.map((speciality: string, index: number) => (
-                                                    <li key={index} className="bg-white-400 px-4 py-[2px] text-sm font-bold rounded-xl">
+                                                    <li key={index} className="bg-violet-50 px-4 py-[2px] text-sm font-bold rounded-xl mb-1">
                                                         {speciality}
                                                     </li>
                                                 ))}
-                                                {/* PONER INPUT */}
-
                                                 {editable && (
                                                     <button
                                                         type="button"
-                                                        className="px-5 text-xs text-white bg-violet-800"
+                                                        className="px-5 py-1 mt-2 text-xs text-white rounded bg-violet-800 hover:bg-violet-700"
                                                         onClick={() => {
                                                             setMenuEspecialidades(!menuEspecialidades);
                                                         }}
                                                     >
-                                                        Agregar Especialidades
+                                                        {menuEspecialidades ? "cerrar" : "Agregar Especialidades"}
                                                     </button>
                                                 )}
                                                 {menuEspecialidades && editable && (
-                                                        <div>
-                                                            <div className="text-sm text-gray-500 ">
-                                                                Manetene apretado ctrl para seleccionar múltiples
-                                                            </div>
-                                                            <select
-                                                                className="mt-4"
-                                                                id="specialities"
-                                                                name="specialities"
-                                                                multiple
-                                                                value={values.specialities}
-                                                                onChange={(e) => {
-                                                                    const valuesArray = Array.from(
-                                                                        e.target.selectedOptions,
-                                                                        (option) => option.value
-                                                                    );
-                                                                    setFieldValue('specialities', valuesArray);
-                                                                }}
-                                                                style={{ height: '120px' }}
-                                                            >
+                                                    <div className="mt-2">
+                                                        <div className="mb-1 text-sm text-gray-500">
+                                                            Mantén apretado ctrl para seleccionar múltiples
+                                                        </div>
+                                                        <select
+                                                            className="w-full px-3 py-2 border rounded bg-violet-50 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                                                            id="specialities"
+                                                            name="specialities"
+                                                            multiple
+                                                            value={values.specialities}
+                                                            onChange={(e) => {
+                                                                const valuesArray = Array.from(
+                                                                    e.target.selectedOptions,
+                                                                    (option) => option.value
+                                                                );
+                                                                setFieldValue('specialities', valuesArray);
+                                                            }}
+                                                            style={{ height: '120px' }}
+                                                        >
 <option value="TDAH">TDAH</option>
 <option value="Adicción y abuso de sustancias">Adicción y abuso de sustancias</option>
 <option value="Manejo de la ira">Manejo de la ira</option>
@@ -526,96 +558,92 @@ const Perfil = () => {
 <option value="TOC">TOC</option>
 <option value="Trastornos del sueño">Trastornos del sueño</option>
 <option value="Trauma y TEPT">Trauma y TEPT</option>
-                                                            </select>
-                                                        </div>
-                                                    )}
+                                                        </select>
+                                                    </div>
+                                                )}
                                             </ul>
                                         </div>
                                         <div>
                                             <label className="block mb-1 text-sm font-medium">Idiomas</label>
                                             <div className="flex flex-row flex-wrap gap-2">
                                                 {perfil?.languages?.map((idioma: string, index: number) => (
-                                                    <span key={index} className="bg-white-400 px-4 py-[2px] text-sm font-bold rounded-xl">
+                                                    <span key={index} className="bg-violet-50 px-4 py-[2px] text-sm font-bold rounded-xl mb-1">
                                                         {idioma}
                                                     </span>
                                                 ))}
                                             </div>
-                                            {/* PONER INPUT */}
-
                                             {editable && (
                                                 <button
                                                     type="button"
-                                                    className="px-5 text-xs text-white bg-violet-800"
+                                                    className="px-5 py-1 mt-2 text-xs text-white rounded bg-violet-800 hover:bg-violet-700"
                                                     onClick={() => {
                                                         setMenuIdiomas(!menuIdiomas);
                                                     }}
                                                 >
-                                                    Agregar Idioma
+                                                    {menuIdiomas ? "cerrar" : "Agregar Idioma"}
                                                 </button>
                                             )}
                                             {menuIdiomas && editable && (
-                                                    <div>
-                                                        <div className="text-sm text-gray-500 ">
-                                                            Manetene apretado ctrl para seleccionar múltiples
-                                                        </div>
-                                                        <select
-                                                            className="mt-4"
-                                                            id="languages"
-                                                            name="languages"
-                                                            multiple
-                                                            value={values.languages}
-                                                            onChange={(e) => {
-                                                                const valuesArray = Array.from(e.target.selectedOptions, (option) => option.value);
-                                                                setFieldValue('languages', valuesArray);
-                                                            }}
-                                                            style={{ height: '60px', width: '30%' }}
-                                                        >
-                                                            <option value="Inglés">Inglés</option>
-                                                            <option value="Español">Español</option>
-                                                            <option value="Portugués">Portugués</option>
-                                                        </select>
+                                                <div className="mt-2">
+                                                    <div className="mb-1 text-sm text-gray-500">
+                                                        Mantén apretado ctrl para seleccionar múltiples
                                                     </div>
-                                                )}
+                                                    <select
+                                                        className="w-full px-3 py-2 border rounded bg-violet-50 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                                                        id="languages"
+                                                        name="languages"
+                                                        multiple
+                                                        value={values.languages}
+                                                        onChange={(e) => {
+                                                            const valuesArray = Array.from(e.target.selectedOptions, (option) => option.value);
+                                                            setFieldValue('languages', valuesArray);
+                                                        }}
+                                                        style={{ height: '60px' }}
+                                                    >
+                                                        <option value="Inglés">Inglés</option>
+                                                        <option value="Español">Español</option>
+                                                        <option value="Portugués">Portugués</option>
+                                                    </select>
+                                                </div>
+                                            )}
                                         </div>
                                         <div>
                                             <label className="block mb-1 text-sm font-medium">Obra Social Aceptadas</label>
                                             <div className="flex flex-row flex-wrap gap-2">
                                                 {perfil?.insurance_accepted?.map((insurance: string, index: number) => (
-                                                    <span key={index} className="bg-white-400 px-4 py-[2px] text-sm font-bold rounded-xl">
+                                                    <span key={index} className="bg-violet-50 px-4 py-[2px] text-sm font-bold rounded-xl mb-1">
                                                         {insurance}
                                                     </span>
                                                 ))}
                                             </div>
-                                            {/* PONER INPUT */}
-
                                             {editable && (
                                                 <button
                                                     type="button"
-                                                    className="px-5 text-xs text-white bg-violet-800"
+                                                    className="px-5 py-1 mt-2 text-xs text-white rounded bg-violet-800 hover:bg-violet-700"
                                                     onClick={() => {
                                                         setMenuIsurances(!menuIsurances);
                                                     }}
                                                 >
-                                                    Agregar Obra Social
+                                                    {menuIsurances ? "cerrar" : "Agregar Obra Social"}
                                                 </button>
                                             )}
                                             {menuIsurances && editable && (
-                                                    <div>
-                                                        <div className="text-sm text-gray-500 ">
-                                                            Manetene apretado ctrl para seleccionar múltiples
-                                                        </div>
-                                                        <select
-                                                            className="mt-4"
-                                                            id="insurance_accepted"
-                                                            name="insurance_accepted"
-                                                            multiple
-                                                            value={values.insurance_accepted}
-                                                            onChange={(e) => {
-                                                                const valuesArray = Array.from(e.target.selectedOptions, (option) => option.value);
-                                                                setFieldValue('insurance_accepted', valuesArray);
-                                                            }}
-                                                            style={{ height: '60px', width: '30%' }}
-                                                        >
+                                                <div className="mt-2">
+                                                    <div className="mb-1 text-sm text-gray-500">
+                                                        Mantén apretado ctrl para seleccionar múltiples
+                                                    </div>
+                                                    <select
+                                                        className="w-full px-3 py-2 border rounded bg-violet-50 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                                                        id="insurance_accepted"
+                                                        name="insurance_accepted"
+                                                        multiple
+                                                        value={values.insurance_accepted}
+                                                        onChange={(e) => {
+                                                            const valuesArray = Array.from(e.target.selectedOptions, (option) => option.value);
+                                                            setFieldValue('insurance_accepted', valuesArray);
+                                                        }}
+                                                        style={{ height: '100px' }}
+                                                    >
 <option value="OSDE">OSDE</option>
 <option value="Swiss Medical">Swiss Medical</option>
 <option value="IOMA">IOMA</option>
@@ -633,143 +661,138 @@ const Perfil = () => {
 <option value="ASE Nacional">ASE Nacional</option>
 <option value="OSPIP">OSPIP</option>
 <option value="Ninguna">Ninguna</option>
-                                                        </select>
-                                                    </div>
-                                                )}
+                                                    </select>
+                                                </div>
+                                            )}
                                         </div>
                                         <div>
                                             <label className="block mb-1 text-sm font-medium">Tipos de Sesión</label>
                                             <div className="flex flex-row flex-wrap gap-2">
                                                 {perfil?.session_types?.map((tipo: string, index: number) => (
-                                                    <span key={index} className="bg-white-400 px-4 py-[2px] text-sm font-bold rounded-xl">
+                                                    <span key={index} className="bg-violet-50 px-4 py-[2px] text-sm font-bold rounded-xl mb-1">
                                                         {tipo}
                                                     </span>
                                                 ))}
                                             </div>
-                                            {/* PONER INPUT */}
-
                                             {editable && (
                                                 <button
                                                     type="button"
-                                                    className="px-5 text-xs text-white bg-violet-800"
+                                                    className="px-5 py-1 mt-2 text-xs text-white rounded bg-violet-800 hover:bg-violet-700"
                                                     onClick={() => {
                                                         setMenuTipos(!menuTipos);
                                                     }}
                                                 >
-                                                    Agregar Tipo de Sesión
+                                                    {menuTipos ? "cerrar" : "Agregar Tipo de Sesión"}
                                                 </button>
                                             )}
                                             {menuTipos && editable && (
-                                                    <div>
-                                                        <div className="text-sm text-gray-500 ">
-                                                            Manetene apretado ctrl para seleccionar múltiples
-                                                        </div>
-                                                        <select
-                                                            className="mt-4"
-                                                            id="session_types"
-                                                            name="session_types"
-                                                            multiple
-                                                            value={values.session_types}
-                                                            onChange={(e) => {
-                                                                const valuesArray = Array.from(e.target.selectedOptions, (option) => option.value);
-                                                                setFieldValue('session_types', valuesArray);
-                                                            }}
-                                                            style={{ height: '60px', width: '30%' }}
-                                                        >
+                                                <div className="mt-2">
+                                                    <div className="mb-1 text-sm text-gray-500">
+                                                        Mantén apretado ctrl para seleccionar múltiples
+                                                    </div>
+                                                    <select
+                                                        className="w-full px-3 py-2 border rounded bg-violet-50 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                                                        id="session_types"
+                                                        name="session_types"
+                                                        multiple
+                                                        value={values.session_types}
+                                                        onChange={(e) => {
+                                                            const valuesArray = Array.from(e.target.selectedOptions, (option) => option.value);
+                                                            setFieldValue('session_types', valuesArray);
+                                                        }}
+                                                        style={{ height: '60px' }}
+                                                    >
 <option value="Individual">Individual</option>
 <option value="Pareja">Pareja</option>
 <option value="Familiar">Familiar</option>
 <option value="Grupo">Grupo</option>
-                                                        </select>
-                                                    </div>
-                                                )}
+                                                    </select>
+                                                </div>
+                                            )}
                                         </div>
                                         <div>
                                             <label className="block mb-1 text-sm font-medium">Modalidad de Sesión</label>
-                                            <Field type="text" name="modality" className="w-full px-3 py-2 border rounded" disabled={!editable} />
-                                            {/* PONER INPUT */}
+                                            <Field type="text" name="modality" className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-50" readOnly/>
                                             {editable && (
                                                 <button
                                                     type="button"
-                                                    className="px-5 text-xs text-white bg-violet-800"
+                                                    className="px-5 py-1 mt-2 text-xs text-white rounded bg-violet-800 hover:bg-violet-700"
                                                     onClick={() => {
                                                         setMenuModalidad(!menuModalidad);
                                                     }}
                                                 >
-                                                    Agregar Modalidad de Sesión
+                                                    {menuModalidad ? "cerrar" : "Agregar Modalidad de Sesión"}
                                                 </button>
                                             )}
                                             {menuModalidad && editable && (
-                                                    <div>
-                                                        <select
-                                                            className="mt-4"
-                                                            id="modality"
-                                                            name="modality"
-                                                            onChange={(e) => {
-                                                                setFieldValue('modality', e.target.value);
-                                                            }}
-                                                            style={{ height: '20px' }}
-                                                        >
-                                                            <option value="En línea">En línea</option>
-                                                            <option value="Presencial">Presencial</option>
-                                                            <option value="Híbrido">Híbrido</option>
-                                                        </select>
-                                                    </div>
-                                                )}
+                                                <div className="mt-2">
+                                                    <select
+                                                        className="w-full px-3 py-2 border rounded bg-violet-50 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                                                        id="modality"
+                                                        name="modality"
+                                                        onChange={(e) => {
+                                                            setFieldValue('modality', e.target.value);
+                                                        }}
+                                                        style={{ height: '40px' }}
+                                                    >
+                                                        <option value="En línea">En línea</option>
+                                                        <option value="Presencial">Presencial</option>
+                                                        <option value="Híbrido">Híbrido</option>
+                                                    </select>
+                                                </div>
+                                            )}
                                         </div>
                                         <div>
                                             <label className="block mb-1 text-sm font-medium">Días Disponibles</label>
                                             <div className="flex flex-row flex-wrap gap-2">
                                                 {perfil?.availability?.map((dia: string, index: number) => (
-                                                    <span key={index} className="bg-white-400 px-4 py-[2px] text-sm font-bold rounded-xl">
+                                                    <span key={index} className="bg-violet-50 px-4 py-[2px] text-sm font-bold rounded-xl mb-1">
                                                         {dia}
                                                     </span>
                                                 ))}
                                             </div>
-                                            {/* PONER INPUT */}
                                             {editable && (
                                                 <button
                                                     type="button"
-                                                    className="px-5 text-xs text-white bg-violet-800"
+                                                    className="px-5 py-1 mt-2 text-xs text-white rounded bg-violet-800 hover:bg-violet-700"
                                                     onClick={() => {
                                                         setMenuAvailability(!menuAvailability);
                                                     }}
                                                 >
-                                                    Agregar Día
+                                                    {menuAvailability ? "cerrar" : "Agregar Día"}
                                                 </button>
                                             )}
                                             {menuAvailability && editable && (
-                                                    <div>
-                                                        <select
-                                                            className="mt-4"
-                                                            id="availability"
-                                                            name="availability"
-                                                            multiple
-                                                            value={values.availability}
-                                                            onChange={(e) => {
-                                                                const valuesArray = Array.from(e.target.selectedOptions, (option) => option.value);
-                                                                setFieldValue('availability', valuesArray);
-                                                            }}
-                                                            style={{ height: '120px', width: '30%' }}
-                                                        >
-                                                            <option value="Lunes">Lunes</option>
-                                                            <option value="Martes">Martes</option>
-                                                            <option value="Miércoles">Miércoles</option>
-                                                            <option value="Jueves">Jueves</option>
-                                                            <option value="Viernes">Viernes</option>
-                                                            <option value="Sábado">Sábado</option>
-                                                            <option value="Domingo">Domingo</option>
-                                                        </select>
-                                                    </div>
-                                                )}
+                                                <div className="mt-2">
+                                                    <select
+                                                        className="w-full px-3 py-2 border rounded bg-violet-50 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                                                        id="availability"
+                                                        name="availability"
+                                                        multiple
+                                                        value={values.availability}
+                                                        onChange={(e) => {
+                                                            const valuesArray = Array.from(e.target.selectedOptions, (option) => option.value);
+                                                            setFieldValue('availability', valuesArray);
+                                                        }}
+                                                        style={{ height: '120px' }}
+                                                    >
+                                                        <option value="Lunes">Lunes</option>
+                                                        <option value="Martes">Martes</option>
+                                                        <option value="Miércoles">Miércoles</option>
+                                                        <option value="Jueves">Jueves</option>
+                                                        <option value="Viernes">Viernes</option>
+                                                        <option value="Sábado">Sábado</option>
+                                                        <option value="Domingo">Domingo</option>
+                                                    </select>
+                                                </div>
+                                            )}
                                         </div>
-
                                         <div>
                                             <label className="block mb-1 text-sm font-medium">Experiencia</label>
                                             <Field
                                                 type="number"
                                                 name="professional_experience"
-                                                className="w-full px-3 py-2 border rounded"
+                                                className="w-full px-3 py-2 border rounded bg-gray-50 focus:outline-none focus:ring-2 focus:ring-violet-400"
                                                 disabled={!editable}
                                             />
                                         </div>
