@@ -65,7 +65,6 @@ const ModalContraseña = () => {
                             });
 
                             const response = await res.text();
-                            console.log("Respuesta", response)
                             setDisabled(true);
 
                             toast.success("Contraseña cambiada correctamente", {
@@ -84,8 +83,8 @@ const ModalContraseña = () => {
                                 cerrarModal()
                             }, 2200)
 
-                        }catch(err){
-                            console.log("Error", err)
+                        }catch{
+                            // Error al cambiar contraseña
                         }finally {
                             setSubmitting(false);
                         }

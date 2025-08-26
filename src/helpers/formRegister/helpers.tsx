@@ -42,7 +42,6 @@ export const AutoSaveCookies = () => {
         const toSave = dataToSave(values);
         const prev = getCookieObject();
         const merged = { ...prev, ...toSave };
-        console.log('Auto guardando:', merged);
 
         //solo se guarda si cambio
         if (JSON.stringify(merged) !== JSON.stringify(prev)) {

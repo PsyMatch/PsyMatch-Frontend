@@ -26,7 +26,6 @@ export default function LoginForm() {
         setLoginError('');
 
         try {
-            console.log('Enviando petición de login a:', `${envs.next_public_api_url}/auth/signin`);
             const response = await fetch(`${envs.next_public_api_url}/auth/signin`, {
                 method: 'POST',
                 headers: {
@@ -38,15 +37,9 @@ export default function LoginForm() {
                 }),
             });
 
-            console.log('Response status:', response.status);
-            console.log('Response ok:', response.ok);
-
             const data = await response.json();
-            console.log('Response data:', data);
 
             if (response.ok) {
-                console.log('Login exitoso:', data);
-
                 if (data.token) {
                     Cookies.set('auth_token', data.token);
                 }

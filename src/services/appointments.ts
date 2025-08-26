@@ -36,7 +36,7 @@ export interface AppointmentResponse {
         session_types?: string[];
         modality?: string[];
         insurance_accepted?: string[];
-        availability?: any;
+        availability?: unknown;
         consultation_fee?: number;
         profile_picture?: string;
     };
