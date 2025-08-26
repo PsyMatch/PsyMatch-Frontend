@@ -280,6 +280,13 @@ export default function RegisterForm() {
 
     return (
         <div className="w-full max-w-sm space-y-4 sm:max-w-md sm:space-y-6">
+            <div className="text-xs font-bold text-center text-gray-600 rounded sm:text-sm">
+                ¿Eres un profesional de salud mental?{' '}
+                <Link href="/register-professional" className="text-blue-600 hover:underline">
+                    Únete a Nuestra Red
+                </Link>
+            </div>
+
             <div className="space-y-2 text-center">
                 <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">Comenzar</h1>
                 <p className="text-sm text-gray-600 sm:text-base">Únete a miles de usuarios que han encontrado a su terapeuta ideal</p>
@@ -386,8 +393,8 @@ export default function RegisterForm() {
                         </div>
 
                         <div className="mt-2 md:col-span-1">
-                            <div className="space-y-2 relative">
-                                <Label htmlFor="address" className="text-sm font-medium flex items-center gap-2">
+                            <div className="relative space-y-2">
+                                <Label htmlFor="address" className="flex items-center gap-2 text-sm font-medium">
                                     Dirección *
                                 </Label>
                                 <div ref={addressInputRef}>
@@ -420,11 +427,11 @@ export default function RegisterForm() {
                                 {showSuggestions && (
                                     <div
                                         ref={suggestionsRef}
-                                        className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto mt-1"
+                                        className="absolute left-0 right-0 z-50 mt-1 overflow-y-auto bg-white border border-gray-300 rounded-md shadow-lg top-full max-h-60"
                                     >
                                         {isLoadingSuggestions ? (
-                                            <div className="text-sm font-medium flex items-center gap-2">
-                                                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                            <div className="flex items-center gap-2 text-sm font-medium">
+                                                <div className="w-4 h-4 border-2 border-blue-500 rounded-full border-t-transparent animate-spin"></div>
                                                 Buscando direcciones en Argentina...
                                             </div>
                                         ) : addressSuggestions.length > 0 ? (
@@ -432,19 +439,19 @@ export default function RegisterForm() {
                                                 <button
                                                     key={suggestion.id}
                                                     type="button"
-                                                    className="w-full text-left p-3 hover:bg-gray-50 text-sm border-b border-gray-200 last:border-b-0 transition-colors"
+                                                    className="w-full p-3 text-sm text-left transition-colors border-b border-gray-200 hover:bg-gray-50 last:border-b-0"
                                                     onClick={() => selectAddress(suggestion, setFieldValue)}
                                                 >
                                                     <div className="flex items-center gap-2">
                                                         <MapPinIcon className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
                                                         <div className="flex-1 min-w-0">
-                                                            <div className="text-sm flex items-center gap-2">{suggestion.place_name}</div>
+                                                            <div className="flex items-center gap-2 text-sm">{suggestion.place_name}</div>
                                                         </div>
                                                     </div>
                                                 </button>
                                             ))
                                         ) : (
-                                            <div className="p-3 text-sm text-gray-600 text-center">
+                                            <div className="p-3 text-sm text-center text-gray-600">
                                                 No se encontraron direcciones en Argentina. Intente con una búsqueda más específica.
                                             </div>
                                         )}
@@ -564,13 +571,6 @@ export default function RegisterForm() {
                     </Form>
                 )}
             </Formik>
-
-            <div className="text-xs text-center text-gray-600 sm:text-sm">
-                ¿Eres un profesional de salud mental?{' '}
-                <Link href="/register-professional" className="text-blue-600 hover:underline">
-                    Únete a Nuestra Red
-                </Link>
-            </div>
         </div>
     );
 }

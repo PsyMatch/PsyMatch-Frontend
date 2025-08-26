@@ -4,7 +4,7 @@ import { Formik, Form, ErrorMessage, Field } from 'formik';
 import React, { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
-import { dataToSave, getCookieObject, saveMerged } from '@/helpers/formRegister/helpers';
+import { dataToSave, getCookieObject } from '@/helpers/formRegister/helpers';
 import { useFotoDePerfil } from '@/context/fotoDePerfil';
 import { useAuthProfessionalContext } from '@/context/registerProfessional';
 import { ToastContainer, toast } from 'react-toastify';
@@ -75,13 +75,49 @@ const obrasSociales = [
     'Ninguna',
 ];
 
-const Services_Prices = () => {
-    const router = useRouter();
+const getInitialValues = (): typeof initialValuesTipos => {
+  const cookieData = getCookieObject();
+  return cookieData
+    ? {
+        name: cookieData.name || '',
+        email: cookieData.email || '',
+        phone: cookieData.phone || '',
+        password: cookieData.password || '',
+        confirmPassword: cookieData.confirmPassword || '',
+        birthdate: cookieData.birthdate || '',
+        dni: cookieData.dni || '',
+        profile_picture: null,
+        personal_biography: cookieData.personal_biography || '',
+        languages: cookieData.languages || [],
+        license_number: cookieData.license_number || '',
+        professional_title: cookieData.professional_title || '',
+        professional_experience: cookieData.professional_experience || '',
+        office_address: cookieData.office_address || '',
 
-    const { profileImageFile } = useFotoDePerfil();
-    const { saveUserData } = useAuthProfessionalContext();
+        specialities: cookieData.specialities || [],
+        therapy_approaches: cookieData.therapy_approaches || [],
+        session_types: cookieData.session_types || [],
+        modality: cookieData.modality || '',
+        insurance_accepted: cookieData.insurance_accepted || [],
+        availability: cookieData.availability || [],
+        consultation_fee: cookieData.consultation_fee || 0,
+      }
+    : {
+        name: '',
+        email: '',
+        phone: '',
+        password: '',
+        confirmPassword: '',
+        birthdate: '',
+        dni: '',
+        profile_picture: null,
+        personal_biography: '',
+        languages: [],
+        license_number: '',
+        professional_title: '',
+        professional_experience: '',
+        office_address: '',
 
-    const [initialValues, setInitialValues] = useState<typeof initialValuesTipos>({
         specialities: [],
         therapy_approaches: [],
         session_types: [],
@@ -89,26 +125,24 @@ const Services_Prices = () => {
         insurance_accepted: [],
         availability: [],
         consultation_fee: 0,
-    });
+      };
+};
 
-    useEffect(() => {
-        const cookieData = getCookieObject();
-        if (cookieData) {
-            try {
-                setInitialValues({
-                    specialities: cookieData.specialities || [],
-                    therapy_approaches: cookieData.therapy_approaches || [],
-                    session_types: cookieData.session_types || [],
-                    modality: cookieData.modality || '',
-                    insurance_accepted: cookieData.insurance_accepted || [],
-                    availability: cookieData.availability || [],
-                    consultation_fee: cookieData.consultation_fee || 0,
-                });
-            } catch (error) {
-                console.error(error);
-            }
-        }
-    }, []);
+const saveMerged = (newValues: Record<string, unknown>) => {
+  const existing = getCookieObject() || {};
+  const merged = { ...existing, ...newValues };
+  Cookies.set('userDataCompleta', JSON.stringify(merged), { path: '/' });
+};
+
+const Services_Prices = () => {
+    const router = useRouter();
+
+    const { profileImageFile } = useFotoDePerfil();
+    const { saveUserData } = useAuthProfessionalContext();
+
+    const [initialValues, setInitialValues] = useState<typeof initialValuesTipos>(
+        getInitialValues
+    );
 
     const handleSubmit = async (values: Valores) => {
         const toSave = dataToSave(values as unknown as Record<string, unknown>);
@@ -181,6 +215,10 @@ const Services_Prices = () => {
                     Cookies.set('role', data.data.role, { path: '/' });
                     Cookies.set('role', data.data.role, { path: '/' });
                 }
+
+                if(data.data.verified) {
+                    Cookies.set("verified", data.data.verified, { path:"/" })
+                }
             }
 
             toast.update(toastId, {
@@ -201,12 +239,7 @@ const Services_Prices = () => {
             }
             if (rol === 'Administrador') {
                 router.push('/dashboard/admin');
-                router.push('/dashboard/professional');
-            }
-            if (rol === 'Administrador') {
-                router.push('/dashboard/admin');
             } else {
-                router.push('/dashboard/user');
                 router.push('/dashboard/user');
             }
         } catch (error: unknown) {
@@ -232,9 +265,9 @@ const Services_Prices = () => {
             </div>
 
             <Formik enableReinitialize initialValues={initialValues} onSubmit={handleSubmit} validationSchema={validationSchema}>
-                {({ values, setFieldValue }) => (
+                {({ values, setFieldValue, handleChange }) => (
                     <Form>
-                        <div className="font-bold">Especialidades * (Selecciona al menos 3)</div>
+                        <div className="text-sm font-medium text-gray-700">Especialidades * (Selecciona al menos 3)</div>
                         <ErrorMessage name="specialities" component="div" className="mt-1 text-sm text-red-600" />
                         <div className="grid grid-cols-3 gap-5 mt-5">
                             {especialidades.map((option) => (
@@ -242,19 +275,24 @@ const Services_Prices = () => {
                                     <input
                                         type="checkbox"
                                         name="specialities"
+                                        className='mb-1 mr-1 border-gray-600'
                                         value={option}
                                         checked={values.specialities.includes(option)}
                                         onChange={() => {
+                                            let newSpecialities;
                                             if (values.specialities.includes(option)) {
                                                 // SACAR OPCION SI ESTA SELECCIONADA
-                                                setFieldValue(
-                                                    'specialities',
-                                                    values.specialities.filter((item) => item !== option)
-                                                );
+                                                newSpecialities = values.specialities.filter((item) => item !== option);
                                             } else {
                                                 // AGREGAR LA OPCION
-                                                setFieldValue('specialities', [...values.specialities, option]);
+                                                newSpecialities = [...values.specialities, option];
                                             }
+
+                                            // actualizar Formik
+                                            setFieldValue('specialities', newSpecialities);
+
+                                            // actualizar cookie
+                                            saveMerged({ specialities: newSpecialities });
                                         }}
                                     />
                                     {option}
@@ -262,27 +300,32 @@ const Services_Prices = () => {
                             ))}
                         </div>
 
-                        <div className="mt-10 font-bold">Enfoques terapéutico * (Selecciona al menos 2)</div>
+                        <div className="mt-12 text-sm font-medium text-gray-700">Enfoques terapéutico * (Selecciona al menos 2)</div>
                         <ErrorMessage name="therapy_approaches" component="div" className="mt-1 text-sm text-red-600" />
-                        <div className="grid grid-cols-3 gap-5 mt-5">
+                        <div className="grid grid-cols-2 gap-5 mt-5">
                             {enfoquesTerapia.map((enfoque) => (
                                 <label key={enfoque} className="text-[12px]">
                                     <input
                                         type="checkbox"
                                         name="therapy_approaches"
                                         value={enfoque}
+                                        className='mb-1 mr-1 border-gray-600'
                                         checked={values.therapy_approaches.includes(enfoque)}
                                         onChange={() => {
+                                            let newTherapyApproaches;
                                             if (values.therapy_approaches.includes(enfoque)) {
-                                                // SACAR OPCION SI ESTA SELECCIONADA
-                                                setFieldValue(
-                                                    'therapy_approaches',
-                                                    values.therapy_approaches.filter((item) => item !== enfoque)
-                                                );
+                                            // SACAR OPCION SI ESTA SELECCIONADA
+                                            newTherapyApproaches = values.therapy_approaches.filter((item) => item !== enfoque);
                                             } else {
-                                                // AGREGAR LA OPCION
-                                                setFieldValue('therapy_approaches', [...values.therapy_approaches, enfoque]);
+                                            // AGREGAR LA OPCION
+                                            newTherapyApproaches = [...values.therapy_approaches, enfoque];
                                             }
+
+                                            // actualizar Formik
+                                            setFieldValue('therapy_approaches', newTherapyApproaches);
+
+                                            // actualizar cookie
+                                            saveMerged({ therapy_approaches: newTherapyApproaches });
                                         }}
                                     />
                                     {enfoque}
@@ -290,7 +333,7 @@ const Services_Prices = () => {
                             ))}
                         </div>
 
-                        <div className="mt-10 font-bold">Tipos de sesión ofrecidos *</div>
+                        <div className="mt-12 text-sm font-medium text-gray-700">Tipos de sesión ofrecidos *</div>
                         <ErrorMessage name="session_types" component="div" className="mt-1 text-sm text-red-600" />
                         <div className="grid grid-cols-3 gap-5 mt-5">
                             {tiposTerapia.map((tipo) => (
@@ -299,18 +342,23 @@ const Services_Prices = () => {
                                         type="checkbox"
                                         name="session_type"
                                         value={tipo}
+                                        className='mb-1 mr-1 border-gray-600'
                                         checked={values.session_types.includes(tipo)}
                                         onChange={() => {
+                                            let newSessionTypes;
                                             if (values.session_types.includes(tipo)) {
                                                 // SACAR OPCION SI ESTA SELECCIONADA
-                                                setFieldValue(
-                                                    'session_types',
-                                                    values.session_types.filter((item) => item !== tipo)
-                                                );
+                                                newSessionTypes = values.session_types.filter((item) => item !== tipo);
                                             } else {
                                                 // AGREGAR LA OPCION
-                                                setFieldValue('session_types', [...values.session_types, tipo]);
+                                                newSessionTypes = [...values.session_types, tipo];
                                             }
+
+                                            // actualizar Formik
+                                            setFieldValue('session_types', newSessionTypes);
+
+                                            // actualizar cookie
+                                            saveMerged({ session_types: newSessionTypes });
                                         }}
                                     />
                                     {tipo}
@@ -318,8 +366,8 @@ const Services_Prices = () => {
                             ))}
                         </div>
 
-                        <div className="mt-10">
-                            <label className="text-sm font-medium leading-none" htmlFor="consultation_fee">
+                        <div className="mt-12">
+                            <label className="text-sm font-medium text-gray-700" htmlFor="consultation_fee">
                                 Precio de tus Sesiones *
                             </label>
                             <Field
@@ -327,47 +375,64 @@ const Services_Prices = () => {
                                 type="number"
                                 id="consultation_fee"
                                 className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                    handleChange(e);                  // actualiza Formik
+                                    saveMerged({ [e.target.name]: e.target.value }); // actualiza cookie con la clave correcta
+                                }}
                             />
                             <ErrorMessage name="consultation_fee" component="div" className="mt-1 text-sm text-red-500" />
                         </div>
 
-                        <div className="mt-10 font-bold">Modalidad del Servicio *</div>
+                        <div className="mt-12 text-sm font-medium text-gray-700">Modalidad del Servicio *</div>
                         <ErrorMessage name="modality" component="div" className="mt-1 text-sm text-red-600" />
-                        <div className="grid grid-cols-3 gap-5 mt-5 mb-10">
+                            <span className='text-xs'>En caso de ofrecer atención tanto presencial como en línea, seleccione la opción Híbrido.</span>
+                            <div className="grid grid-cols-3 gap-5 mt-5 mb-10">
                             {modalidades.map((modalidad) => (
-                                <label key={modalidad} className="text-[12px]">
+                                <label key={modalidad} className="text-[12px] font-bold">
                                     <input
                                         type="radio"
                                         name="modality"
+                                        className='mb-1 mr-1 border-gray-600'
                                         value={modalidad}
                                         checked={values.modality === modalidad}
-                                        onChange={() => setFieldValue('modality', modalidad)}
+                                        onChange={() => {
+                                            // actualizar Formik
+                                            setFieldValue('modality', modalidad);
+
+                                            // actualizar cookie
+                                            saveMerged({ modality: modalidad });
+                                        }}
                                     />
                                     {modalidad}
                                 </label>
                             ))}
                         </div>
 
-                        <div className="mb-4 font-bold ">Obras sociales Aceptadas *</div>
+                        <div className="mb-3 text-sm font-medium text-gray-700">Obras sociales Aceptadas *</div>
                         <div className="grid grid-cols-3 gap-5">
                             {obrasSociales.map((obra) => (
                                 <label key={obra} className="text-[12px]">
                                     <input
                                         type="checkbox"
                                         name="insurance_accepted"
+                                        className='mb-1 mr-1 border-gray-600'
                                         value={obra}
                                         checked={values.insurance_accepted.includes(obra)}
                                         onChange={() => {
+                                            let newInsuranceAccepted;
                                             if (values.insurance_accepted.includes(obra)) {
                                                 // SACAR OPCION SI ESTA SELECCIONADA
-                                                setFieldValue(
-                                                    'insurance_accepted',
-                                                    values.insurance_accepted.filter((item) => item !== obra)
-                                                );
+                                                newInsuranceAccepted = values.insurance_accepted.filter((item) => item !== obra);
                                             } else {
                                                 // AGREGAR LA OPCION
-                                                setFieldValue('insurance_accepted', [...values.insurance_accepted, obra]);
+                                                newInsuranceAccepted = [...values.insurance_accepted, obra];
                                             }
+
+                                            // actualizar Formik
+                                            setFieldValue('insurance_accepted', newInsuranceAccepted);
+
+                                            // actualizar cookie
+                                            saveMerged({ insurance_accepted: newInsuranceAccepted });
                                         }}
                                     />
                                     {obra}
@@ -375,7 +440,7 @@ const Services_Prices = () => {
                             ))}
                         </div>
 
-                        <div className="mt-10 font-bold ">Días de la semana Disponibles *</div>
+                        <div className="mt-12 text-sm font-medium text-gray-700">Días de la semana Disponibles *</div>
                         <ErrorMessage name="availability" component="div" className="mt-1 text-sm text-red-600" />
                         <div className="grid grid-cols-3 gap-5 mt-5">
                             {disponibilidad.map((dia) => (
@@ -383,19 +448,24 @@ const Services_Prices = () => {
                                     <input
                                         type="checkbox"
                                         name="availability"
+                                        className='mb-1 mr-1 border-gray-600'
                                         value={dia}
                                         checked={values.availability.includes(dia)}
                                         onChange={() => {
+                                            let newAvailability;
                                             if (values.availability.includes(dia)) {
                                                 // SACAR OPCION SI ESTA SELECCIONADA
-                                                setFieldValue(
-                                                    'availability',
-                                                    values.availability.filter((item) => item !== dia)
-                                                );
+                                                newAvailability = values.availability.filter((item) => item !== dia);
                                             } else {
                                                 // AGREGAR LA OPCION
-                                                setFieldValue('availability', [...values.availability, dia]);
+                                                newAvailability = [...values.availability, dia];
                                             }
+
+                                            // actualizar Formik
+                                            setFieldValue('availability', newAvailability);
+
+                                            // actualizar cookie
+                                            saveMerged({ availability: newAvailability });
                                         }}
                                     />
                                     {dia}
@@ -403,7 +473,7 @@ const Services_Prices = () => {
                             ))}
                         </div>
 
-                        <button type="submit" className="px-4 py-1 mt-10 rounded-xl bg-violet-600">
+                        <button type="submit" className="px-4 py-1 mt-10 text-white rounded-xl bg-violet-600">
                             Enviar
                         </button>
                     </Form>

@@ -24,18 +24,33 @@ interface MapboxSuggestion {
         address?: string;
     };
 }
-
-const InfoProfesional = () => {
-    const { avanzarPaso } = useBotonesRegisterContext();
-
-    const [initialValues, setInitialValues] = useState<ValoresInfoProfesional>({
+const getInitialValues = (): ValoresInfoProfesional => {
+  const cookieData = getCookieObject();
+  return cookieData
+    ? {
+        personal_biography: cookieData.personal_biography || '',
+        languages: cookieData.languages || [],
+        license_number: cookieData.license_number || '',
+        professional_title: cookieData.professional_title || '',
+        professional_experience: cookieData.professional_experience || '',
+        office_address: cookieData.office_address || '',
+      }
+    : {
         personal_biography: '',
         languages: [],
         license_number: '',
         professional_title: '',
         professional_experience: '',
         office_address: '',
-    });
+      };
+};
+
+const InfoProfesional = () => {
+    const { avanzarPaso } = useBotonesRegisterContext();
+
+    const [initialValues, setInitialValues] = useState<ValoresInfoProfesional>(
+    getInitialValues
+    );
 
     // Estados para autocompletado de direcciones
     const [addressSuggestions, setAddressSuggestions] = useState<MapboxSuggestion[]>([]);
@@ -47,24 +62,18 @@ const InfoProfesional = () => {
     const suggestionsRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (initialValues.personal_biography === '' && initialValues.license_number === '' && initialValues.languages.length === 0) {
             const cookieData = getCookieObject();
             if (cookieData) {
                 try {
-                    setInitialValues({
-                        personal_biography: cookieData.personal_biography || '',
-                        languages: cookieData.languages || [],
-                        license_number: cookieData.license_number || '',
-                        professional_title: cookieData.professional_title || '',
-                        professional_experience: cookieData.professional_experience || '',
-                        office_address: cookieData.office_address || '',
-                    });
+                    setInitialValues(prev => ({
+                    ...prev,
+                    ...cookieData
+                }));
                 } catch (error) {
                     console.error(error);
                 }
             }
-        }
-    }, [initialValues.languages.length, initialValues.license_number, initialValues.personal_biography]);
+    }, []);
 
     const searchAddresses = async (query: string) => {
         if (query.length < 3) {
@@ -131,7 +140,65 @@ const InfoProfesional = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const handleSubmit = (values: ValoresInfoProfesional) => {
+    interface ValidateFormValues {
+        field: "license_number";
+        licenseValue?: number;
+    }
+
+    // Debounce para validación de matrícula profesional
+    const [licenseValidationTimeout, setLicenseValidationTimeout] = useState<NodeJS.Timeout | null>(null);
+    const [licenseValidationError, setLicenseValidationError] = useState<string | null>(null);
+
+    const handleValidate = async (values: ValidateFormValues) => {
+        const errors: Partial<Record<"license_number", string | number>> = {};
+
+        try {
+            const response = await fetch(`${envs.next_public_api_url}/users/validate-unique`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    field: values.field,
+                    licenseValue: Number(values.licenseValue),
+                })
+            });
+
+            if (response.status === 409) {
+                errors.license_number = "Número de matricula ya está registrado";
+            }
+        } catch (err) {
+            if (values.field === "license_number") errors.license_number = "Error de conexión con el servidor";
+        }
+
+        return errors;
+    };
+
+    const handleLicenseBlur = async (value: string | number) => {
+        if (!value) {
+            setLicenseValidationError("El número de matricula es obligatorio");
+            return;
+        }
+        setLicenseValidationError(null);
+        const res = await handleValidate({ field: "license_number", licenseValue: Number(value) });
+        if (res.license_number) setLicenseValidationError(res.license_number as string);
+        else setLicenseValidationError(null);
+    };
+
+    const handleSubmit = async (
+        values: ValoresInfoProfesional,
+        { setErrors, setSubmitting }: { setErrors: (errors: any) => void; setSubmitting: (isSubmitting: boolean) => void }
+    ) => {
+        const errors: any = {};
+
+        // Validación de matrícula profesional solo al enviar
+        const licenseErrors = await handleValidate({ field: "license_number", licenseValue: Number(values.license_number) });
+        if (licenseErrors.license_number) errors.license_number = licenseErrors.license_number;
+
+        if (Object.keys(errors).length > 0) {
+            setErrors(errors);
+            setSubmitting(false);
+            return;
+        }
+
         console.log('Languages enviados:', values.languages);
         const toSave = dataToSave(values as unknown as Record<string, unknown>);
         console.log('Guardando en cookie (submit):', toSave);
@@ -151,7 +218,7 @@ const InfoProfesional = () => {
                     <Form>
                         <AutoSaveCookies />
                         <div className="flex flex-col gap-2">
-                            <label className="text-sm font-bold leading-none" htmlFor="personal_biography">
+                            <label className="text-sm font-medium text-gray-700" htmlFor="personal_biography">
                                 Biografia Personal *
                             </label>
                             <ErrorMessage name="personal_biography" component="div" className="mt-1 text-sm text-red-600" />
@@ -163,7 +230,7 @@ const InfoProfesional = () => {
                             />
                         </div>
 
-                        <div className="mt-10 font-bold">Idiomas *</div>
+                        <div className="mt-10 text-sm font-medium text-gray-700">Idiomas *</div>
                         <ErrorMessage name="languages" component="div" className="mt-1 text-sm text-red-600" />
                         <div className="grid grid-cols-3 gap-5 mt-5">
                             {idiomas.map((idioma) => (
@@ -172,6 +239,7 @@ const InfoProfesional = () => {
                                         type="checkbox"
                                         name="languages"
                                         value={idioma}
+                                        className='mb-1 mr-1 border-gray-600'
                                         checked={values.languages.includes(idioma)}
                                         onChange={() => {
                                             if (values.languages.includes(idioma)) {
@@ -192,7 +260,7 @@ const InfoProfesional = () => {
                         </div>
 
                         <div className="flex flex-col gap-2 mt-10">
-                            <label className="text-sm font-bold leading-none" htmlFor="professional_experience">
+                            <label className="text-sm font-medium text-gray-700" htmlFor="professional_experience">
                                 Años de experiencia
                             </label>
                             <ErrorMessage name="professional_experience" component="div" className="mt-1 text-sm text-red-600" />
@@ -205,20 +273,22 @@ const InfoProfesional = () => {
                         </div>
 
                         <div className="flex flex-col gap-2 mt-10">
-                            <label className="text-sm font-bold leading-none" htmlFor="license_number">
+                            <label className="text-sm font-medium text-gray-700" htmlFor="license_number">
                                 Nro de Matricula Profesional *
                             </label>
-                            <ErrorMessage name="license_number" component="div" className="mt-1 text-sm text-red-600" />
+                            <ErrorMessage name="license_number" component="div" className="mt-1 text-red-500" />
                             <Field
                                 name="license_number"
-                                id="license_number"
                                 type="number"
-                                className="flex w-[90%] h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
+                                className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
+                                onBlur={async (e: React.FocusEvent<HTMLInputElement>) => {
+                                    await handleLicenseBlur(e.target.value);
+                                }}
                             />
                         </div>
 
                         <div className="flex flex-col gap-2 mt-10">
-                            <label className="text-sm font-bold leading-none" htmlFor="professional_title">
+                            <label className="text-sm font-medium text-gray-700" htmlFor="professional_title">
                                 Titulo Profesional *
                             </label>
                             <ErrorMessage name="professional_title" component="div" className="mt-1 text-sm text-red-600" />
@@ -230,8 +300,8 @@ const InfoProfesional = () => {
                             />
                         </div>
 
-                        <div className="flex flex-col gap-2 mt-10 relative">
-                            <label className="text-sm font-bold leading-none" htmlFor="office_address">
+                        <div className="relative flex flex-col gap-2 mt-10">
+                            <label className="text-sm font-medium text-gray-700" htmlFor="office_address">
                                 Dirección de oficina/consultorio (opcional si haces sesiones presencial)
                             </label>
                             <ErrorMessage name="office_address" component="div" className="mt-1 text-sm text-red-600" />
@@ -263,8 +333,8 @@ const InfoProfesional = () => {
                                     className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto mt-1 w-[90%]"
                                 >
                                     {isLoadingSuggestions ? (
-                                        <div className="p-3 text-sm font-medium flex items-center gap-2">
-                                            <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                                        <div className="flex items-center gap-2 p-3 text-sm font-medium">
+                                            <div className="w-4 h-4 border-2 border-indigo-500 rounded-full border-t-transparent animate-spin"></div>
                                             Buscando direcciones en Argentina...
                                         </div>
                                     ) : addressSuggestions.length > 0 ? (
@@ -272,19 +342,19 @@ const InfoProfesional = () => {
                                             <button
                                                 key={suggestion.id}
                                                 type="button"
-                                                className="w-full text-left p-3 hover:bg-gray-50 text-sm border-b border-gray-200 last:border-b-0 transition-colors"
+                                                className="w-full p-3 text-sm text-left transition-colors border-b border-gray-200 hover:bg-gray-50 last:border-b-0"
                                                 onClick={() => selectAddress(suggestion, setFieldValue)}
                                             >
                                                 <div className="flex items-center gap-2">
                                                     <MapPinIcon className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
                                                     <div className="flex-1 min-w-0">
-                                                        <div className="text-sm flex items-center gap-2">{suggestion.place_name}</div>
+                                                        <div className="flex items-center gap-2 text-sm">{suggestion.place_name}</div>
                                                     </div>
                                                 </div>
                                             </button>
                                         ))
                                     ) : (
-                                        <div className="p-3 text-sm text-gray-600 text-center">
+                                        <div className="p-3 text-sm text-center text-gray-600">
                                             No se encontraron direcciones en Argentina. Intente con una búsqueda más específica.
                                         </div>
                                     )}
@@ -292,7 +362,7 @@ const InfoProfesional = () => {
                             )}
                         </div>
 
-                        <button type="submit" className="px-4 py-1 mt-10 rounded-xl bg-violet-600">
+                        <button type="submit" className="px-4 py-1 mt-10 text-white rounded-xl bg-violet-600">
                             Continuar
                         </button>
                     </Form>
