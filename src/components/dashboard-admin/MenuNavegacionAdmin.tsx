@@ -73,7 +73,7 @@ const MenuNavegacionAdmin = ({ data, onUserUpdate, onRefreshData }: MenuNavegaci
   return (
     <div className="scroll-smooth">
       {/* Navegación móvil - dropdown */}
-      <div className="block lg:hidden mb-4">
+      <div className="block sm:hidden mb-4">
         <select
           value={pestañaActiva}
           onChange={(e) => handleTabChange(e.target.value)}
@@ -87,13 +87,32 @@ const MenuNavegacionAdmin = ({ data, onUserUpdate, onRefreshData }: MenuNavegaci
         </select>
       </div>
 
-      {/* Navegación desktop - tabs horizontales */}
-      <div className="hidden lg:block">
-        <div className="flex items-center justify-center w-full min-h-12 bg-gray-50 rounded-lg border border-gray-200 p-1 flex-wrap gap-1">
+      {/* Navegación tablet - tabs scroll horizontal */}
+      <div className="block sm:block lg:hidden mb-4">
+        <div className="flex overflow-x-auto scrollbar-hide bg-gray-50 rounded-lg border border-gray-200 p-1 gap-1">
           {pestañas.map((pestaña) => (
             <button
               key={pestaña.id}
-              className={`flex-1 min-h-10 rounded-md transition-all duration-200 font-medium text-sm px-2 ${
+              className={`whitespace-nowrap px-4 py-2 rounded-md transition-all duration-200 font-medium text-sm flex-shrink-0 ${
+                pestañaActiva === pestaña.id 
+                  ? "bg-[#5046E7] text-white shadow-md" 
+                  : "text-gray-600 hover:text-[#5046E7] hover:bg-[#5046E7]/10"
+              }`}
+              onClick={() => handleTabChange(pestaña.id)}
+            >
+              {pestaña.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Navegación desktop - tabs horizontales */}
+      <div className="hidden lg:block">
+        <div className="flex items-center justify-center w-full min-h-12 bg-gray-50 rounded-lg border border-gray-200 p-1 gap-1">
+          {pestañas.map((pestaña) => (
+            <button
+              key={pestaña.id}
+              className={`flex-1 min-h-10 rounded-md transition-all duration-200 font-medium text-sm px-2 text-center ${
                 pestañaActiva === pestaña.id 
                   ? "bg-[#5046E7] text-white shadow-md" 
                   : "text-gray-600 hover:text-[#5046E7] hover:bg-[#5046E7]/10"
@@ -108,8 +127,8 @@ const MenuNavegacionAdmin = ({ data, onUserUpdate, onRefreshData }: MenuNavegaci
 
       {/* Contenido de las pestañas */}
       <div className="mt-4 lg:mt-6 bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
-        <div className="max-h-[600px] overflow-y-auto transition-all duration-300 ease-in-out">
-          <div className="p-4 sm:p-6">
+        <div className="max-h-[80vh] overflow-y-auto transition-all duration-300 ease-in-out">
+          <div className="p-3 sm:p-4 lg:p-6">
             {pestañas.find((pestaña) => pestaña.id === pestañaActiva)?.component}
           </div>
         </div>

@@ -104,7 +104,7 @@ const BannedUsers = ({ onUserUpdate, onUserUnbanned }: BannedUsersProps = {}) =>
         return (
             <div className="w-full min-h-[400px] flex flex-col">
                 <div className="flex items-center gap-3 mb-6">
-                    <h2 className="text-2xl font-bold text-gray-800">Usuarios Baneados</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Usuarios Baneados</h2>
                 </div>
                 <div className="flex items-center justify-center flex-1 min-h-[200px]">
                     <div className="text-center">
@@ -120,7 +120,7 @@ const BannedUsers = ({ onUserUpdate, onUserUnbanned }: BannedUsersProps = {}) =>
         return (
             <div className="w-full min-h-[400px] flex flex-col">
                 <div className="flex items-center gap-3 mb-6">
-                    <h2 className="text-2xl font-bold text-gray-800">Usuarios Baneados</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Usuarios Baneados</h2>
                 </div>
                 <div className="flex items-center justify-center flex-1 min-h-[200px]">
                     <div className="text-center">
@@ -139,9 +139,9 @@ const BannedUsers = ({ onUserUpdate, onUserUnbanned }: BannedUsersProps = {}) =>
 
     return (
         <div className="w-full min-h-[500px] flex flex-col">
-            <div className="flex items-center gap-3 mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Usuarios Baneados</h2>
-                <div className="ml-auto bg-red-600/10 text-red-600 px-3 py-1 rounded-full text-sm font-semibold">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Usuarios Baneados</h2>
+                <div className="bg-red-600/10 text-red-600 px-3 py-1 rounded-full text-sm font-semibold w-fit">
                     {bannedUsers.length} usuarios baneados
                 </div>
             </div>
@@ -177,39 +177,39 @@ const BannedUsers = ({ onUserUpdate, onUserUnbanned }: BannedUsersProps = {}) =>
                                         </div>
                                     )}
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="text-lg font-semibold text-gray-900 truncate">
+                                <div className="flex-1 min-w-0 text-center sm:text-left">
+                                    <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 truncate">
                                         {user.name}
                                     </h3>
-                                    <p className="text-sm text-gray-600 truncate">{user.email}</p>
+                                    <p className="text-xs sm:text-sm text-gray-600 truncate break-all">{user.email}</p>
                                 </div>
-                                <div className="flex-shrink-0">
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <div className="flex-shrink-0 mx-auto sm:mx-0">
+                                    <span className="inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                         Baneado
                                     </span>
                                 </div>
                             </div>
 
-                            <div className="space-y-2 mb-4">
+                            <div className="space-y-1 sm:space-y-2 mb-3 sm:mb-4">
                                 <div className="flex justify-between">
-                                    <span className="text-sm text-gray-500">Rol:</span>
-                                    <span className="text-sm font-medium text-gray-900">{user.role}</span>
+                                    <span className="text-xs sm:text-sm text-gray-500">Rol:</span>
+                                    <span className="text-xs sm:text-sm font-medium text-gray-900">{user.role}</span>
                                 </div>
                                 {user.phone && (
                                     <div className="flex justify-between">
-                                        <span className="text-sm text-gray-500">Teléfono:</span>
-                                        <span className="text-sm font-medium text-gray-900">{user.phone}</span>
+                                        <span className="text-xs sm:text-sm text-gray-500">Teléfono:</span>
+                                        <span className="text-xs sm:text-sm font-medium text-gray-900">{user.phone}</span>
                                     </div>
                                 )}
                                 {user.dni && (
                                     <div className="flex justify-between">
-                                        <span className="text-sm text-gray-500">DNI:</span>
-                                        <span className="text-sm font-medium text-gray-900">{user.dni}</span>
+                                        <span className="text-xs sm:text-sm text-gray-500">DNI:</span>
+                                        <span className="text-xs sm:text-sm font-medium text-gray-900">{user.dni}</span>
                                     </div>
                                 )}
                             </div>
 
-                            <div className="flex justify-end">
+                            <div className="flex justify-center sm:justify-end">
                                 <button
                                     onClick={() => setConfirmAction({
                                         userId: user.id,
@@ -217,7 +217,7 @@ const BannedUsers = ({ onUserUpdate, onUserUnbanned }: BannedUsersProps = {}) =>
                                         userName: user.name
                                     })}
                                     disabled={actionLoading === user.id}
-                                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50"
+                                    className="w-full sm:w-auto px-2 sm:px-3 py-1 sm:py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-xs sm:text-sm font-medium disabled:opacity-50"
                                 >
                                     {actionLoading === user.id ? 'Desbaneando...' : 'Desbanear Usuario'}
                                 </button>
@@ -229,8 +229,8 @@ const BannedUsers = ({ onUserUpdate, onUserUnbanned }: BannedUsersProps = {}) =>
 
             {/* Modal de confirmación */}
             {confirmAction && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg p-4 sm:p-6 max-w-md w-full">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">
                             Confirmar Acción
                         </h3>
@@ -238,16 +238,16 @@ const BannedUsers = ({ onUserUpdate, onUserUnbanned }: BannedUsersProps = {}) =>
                             ¿Estás seguro de que quieres desbanear a <strong>{confirmAction.userName}</strong>?
                             Esta acción reactivará su cuenta inmediatamente.
                         </p>
-                        <div className="flex justify-end space-x-3">
+                        <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
                             <button
                                 onClick={() => setConfirmAction(null)}
-                                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                                className="w-full sm:w-auto px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={() => handleUnbanUser(confirmAction.userId)}
-                                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                                className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
                             >
                                 Desbanear Usuario
                             </button>

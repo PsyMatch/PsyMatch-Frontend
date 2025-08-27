@@ -260,17 +260,17 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
 
     return (
         <div className="w-full min-h-[500px] flex flex-col">
-            <div className="flex items-center gap-3 mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Gestión de Psicólogos</h2>
-                <div className="ml-auto bg-[#5046E7]/10 text-[#5046E7] px-3 py-1 rounded-full text-sm font-semibold">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 sm:mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Gestión de Psicólogos</h2>
+                <div className="bg-[#5046E7]/10 text-[#5046E7] px-3 py-1 rounded-full text-sm font-semibold w-fit">
                     {filtrados.length} psicólogos
                 </div>
             </div>
 
-            <div className="flex items-center w-full h-12 gap-2 mb-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center w-full gap-2 mb-4">
                 <button
                     type="button"
-                    className={`flex-1 h-full rounded-md transition-colors font-medium ${
+                    className={`flex-1 h-10 sm:h-12 rounded-md transition-colors font-medium text-sm sm:text-base ${
                         filter === 'Pendiente' ? 'bg-[#5046E7] text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                     }`}
                     onClick={() => setFilter('Pendiente')}
@@ -279,7 +279,7 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                 </button>
                 <button
                     type="button"
-                    className={`flex-1 h-full rounded-md transition-colors font-medium ${
+                    className={`flex-1 h-10 sm:h-12 rounded-md transition-colors font-medium text-sm sm:text-base ${
                         filter === 'Validado' ? 'bg-[#5046E7] text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                     }`}
                     onClick={() => setFilter('Validado')}
@@ -288,7 +288,7 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                 </button>
                 <button
                     type="button"
-                    className={`flex-1 h-full rounded-md transition-colors font-medium ${
+                    className={`flex-1 h-10 sm:h-12 rounded-md transition-colors font-medium text-sm sm:text-base ${
                         filter === "Rechazado" ? "bg-[#5046E7] text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-700"
                     }`}
                     onClick={() => setFilter("Rechazado")}
@@ -327,31 +327,28 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                         </div>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
                         {filtrados?.map((psicologo) => (
                             <div
                                 key={psicologo.id}
-                                className="p-6 transition-all duration-200 bg-white border border-gray-200 rounded-lg hover:shadow-md"
+                                className="p-4 sm:p-5 transition-all duration-200 bg-white border border-gray-200 rounded-lg hover:shadow-md overflow-hidden"
                             >
-                                <div className="flex flex-col gap-4">
-                                    <div className="flex items-start gap-4">
-                                        <div className="flex-shrink-0 w-16 h-16 bg-gray-200 rounded-full">
+                                <div className="flex flex-col gap-4 h-full">
+                                    {/* Header con avatar, nombre y badges */}
+                                    <div className="flex items-start gap-3">
+                                        <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-gray-200 rounded-full">
                                             <Image
                                                 src={psicologo.profile_picture || '/person-gray-photo-placeholder-woman.webp'}
                                                 alt={`Foto de ${psicologo.name}`}
-                                                width={64}
-                                                height={64}
+                                                width={56}
+                                                height={56}
                                                 className="object-cover w-full h-full rounded-full"
                                             />
                                         </div>
-                                        <div className="flex-1">
-                                            <h3 className="font-bold text-[#5046E7] text-lg">{psicologo.name}</h3>
-                                            <p className="text-sm text-gray-600">📧 {psicologo.email}</p>
-                                            <p className="text-sm text-gray-600">📱 {psicologo.phone}</p>
-                                        </div>
-                                        <div className="flex-shrink-0">
-                                            <div className="flex flex-col gap-2">
-                                                <span className={`px-3 py-1 text-sm font-semibold rounded-full ${
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-bold text-[#5046E7] text-sm sm:text-base mb-2 truncate">{psicologo.name}</h3>
+                                            <div className="flex flex-wrap gap-1.5">
+                                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                                                     psicologo.verified === "Validado" 
                                                         ? "bg-green-100 text-green-800" 
                                                         : psicologo.verified === "Rechazado"
@@ -361,7 +358,7 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                                                     {psicologo.verified}
                                                 </span>
                                                 <span
-                                                    className={`px-3 py-1 text-sm font-semibold rounded-full ${
+                                                    className={`px-2 py-1 text-xs font-semibold rounded-full ${
                                                         psicologo.is_active !== false ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'
                                                     }`}
                                                 >
@@ -371,19 +368,25 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                                         </div>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <p className="text-sm">
-                                            <strong>DNI:</strong> {psicologo.dni}
+                                    {/* Información de contacto */}
+                                    <div className="space-y-2 text-xs sm:text-sm">
+                                        <p className="text-gray-600 break-words">
+                                            <span className="font-medium">📧 Email:</span> {psicologo.email}
                                         </p>
-                                        <p className="text-sm">
-                                            <strong>Fecha de Nacimiento:</strong> {psicologo.birthdate}
-                                        </p>
-                                        <p className="text-sm">
-                                            <strong>Años de Experiencia:</strong> {psicologo.professional_experience}
+                                        <p className="text-gray-600">
+                                            <span className="font-medium">📱 Teléfono:</span> {psicologo.phone}
                                         </p>
                                     </div>
+
+                                    {/* Información adicional */}
+                                    <div className="space-y-2 text-xs sm:text-sm border-t border-gray-100 pt-3">
+                                        <p><strong>DNI:</strong> {psicologo.dni}</p>
+                                        <p><strong>Fecha de Nacimiento:</strong> {psicologo.birthdate}</p>
+                                        <p><strong>Años de Experiencia:</strong> {psicologo.professional_experience}</p>
+                                    </div>
                                     
-                                    <div className="flex gap-2 mt-4 flex-wrap">
+                                    {/* Botones de acción */}
+                                    <div className="flex gap-2 flex-col sm:flex-row mt-auto pt-3 border-t border-gray-100">
                                         {/* Botones de verificación solo para psicólogos pendientes */}
                                         {psicologo.verified === "Pendiente" && (
                                             <>
@@ -394,7 +397,7 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                                                         userName: psicologo.name
                                                     })}
                                                     disabled={loading === psicologo.id}
-                                                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50"
+                                                    className="w-full sm:w-auto px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50"
                                                     type="button"
                                                 >
                                                     {loading === psicologo.id && confirmAction?.action === 'verify' ? 'Aprobando...' : 'Aprobar'}
@@ -407,7 +410,7 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                                                         userName: psicologo.name
                                                     })}
                                                     disabled={loading === psicologo.id}
-                                                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium disabled:opacity-50"
+                                                    className="w-full sm:w-auto px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium disabled:opacity-50"
                                                     type="button"
                                                 >
                                                     {loading === psicologo.id && confirmAction?.action === 'reject' ? 'Rechazando...' : 'Rechazar'}
@@ -416,7 +419,7 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                                         )}
 
                                         <button
-                                            className="px-4 py-2 bg-[#5046E7] text-white rounded-md hover:bg-[#4338CA] transition-colors text-sm font-medium"
+                                            className="w-full sm:w-auto px-3 py-2 bg-[#5046E7] text-white rounded-md hover:bg-[#4338CA] transition-colors text-sm font-medium"
                                             type="button"
                                             onClick={() => setSelectedProfile(psicologo)}
                                         >
@@ -433,7 +436,7 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                                                 })
                                             }
                                             disabled={loading === psicologo.id}
-                                            className="px-4 py-2 text-sm font-medium text-white transition-colors bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50"
+                                            className="w-full sm:w-auto px-3 py-2 text-sm font-medium text-white transition-colors bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50"
                                         >
                                             {loading === psicologo.id ? 'Procesando...' : 'Promover a Admin'}
                                         </button>
@@ -449,7 +452,7 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                                                     })
                                                 }
                                                 disabled={loading === psicologo.id}
-                                                className="px-4 py-2 text-sm font-medium text-white transition-colors bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
+                                                className="w-full sm:w-auto px-3 py-2 text-sm font-medium text-white transition-colors bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
                                             >
                                                 {loading === psicologo.id ? 'Procesando...' : 'Banear Usuario'}
                                             </button>
@@ -463,9 +466,9 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                                                     })
                                                 }
                                                 disabled={loading === psicologo.id}
-                                                className="px-4 py-2 text-sm font-medium text-white transition-colors bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50"
+                                                className="w-full sm:w-auto px-3 py-2 text-sm font-medium text-white transition-colors bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50"
                                             >
-                                                {loading === psicologo.id ? 'Procesando...' : 'Desbanear Usuario'}
+                                                {loading === psicologo.id ? 'Procesando...' : 'Desbanear'}
                                             </button>
                                         )}
                                     </div>
@@ -504,12 +507,12 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
 
             {/* Modal de confirmación */}
             {confirmAction && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg p-4 sm:p-6 max-w-md w-full">
                         <h3 className="text-lg font-semibold mb-4">
                             Confirmar acción
                         </h3>
-                        <p className="text-gray-600 mb-6">
+                        <p className="text-sm sm:text-base text-gray-600 mb-6">
                             {confirmAction.action === 'verify' && `¿Estás seguro de que quieres aprobar a ${confirmAction.userName}? Esto cambiará su estado a "Validado".`}
                             {confirmAction.action === 'reject' && `¿Estás seguro de que quieres rechazar a ${confirmAction.userName}? Esto cambiará su estado a "Rechazado".`}
                             {confirmAction.action === 'promote' && `¿Estás seguro de que quieres promover a administrador a ${confirmAction.userName}?`}
@@ -548,17 +551,17 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                             </div>
                         )}
 
-                        <div className="flex justify-end gap-4">
+                        <div className="flex flex-col sm:flex-row justify-end gap-3">
                             <button
                                 onClick={handleCloseModal}
-                                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                                className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={() => handleUserAction(confirmAction.userId, confirmAction.action)}
                                 disabled={confirmAction.action === 'ban' && banReason.trim().length === 0}
-                                className={`px-4 py-2 text-white rounded-md transition-colors ${
+                                className={`w-full sm:w-auto px-4 py-2 text-sm font-medium text-white rounded-md transition-colors ${
                                     confirmAction.action === 'ban' && banReason.trim().length === 0
                                         ? 'bg-gray-400 cursor-not-allowed opacity-50'
                                         : 'bg-[#5046E7] hover:bg-[#4037D6]'
@@ -575,12 +578,12 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
             {selectedProfile && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6">
-                            <div className="flex justify-between items-start mb-6">
-                                <h2 className="text-2xl font-bold text-[#5046E7]">Perfil Completo</h2>
+                        <div className="p-4 sm:p-6">
+                            <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
+                                <h2 className="text-xl sm:text-2xl font-bold text-[#5046E7]">Perfil Completo</h2>
                                 <button
                                     onClick={() => setSelectedProfile(null)}
-                                    className="text-gray-500 hover:text-gray-700 text-xl font-bold"
+                                    className="self-start sm:self-auto text-gray-500 hover:text-gray-700 text-xl font-bold"
                                 >
                                     ×
                                 </button>
@@ -588,8 +591,8 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                             
                             <div className="space-y-6">
                                 {/* Información personal */}
-                                <div className="flex items-center gap-6">
-                                    <div className="w-24 h-24 bg-gray-200 rounded-full flex-shrink-0">
+                                <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+                                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-200 rounded-full flex-shrink-0">
                                         <Image 
                                             src={selectedProfile.profile_picture || "/person-gray-photo-placeholder-woman.webp"} 
                                             alt={`Foto de ${selectedProfile.name}`}
@@ -598,11 +601,11 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                                             className="object-cover w-full h-full rounded-full" 
                                         />
                                     </div>
-                                    <div>
-                                        <h3 className="text-xl font-bold text-gray-800">{selectedProfile.name}</h3>
-                                        <p className="text-gray-600">{selectedProfile.email}</p>
-                                        <div className="flex gap-2 mt-2">
-                                            <span className={`px-3 py-1 text-sm font-semibold rounded-full ${
+                                    <div className="text-center sm:text-left">
+                                        <h3 className="text-lg sm:text-xl font-bold text-gray-800">{selectedProfile.name}</h3>
+                                        <p className="text-sm sm:text-base text-gray-600">{selectedProfile.email}</p>
+                                        <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-2">
+                                            <span className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold rounded-full ${
                                                 selectedProfile.verified === "Validado" 
                                                     ? "bg-green-100 text-green-800" 
                                                     : selectedProfile.verified === "Rechazado"
@@ -611,7 +614,7 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                                             }`}>
                                                 {selectedProfile.verified}
                                             </span>
-                                            <span className={`px-3 py-1 text-sm font-semibold rounded-full ${
+                                            <span className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold rounded-full ${
                                                 selectedProfile.is_active !== false 
                                                     ? "bg-blue-100 text-blue-800" 
                                                     : "bg-red-100 text-red-800"
@@ -623,10 +626,10 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                                 </div>
 
                                 {/* Información detallada */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                                     <div className="space-y-3">
-                                        <h4 className="font-semibold text-gray-800">Información Personal</h4>
-                                        <div className="space-y-2 text-sm">
+                                        <h4 className="font-semibold text-gray-800 text-sm sm:text-base">Información Personal</h4>
+                                        <div className="space-y-2 text-xs sm:text-sm">
                                             <p><strong>DNI:</strong> {selectedProfile.dni || 'No especificado'}</p>
                                             <p><strong>Teléfono:</strong> {selectedProfile.phone || 'No especificado'}</p>
                                             <p><strong>Fecha de Nacimiento:</strong> {selectedProfile.birthdate || 'No especificada'}</p>
@@ -635,8 +638,8 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                                     </div>
                                     
                                     <div className="space-y-3">
-                                        <h4 className="font-semibold text-gray-800">Información Profesional</h4>
-                                        <div className="space-y-2 text-sm">
+                                        <h4 className="font-semibold text-gray-800 text-sm sm:text-base">Información Profesional</h4>
+                                        <div className="space-y-2 text-xs sm:text-sm">
                                             <p><strong>Años de Experiencia:</strong> {selectedProfile.professional_experience || 'No especificado'}</p>
                                             <p><strong>ID de Usuario:</strong> {selectedProfile.id}</p>
                                         </div>
@@ -645,8 +648,8 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
 
                                 {/* Acciones rápidas */}
                                 <div className="border-t pt-4">
-                                    <h4 className="font-semibold text-gray-800 mb-3">Acciones</h4>
-                                    <div className="flex gap-2 flex-wrap">
+                                    <h4 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">Acciones</h4>
+                                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-wrap">
                                         {selectedProfile.verified === "Pendiente" && (
                                             <>
                                                 <button  
@@ -658,7 +661,7 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                                                         });
                                                         setSelectedProfile(null);
                                                     }}
-                                                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
+                                                    className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-xs sm:text-sm font-medium"
                                                 >
                                                     Aprobar
                                                 </button>
@@ -672,7 +675,7 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                                                         });
                                                         setSelectedProfile(null);
                                                     }}
-                                                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
+                                                    className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-xs sm:text-sm font-medium"
                                                 >
                                                     Rechazar
                                                 </button>
@@ -688,9 +691,9 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                                                 });
                                                 setSelectedProfile(null);
                                             }}
-                                            className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-sm font-medium"
+                                            className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-xs sm:text-sm font-medium"
                                         >
-                                            Promover a Admin
+                                            Promover
                                         </button>
                                         
                                         {selectedProfile.is_active !== false ? (
@@ -703,9 +706,9 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                                                     });
                                                     setSelectedProfile(null);
                                                 }}
-                                                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
+                                                className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-xs sm:text-sm font-medium"
                                             >
-                                                Banear Usuario
+                                                Banear
                                             </button>
                                         ) : (
                                             <button
@@ -717,9 +720,9 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                                                     });
                                                     setSelectedProfile(null);
                                                 }}
-                                                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
+                                                className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-xs sm:text-sm font-medium"
                                             >
-                                                Desbanear Usuario
+                                                Desbanear
                                             </button>
                                         )}
                                     </div>
