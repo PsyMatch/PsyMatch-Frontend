@@ -78,6 +78,8 @@ export const useAuth = () => {
             triggerAuthStateChange();
 
             if (typeof window !== 'undefined') {
+                // Limpiar filtros de búsqueda de profesionales
+                localStorage.removeItem('search-professionals-filters');
                 window.location.href = '/';
             }
         }
