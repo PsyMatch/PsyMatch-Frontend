@@ -252,10 +252,8 @@ const Filter = () => {
 
     const [ordenamientoSeleccionado, setOrdenamientoSeleccionado] = useState('rating');
 
-    // Clave para localStorage
     const FILTERS_STORAGE_KEY = 'search-professionals-filters';
 
-    // Función para guardar filtros en localStorage
     const saveFiltersToStorage = useCallback(
         (filters: {
             precioMin: string;
@@ -283,7 +281,6 @@ const Filter = () => {
         [FILTERS_STORAGE_KEY]
     );
 
-    // Función para cargar filtros desde localStorage
     const loadFiltersFromStorage = useCallback(() => {
         if (typeof window !== 'undefined') {
             try {
@@ -298,7 +295,6 @@ const Filter = () => {
         return null;
     }, [FILTERS_STORAGE_KEY]);
 
-    // Función para limpiar filtros del localStorage
     const clearFiltersFromStorage = useCallback(() => {
         if (typeof window !== 'undefined') {
             try {
@@ -328,10 +324,8 @@ const Filter = () => {
         return () => document.removeEventListener('click', handleClickOutside);
     }, []);
 
-    // Efecto para leer parámetros URL y aplicar filtros al cargar la página
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            // Primero cargar filtros guardados en localStorage
             const savedFilters = loadFiltersFromStorage();
             if (savedFilters) {
                 setPrecioMin(savedFilters.precioMin || '');
@@ -349,24 +343,22 @@ const Filter = () => {
                 setBusqueda(savedFilters.busqueda || '');
             }
 
-            // Luego verificar parámetros URL y sobrescribir especialidades si existen
             const searchParams = new URLSearchParams(window.location.search);
             const especialidadesFromURL = searchParams.getAll('especialidades');
 
             if (especialidadesFromURL.length > 0) {
-                // Filtrar especialidades válidas (que existan en la constante)
                 const especialidadesValidas = especialidadesFromURL.filter((especialidad) => especialidades.includes(especialidad));
                 setEspecialidadesSeleccionadas(especialidadesValidas);
             }
         }
-    }, [loadFiltersFromStorage]); // Solo ejecutar una vez al montar
+    }, [loadFiltersFromStorage]);
 
     const limpiarFiltros = () => {
         setPrecioMin('');
         setPrecioMax('');
         setDistanciaMax('');
-        setDistanciaMaxInput(''); // Limpiar también el input interno
-        setIsDistanceInputPending(false); // Limpiar estado pendiente
+        setDistanciaMaxInput('');
+        setIsDistanceInputPending(false);
         setModalidadSeleccionada('');
         setIdiomaSeleccionado('');
         setObraSocialSeleccionada('');
@@ -376,16 +368,12 @@ const Filter = () => {
         setEspecialidadesSeleccionadas([]);
         setOrdenamientoSeleccionado('rating');
         setBusqueda('');
-        // Limpiar también las distancias calculadas y errores
         setPsychologistsWithDistance([]);
         setDistanceError('');
-        // Limpiar filtros del localStorage
         clearFiltersFromStorage();
     };
 
-    // Efecto para guardar filtros automáticamente cuando cambien
     useEffect(() => {
-        // Solo guardar si estamos en el cliente y después de la carga inicial
         if (typeof window !== 'undefined') {
             const currentFilters = {
                 precioMin,
@@ -403,10 +391,9 @@ const Filter = () => {
                 busqueda,
             };
 
-            // Debounce para evitar guardado excesivo
             const timeoutId = setTimeout(() => {
                 saveFiltersToStorage(currentFilters);
-            }, 500); // Esperar 500ms después de que el usuario deje de interactuar
+            }, 500);
 
             return () => clearTimeout(timeoutId);
         }
@@ -427,14 +414,12 @@ const Filter = () => {
         saveFiltersToStorage,
     ]);
 
-    // Cargar distancias para ordenamiento cuando se seleccione ordenar por distancia
     useEffect(() => {
         if (
             psychologists.length > 0 &&
             (ordenamientoSeleccionado === 'distance_asc' || ordenamientoSeleccionado === 'distance_desc') &&
             (!distanciaMax || parseFloat(distanciaMax) === 0)
         ) {
-            // Solo si no hay filtro de distancia activo, cargar todas las distancias para ordenamiento
             loadAllDistancesForSorting();
         }
     }, [ordenamientoSeleccionado, psychologists.length, distanciaMax, loadAllDistancesForSorting]);
@@ -448,9 +433,6 @@ const Filter = () => {
     };
 
     const filtrarPsicologos = () => {
-        // Usar la lista con distancias si:
-        // 1. Hay filtro de distancia activo, O
-        // 2. Se seleccionó ordenamiento por distancia y se cargaron las distancias
         const useDistanceList =
             (distanciaMax && parseFloat(distanciaMax) > 0) ||
             ordenamientoSeleccionado === 'distance_asc' ||
@@ -466,9 +448,6 @@ const Filter = () => {
             if (precioPsicologo < precioMinNum || precioPsicologo > precioMaxNum) {
                 return false;
             }
-
-            // Si estamos usando filtro de distancia, los psicólogos ya están filtrados por distancia
-            // No necesitamos verificar distancia adicional aquí
 
             if (modalidadSeleccionada) {
                 const modalidadPsicologo = psicologo.modality;
@@ -1127,35 +1106,37 @@ const Filter = () => {
                                                         <div className="flex items-center text-sm text-gray-600 mb-2">
                                                             <MapPin className="h-4 w-4 mr-1" strokeWidth={2} />
                                                             {psicologo.office_address || 'Consulta disponible'}
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="flex gap-1 flex-wrap">
+                                                            {(Array.isArray(psicologo.modality)
+                                                                ? psicologo.modality
+                                                                : [psicologo.modality || 'Presencial']
+                                                            ).map((modalidad) => (
+                                                                <div
+                                                                    key={modalidad}
+                                                                    className="inline-flex w-[86px] items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-gray-900 text-xs"
+                                                                >
+                                                                    {modalidad === 'Presencial' && <Users className="h-3 w-3 mr-1" strokeWidth={2} />}
+                                                                    {modalidad === 'En línea' && <Video className="h-3 w-3 mr-1" strokeWidth={2} />}
+                                                                    {modalidad === 'Híbrido' && (
+                                                                        <>
+                                                                            <Users className="h-3 w-3 mr-1" strokeWidth={2} />
+                                                                            <Video className="h-3 w-3 mr-1" strokeWidth={2} />
+                                                                        </>
+                                                                    )}
+                                                                    {obtenerNombreModalidad(modalidad)}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                        <div>
                                                             {psicologo.distance && (
                                                                 <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
                                                                     {psicologo.distance.toFixed(1)} km
                                                                 </span>
                                                             )}
                                                         </div>
-                                                    </div>
-                                                </div>
-                                                <div className="text-right">
-                                                    <div className="flex gap-1 flex-wrap">
-                                                        {(Array.isArray(psicologo.modality)
-                                                            ? psicologo.modality
-                                                            : [psicologo.modality || 'Presencial']
-                                                        ).map((modalidad) => (
-                                                            <div
-                                                                key={modalidad}
-                                                                className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-gray-900 text-xs"
-                                                            >
-                                                                {modalidad === 'Presencial' && <Users className="h-3 w-3 mr-1" strokeWidth={2} />}
-                                                                {modalidad === 'En línea' && <Video className="h-3 w-3 mr-1" strokeWidth={2} />}
-                                                                {modalidad === 'Híbrido' && (
-                                                                    <>
-                                                                        <Users className="h-3 w-3 mr-1" strokeWidth={2} />
-                                                                        <Video className="h-3 w-3 mr-1" strokeWidth={2} />
-                                                                    </>
-                                                                )}
-                                                                {obtenerNombreModalidad(modalidad)}
-                                                            </div>
-                                                        ))}
                                                     </div>
                                                 </div>
                                             </div>

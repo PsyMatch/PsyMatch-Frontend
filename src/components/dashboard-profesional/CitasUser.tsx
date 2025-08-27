@@ -1,10 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { appointmentsService, AppointmentResponse } from '@/services/appointments';
-import { getAppointmentDisplayStatus, AppointmentWithPayment, StatusInfo } from '@/services/appointmentStatus';
+import { appointmentsService, type AppointmentResponse } from '@/services/appointments';
+import { getAppointmentDisplayStatus, type AppointmentWithPayment, type StatusInfo } from '@/services/appointmentStatus';
 import { useNotifications } from '@/hooks/useNotifications';
 import showConfirm from '@/components/ui/ConfirmToast';
+import Link from 'next/link';
 
 const CitasUser = () => {
     const searchParams = useSearchParams();
@@ -15,7 +16,6 @@ const CitasUser = () => {
     const [filtroActivo, setFiltroActivo] = useState<'todos' | 'pendientes' | 'aceptadas' | 'canceladas'>(filtroInicial);
     const notifications = useNotifications();
 
-    // Sincronizar filtro con URL cuando cambien los searchParams
     useEffect(() => {
         const filter = searchParams?.get('filter') as 'todos' | 'pendientes' | 'aceptadas' | 'canceladas';
         if (filter && filter !== filtroActivo) {
@@ -23,10 +23,8 @@ const CitasUser = () => {
         }
     }, [searchParams, filtroActivo]);
 
-    // Función para cambiar filtro y actualizar URL
     const cambiarFiltro = (nuevoFiltro: 'todos' | 'pendientes' | 'aceptadas' | 'canceladas') => {
         setFiltroActivo(nuevoFiltro);
-        // Preservar el parámetro tab si existe
         const currentTab = searchParams?.get('tab');
         const newSearchParams = new URLSearchParams();
         if (currentTab) newSearchParams.set('tab', currentTab);
@@ -40,13 +38,10 @@ const CitasUser = () => {
                 setLoading(true);
                 const appointments = await appointmentsService.getMyAppointments();
 
-                // Filtrar solo las citas donde el usuario actual es el paciente
-                // En principio el servicio ya debería devolver solo las citas del usuario autenticado
                 setCitas(appointments);
             } catch (error) {
                 console.error('Error loading appointments:', error);
 
-                // Manejar errores específicos
                 const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
                 if (errorMessage.includes('Authentication failed') || errorMessage.includes('Token expired')) {
                     notifications.error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
@@ -60,21 +55,12 @@ const CitasUser = () => {
         };
 
         loadAppointments();
-        // Llamar solo al montar. `notifications` es un hook que puede devolver
-        // una referencia nueva en cada render y provocar re-ejecuciones.
-        // Si el hook `useNotifications` retorna funciones estables, se podría
-        // incluir aquí en las dependencias, pero por ahora evitamos llamadas
-        // repetidas al backend y manejamos notificaciones desde dentro.
     }, [notifications]);
 
-    // ...existing code... (removed unused legacy wrapper)
-
-    // Función para marcar como completada (nuevo)
     const handleMarkCompleted = async (id: string) => {
         try {
             await appointmentsService.markAsCompleted(id);
 
-            // Actualizar la lista local
             setCitas((prev) => prev.map((cita) => (cita.id === id ? { ...cita, status: 'completed' } : cita)));
 
             notifications.success('Cita marcada como realizada exitosamente.');
@@ -91,14 +77,12 @@ const CitasUser = () => {
         }
     };
 
-    // Función para cancelar cita (nueva versión)
     const handleCancelAppointment = async (id: string) => {
         const confirmed = await showConfirm('¿Estás seguro que deseas cancelar esta cita? Esta acción no se puede deshacer.');
         if (!confirmed) return;
 
         try {
             await appointmentsService.cancelAppointment(id);
-            // Actualizar la lista local - marcar la cita como cancelada
             setCitas((prev) => prev.map((cita) => (cita.id === id ? { ...cita, status: 'cancelled' } : cita)));
             notifications.success('Cita cancelada exitosamente.');
         } catch (error) {
@@ -114,7 +98,6 @@ const CitasUser = () => {
         }
     };
 
-    // Función para formatear la fecha
     const formatDate = (dateString: string): string => {
         try {
             const date = new Date(dateString);
@@ -132,29 +115,24 @@ const CitasUser = () => {
         }
     };
 
-    // Función para obtener el estado con información completa
     const getStatusInfo = (appointment: AppointmentResponse): StatusInfo => {
-        // Convertir AppointmentResponse a AppointmentWithPayment
         const appointmentWithPayment: AppointmentWithPayment = {
             ...appointment,
         };
         return getAppointmentDisplayStatus(appointmentWithPayment);
     };
 
-    // Función para filtrar citas según el estado
     const filtrarCitas = (citas: AppointmentResponse[]) => {
         if (filtroActivo === 'todos') return citas;
 
         return citas.filter((cita) => {
             const statusInfo = getStatusInfo(cita);
-            
+
             switch (filtroActivo) {
                 case 'pendientes':
-                    return statusInfo.status === 'pending_payment' || 
-                           statusInfo.status === 'pending_approval';
+                    return statusInfo.status === 'pending_payment' || statusInfo.status === 'pending_approval';
                 case 'aceptadas':
-                    return statusInfo.status === 'confirmed' || 
-                           statusInfo.status === 'completed';
+                    return statusInfo.status === 'confirmed' || statusInfo.status === 'completed';
                 case 'canceladas':
                     return statusInfo.status === 'cancelled';
                 default:
@@ -165,7 +143,6 @@ const CitasUser = () => {
 
     const citasFiltradas = filtrarCitas(citas);
 
-    // Calcular contadores para los filtros
     const contadores = {
         todos: citas.length,
         pendientes: citas.filter((cita) => {
@@ -197,50 +174,41 @@ const CitasUser = () => {
     }
 
     return (
-        <div className="flex flex-col gap-3 px-8 py-8 h-fit">
+        <div className="flex flex-col gap-3 px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 h-fit">
             <div>
-                <h1 className="text-xl font-semibold text-black">Mis Citas</h1>
-                <span className="text-black">Aquí puedes ver y gestionar tus citas programadas</span>
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-black">Mis Citas</h1>
+                <span className="text-sm sm:text-base text-black">Aquí puedes ver y gestionar tus citas programadas</span>
             </div>
-            
-            {/* Filtros */}
-            <div className="flex flex-wrap gap-2 mb-4">
+
+            <div className="flex flex-wrap gap-2 mb-4 justify-start sm:justify-start">
                 <button
                     onClick={() => cambiarFiltro('todos')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        filtroActivo === 'todos'
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex-shrink-0 ${
+                        filtroActivo === 'todos' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                     }`}
                 >
                     Todas ({contadores.todos})
                 </button>
                 <button
                     onClick={() => cambiarFiltro('pendientes')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        filtroActivo === 'pendientes'
-                            ? 'bg-yellow-600 text-white'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex-shrink-0 ${
+                        filtroActivo === 'pendientes' ? 'bg-yellow-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                     }`}
                 >
                     Pendientes ({contadores.pendientes})
                 </button>
                 <button
                     onClick={() => cambiarFiltro('aceptadas')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        filtroActivo === 'aceptadas'
-                            ? 'bg-green-600 text-white'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex-shrink-0 ${
+                        filtroActivo === 'aceptadas' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                     }`}
                 >
                     Aceptadas ({contadores.aceptadas})
                 </button>
                 <button
                     onClick={() => cambiarFiltro('canceladas')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        filtroActivo === 'canceladas'
-                            ? 'bg-red-600 text-white'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex-shrink-0 ${
+                        filtroActivo === 'canceladas' ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                     }`}
                 >
                     Canceladas ({contadores.canceladas})
@@ -253,75 +221,74 @@ const CitasUser = () => {
                         {citasFiltradas.map((cita, idx) => {
                             const statusInfo = getStatusInfo(cita);
                             return (
-                                <li key={cita.id || idx} className="border rounded-lg p-6 flex flex-col gap-3 bg-white shadow-sm">
-                                    <div className="flex justify-between items-start">
+                                <li key={cita.id || idx} className="border rounded-lg p-4 sm:p-6 flex flex-col gap-3 bg-white shadow-sm">
+                                    <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
                                         <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <span className="font-bold text-lg">Fecha y Hora:</span>
-                                                <span className="text-gray-700">{formatDate(cita.date)}</span>
+                                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-2">
+                                                <span className="font-bold text-base sm:text-lg">Fecha y Hora:</span>
+                                                <span className="text-gray-700 text-sm sm:text-base">{formatDate(cita.date)}</span>
                                             </div>
 
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                                                <div>
-                                                    <span className="font-semibold">Modalidad:</span>
-                                                    <span className="ml-2 text-gray-700">{cita.modality}</span>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 mb-3">
+                                                <div className="flex flex-col sm:flex-row sm:items-center">
+                                                    <span className="font-semibold text-sm sm:text-base">Modalidad:</span>
+                                                    <span className="sm:ml-2 text-gray-700 text-sm sm:text-base">{cita.modality}</span>
                                                 </div>
-                                                <div>
-                                                    <span className="font-semibold">Duración:</span>
-                                                    <span className="ml-2 text-gray-700">{cita.duration} min</span>
+                                                <div className="flex flex-col sm:flex-row sm:items-center">
+                                                    <span className="font-semibold text-sm sm:text-base">Duración:</span>
+                                                    <span className="sm:ml-2 text-gray-700 text-sm sm:text-base">{cita.duration} min</span>
                                                 </div>
                                                 {cita.session_type && (
-                                                    <div>
-                                                        <span className="font-semibold">Tipo de Sesión:</span>
-                                                        <span className="ml-2 text-gray-700">{cita.session_type}</span>
+                                                    <div className="flex flex-col sm:flex-row sm:items-center sm:col-span-2">
+                                                        <span className="font-semibold text-sm sm:text-base">Tipo de Sesión:</span>
+                                                        <span className="sm:ml-2 text-gray-700 text-sm sm:text-base">{cita.session_type}</span>
                                                     </div>
                                                 )}
                                                 {cita.therapy_approach && (
-                                                    <div>
-                                                        <span className="font-semibold">Enfoque Terapéutico:</span>
-                                                        <span className="ml-2 text-gray-700">{cita.therapy_approach}</span>
+                                                    <div className="flex flex-col sm:flex-row sm:items-center sm:col-span-2">
+                                                        <span className="font-semibold text-sm sm:text-base">Enfoque Terapéutico:</span>
+                                                        <span className="sm:ml-2 text-gray-700 text-sm sm:text-base">{cita.therapy_approach}</span>
                                                     </div>
                                                 )}
                                             </div>
 
                                             {cita.psychologist && (
                                                 <div className="mb-3">
-                                                    <span className="font-semibold">Profesional:</span>
-                                                    <span className="ml-2 text-gray-700">{cita.psychologist.name}</span>
+                                                    <span className="font-semibold text-sm sm:text-base">Profesional:</span>
+                                                    <span className="ml-2 text-gray-700 text-sm sm:text-base">{cita.psychologist.name}</span>
                                                     <br />
-                                                    <span className="text-sm text-gray-500">{cita.psychologist.email}</span>
+                                                    <span className="text-xs sm:text-sm text-gray-500">{cita.psychologist.email}</span>
                                                 </div>
                                             )}
 
                                             {cita.notes && (
                                                 <div className="mb-3">
-                                                    <span className="font-semibold">Notas:</span>
-                                                    <p className="mt-1 text-gray-700 text-sm">{cita.notes}</p>
+                                                    <span className="font-semibold text-sm sm:text-base">Notas:</span>
+                                                    <p className="mt-1 text-gray-700 text-xs sm:text-sm">{cita.notes}</p>
                                                 </div>
                                             )}
 
                                             {cita.price && (
                                                 <div className="mb-3">
-                                                    <span className="font-semibold">Precio:</span>
-                                                    <span className="ml-2 text-gray-700">${cita.price.toLocaleString()}</span>
+                                                    <span className="font-semibold text-sm sm:text-base">Precio:</span>
+                                                    <span className="ml-2 text-gray-700 text-sm sm:text-base">${cita.price.toLocaleString()}</span>
                                                 </div>
                                             )}
                                         </div>
 
-                                        <div className="flex flex-col items-end gap-2">
+                                        <div className="flex flex-col items-start lg:items-end gap-2 w-full lg:w-auto">
                                             <span
-                                                className={`px-3 py-1 rounded-full text-xs font-semibold ${statusInfo.color}`}
+                                                className={`px-3 py-1 rounded-full text-xs font-semibold ${statusInfo.color} self-start lg:self-end`}
                                                 title={statusInfo.description}
                                             >
                                                 {statusInfo.label}
                                             </span>
 
-                                            <div className="flex gap-2 flex-wrap">
+                                            <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
                                                 {statusInfo.canPay && (
                                                     <button
-                                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                                                        className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
                                                         onClick={() => {
-                                                            // Redirigir a pago
                                                             window.location.href = `/payment?appointmentId=${cita.id}`;
                                                         }}
                                                     >
@@ -330,7 +297,7 @@ const CitasUser = () => {
                                                 )}
                                                 {statusInfo.canConfirmCompletion && (
                                                     <button
-                                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                                                        className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                                                         onClick={() => handleMarkCompleted(cita.id)}
                                                     >
                                                         Confirmar realización
@@ -338,7 +305,7 @@ const CitasUser = () => {
                                                 )}
                                                 {statusInfo.canCancel && (
                                                     <button
-                                                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                                                        className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
                                                         onClick={() => handleCancelAppointment(cita.id)}
                                                     >
                                                         Cancelar cita
@@ -352,21 +319,21 @@ const CitasUser = () => {
                         })}
                     </ul>
                 ) : (
-                    <div className="text-center py-8">
-                        <p className="text-gray-500 mb-4">
-                            {filtroActivo === 'todos' 
+                    <div className="text-center py-6 sm:py-8">
+                        <p className="text-gray-500 mb-4 text-sm sm:text-base">
+                            {filtroActivo === 'todos'
                                 ? 'No tienes citas programadas'
-                                : `No tienes citas ${filtroActivo === 'pendientes' ? 'pendientes' : 
-                                                    filtroActivo === 'aceptadas' ? 'aceptadas' : 'canceladas'}`
-                            }
+                                : `No tienes citas ${
+                                    filtroActivo === 'pendientes' ? 'pendientes' : filtroActivo === 'aceptadas' ? 'aceptadas' : 'canceladas'
+                                }`}
                         </p>
                         {filtroActivo === 'todos' && (
-                            <a
+                            <Link
                                 href="/search-professionals"
-                                className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                                className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors text-sm sm:text-base"
                             >
                                 Buscar Profesionales
-                            </a>
+                            </Link>
                         )}
                     </div>
                 )}
