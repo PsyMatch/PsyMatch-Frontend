@@ -12,6 +12,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useNotifications } from '@/hooks/useNotifications';
 import { envs } from '@/config/envs.config';
 import { triggerAuthStateChange } from '@/utils/auth';
+import { useBotonesRegisterContext } from '@/context/botonesRegisterContext';
 
 const modalidades = ['Presencial', 'En línea', 'Híbrido'];
 
@@ -89,7 +90,6 @@ const getInitialValues = (): typeof initialValuesTipos => {
               confirmPassword: cookieData.confirmPassword || '',
               birthdate: cookieData.birthdate || '',
               dni: cookieData.dni || '',
-              profile_picture: null,
               personal_biography: cookieData.personal_biography || '',
               languages: cookieData.languages || [],
               license_number: cookieData.license_number || '',
@@ -114,7 +114,6 @@ const getInitialValues = (): typeof initialValuesTipos => {
               confirmPassword: '',
               birthdate: '',
               dni: '',
-              profile_picture: null,
               personal_biography: '',
               languages: [],
               license_number: '',
@@ -143,11 +142,12 @@ const Services_Prices = () => {
     const router = useRouter();
     const notifications = useNotifications();
 
-    const { profileImageFile } = useFotoDePerfil();
+
     const { saveUserData } = useAuthProfessionalContext();
 
     const [initialValues] = useState<typeof initialValuesTipos>(getInitialValues);
 
+    const { profileImageFile } = useBotonesRegisterContext();
     const handleSubmit = async (values: Valores) => {
         const toSave = dataToSave(values as unknown as Record<string, unknown>);
         saveMerged(toSave);
@@ -191,6 +191,7 @@ const Services_Prices = () => {
             if (profileImageFile) {
                 formData.append('profile_picture', profileImageFile);
             }
+            
             const response = await fetch(`${envs.next_public_api_url}/auth/signup/psychologist`, {
                 method: 'POST',
                 // headers: { 'Content-Type': 'application/json' },

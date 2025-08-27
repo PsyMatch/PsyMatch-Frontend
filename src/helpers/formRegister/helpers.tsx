@@ -24,7 +24,7 @@ export const saveMerged = (partial: Record<string, unknown>) => {
 export const dataToSave = (values: Record<string, unknown>) => {
      
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { profile_picture, ...rest } = values;
+    const {...rest } = values;
 
     //aseguramos q sean strings
     Object.keys(rest).forEach((k) => {
