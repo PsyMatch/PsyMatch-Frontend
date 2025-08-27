@@ -16,7 +16,9 @@ import {
     Code,
     Database,
     Brain,
-    Globe
+    Globe,
+    Linkedin,
+    Github
 } from 'lucide-react';
 
 export default function AcercaDeNosotrosPage() {
@@ -60,7 +62,9 @@ export default function AcercaDeNosotrosPage() {
             rol: 'Frontend Developer',
             descripcion: 'Una chica con rulos llena de creatividad y pasión. Su talento para el diseño y desarrollo frontend se combina con una sensibilidad única que aporta calidez humana a cada interfaz que crea.',
             personalidad: 'Emocional, talentosa y creativa',
-            foto: '/team/ludmila.jpg'
+            foto: 'https://res.cloudinary.com/dibnkd72j/image/upload/v1756311454/Ludmi_yspojh.webp',
+            linkedin: 'https://www.linkedin.com/in/ravelliludmila',
+            github: 'https://github.com/RavelliLudmila'
         },
         {
             nombre: 'Morena',
@@ -68,7 +72,9 @@ export default function AcercaDeNosotrosPage() {
             rol: 'Frontend Developer',
             descripcion: 'La transparencia hecha persona. Su enfoque directo y su compromiso inquebrantable la convierten en el pilar de confianza del equipo. Siempre enfocada en entregar resultados de calidad.',
             personalidad: 'Transparente, comprometida y responsable',
-            foto: '/team/morena.jpg'
+            foto: 'https://res.cloudinary.com/dibnkd72j/image/upload/v1756317610/Mo_x4svsq.webp',
+            linkedin: 'https://www.linkedin.com/in/morena-martín-979756308',
+            github: 'https://github.com/morenamartin'
         },
         {
             nombre: 'Mauricio',
@@ -76,7 +82,9 @@ export default function AcercaDeNosotrosPage() {
             rol: 'Frontend Developer',
             descripcion: 'El compañero en quien siempre puedes confiar. Su ética de trabajo y disposición para ayudar al equipo lo convierten en una pieza fundamental. Siempre encuentra la manera de resolver los desafíos.',
             personalidad: 'Trabajador, responsable y colaborativo',
-            foto: '/team/mauricio.jpg'
+            foto: 'https://res.cloudinary.com/dibnkd72j/image/upload/v1756311453/Mauri_t3bark.webp',
+            linkedin: 'https://www.linkedin.com/in/mauricio-herrera-7b744b274',
+            github: 'https://github.com/MauriHerrera7'
         }
     ];
 
@@ -87,7 +95,9 @@ export default function AcercaDeNosotrosPage() {
             rol: 'Backend Developer',
             descripcion: 'El observador atento que nunca pasa por alto los detalles. Su capacidad para identificar necesidades y aportar soluciones innovadoras mantiene al equipo siempre en movimiento hacia adelante.',
             personalidad: 'Atento, solucionador y perspicaz',
-            foto: '/team/pedro.jpg'
+            foto: 'https://res.cloudinary.com/dibnkd72j/image/upload/v1756311456/Pedro_funvaz.webp',
+            linkedin: 'https://www.linkedin.com/in/pedro-jorge-morales-55b459234',
+            github: 'https://github.com/MPedroJ'
         },
         {
             nombre: 'Franco',
@@ -95,7 +105,9 @@ export default function AcercaDeNosotrosPage() {
             rol: 'Backend Developer',
             descripcion: 'El corazón que late en el centro del equipo. Cuando el ánimo baja, él lo levanta. Su combinación de habilidades técnicas y carisma humano lo convierte en el alma de PsyMatch.',
             personalidad: 'Motivador, trabajador y solidario',
-            foto: '/team/franco.jpg'
+            foto: 'https://res.cloudinary.com/dibnkd72j/image/upload/v1756318214/Fran_lfpnbm.webp',
+            linkedin: 'https://www.linkedin.com/in/francogauna/',
+            github: 'https://github.com/frangauna01'
         },
         {
             nombre: 'Fausto',
@@ -103,7 +115,9 @@ export default function AcercaDeNosotrosPage() {
             rol: 'Backend Developer',
             descripcion: 'El organizador nato que mantiene a todos enfocados. Su visión estratégica y capacidad de coordinación aseguran que ningún detalle se pierda en el camino hacia nuestros objetivos.',
             personalidad: 'Organizador, estratega y meticuloso',
-            foto: '/team/fausto.jpg'
+            foto: 'https://res.cloudinary.com/dibnkd72j/image/upload/v1756311454/Fausto_bil2fg.webp',
+            linkedin: 'https://linkedin.com/in/fausto-paván-936b78286',
+            github: 'https://github.com/faustopavan12'
         }
     ];
 
@@ -292,10 +306,28 @@ export default function AcercaDeNosotrosPage() {
                                         <p className="text-gray-500 text-sm">{miembro.rol}</p>
                                     </div>
                                     <p className="text-gray-600 text-sm mb-4">{miembro.descripcion}</p>
-                                    <div className="bg-blue-50 rounded-lg p-3">
+                                    <div className="bg-blue-50 rounded-lg p-3 mb-4">
                                         <p className="text-blue-700 text-xs font-medium text-center">
                                             {miembro.personalidad}
                                         </p>
+                                    </div>
+                                    
+                                    {/* Enlaces de redes sociales */}
+                                    <div className="flex justify-center space-x-4">
+                                        <Link 
+                                            href={miembro.linkedin} 
+                                            target="_blank"
+                                            className="flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors duration-200"
+                                        >
+                                            <Linkedin className="w-5 h-5" />
+                                        </Link>
+                                        <Link 
+                                            href={miembro.github} 
+                                            target="_blank"
+                                            className="flex items-center justify-center w-10 h-10 bg-gray-800 text-white rounded-full hover:bg-gray-900 transition-colors duration-200"
+                                        >
+                                            <Github className="w-5 h-5" />
+                                        </Link>
                                     </div>
                                 </div>
                             ))}
@@ -326,10 +358,28 @@ export default function AcercaDeNosotrosPage() {
                                         <p className="text-gray-500 text-sm">{miembro.rol}</p>
                                     </div>
                                     <p className="text-gray-600 text-sm mb-4">{miembro.descripcion}</p>
-                                    <div className="bg-green-50 rounded-lg p-3">
+                                    <div className="bg-green-50 rounded-lg p-3 mb-4">
                                         <p className="text-green-700 text-xs font-medium text-center">
                                             {miembro.personalidad}
                                         </p>
+                                    </div>
+                                    
+                                    {/* Enlaces de redes sociales */}
+                                    <div className="flex justify-center space-x-4">
+                                        <Link 
+                                            href={miembro.linkedin} 
+                                            target="_blank"
+                                            className="flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors duration-200"
+                                        >
+                                            <Linkedin className="w-5 h-5" />
+                                        </Link>
+                                        <Link 
+                                            href={miembro.github} 
+                                            target="_blank"
+                                            className="flex items-center justify-center w-10 h-10 bg-gray-800 text-white rounded-full hover:bg-gray-900 transition-colors duration-200"
+                                        >
+                                            <Github className="w-5 h-5" />
+                                        </Link>
                                     </div>
                                 </div>
                             ))}

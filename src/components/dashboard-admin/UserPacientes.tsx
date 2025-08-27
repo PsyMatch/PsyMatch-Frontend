@@ -30,6 +30,7 @@ const UserPacientes = ({ data, onUserUpdate }: UserPacientesProps) => {
         action: 'promote' | 'ban' | 'unban';
         userName: string;
     } | null>(null);
+    const [banReason, setBanReason] = useState('');
     const [localData, setLocalData] = useState(data);
     const notifications = useNotifications();
 
@@ -60,6 +61,12 @@ const UserPacientes = ({ data, onUserUpdate }: UserPacientesProps) => {
     }, [data]);
 
     const handleUserAction = async (userId: string, action: 'promote' | 'ban' | 'unban') => {
+        // Validar que el motivo sea obligatorio para el baneo
+        if (action === 'ban' && banReason.trim().length === 0) {
+            notifications.error('El motivo del baneo es obligatorio');
+            return;
+        }
+
         setLoading(userId);
 
         try {
@@ -70,7 +77,7 @@ const UserPacientes = ({ data, onUserUpdate }: UserPacientesProps) => {
                     result = await adminService.promoteUser(userId);
                     break;
                 case 'ban':
-                    result = await adminService.banUser(userId);
+                    result = await adminService.banUser(userId, banReason.trim());
                     break;
                 case 'unban':
                     result = await adminService.unbanUser(userId);
@@ -156,7 +163,13 @@ const UserPacientes = ({ data, onUserUpdate }: UserPacientesProps) => {
             // Siempre cerrar el modal y quitar el loading
             setLoading(null);
             setConfirmAction(null);
+            setBanReason(''); // Limpiar el motivo al cerrar
         }
+    };
+
+    const handleCloseModal = () => {
+        setConfirmAction(null);
+        setBanReason(''); // Limpiar el motivo al cancelar
     };
 
     // Filtrar solo pacientes activos
@@ -194,8 +207,8 @@ const UserPacientes = ({ data, onUserUpdate }: UserPacientesProps) => {
                         {pacientes.map((paciente) => (
                             <div key={paciente.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all duration-200">
                                 <div className="flex flex-col gap-4">
-                                    <div className="flex flex-row gap-4">
-                                        <div className="w-16 h-16 bg-gray-200 rounded-full flex-shrink-0">
+                                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                                        <div className="w-16 h-16 bg-gray-200 rounded-full flex-shrink-0 mx-auto sm:mx-0">
                                             <Image 
                                                 src={paciente.profile_picture || "/person-gray-photo-placeholder-woman.webp"} 
                                                 alt={`Foto de ${paciente.name}`} 
@@ -204,13 +217,13 @@ const UserPacientes = ({ data, onUserUpdate }: UserPacientesProps) => {
                                                 className="object-cover w-full h-full rounded-full" 
                                             />
                                         </div>
-                                        <div className="flex-1">
+                                        <div className="flex-1 text-center sm:text-left">
                                             <h3 className="font-bold text-blue-600 text-lg">{paciente.name}</h3>
-                                            <p className="text-gray-600 text-sm">📧 {paciente.email}</p>
+                                            <p className="text-gray-600 text-sm break-words">📧 {paciente.email}</p>
                                             <p className="text-gray-600 text-sm">📱 {paciente.phone}</p>
                                         </div>
-                                        <div className="flex-shrink-0">
-                                            <span className={`px-3 py-1 text-sm font-semibold rounded-full ${
+                                        <div className="flex-shrink-0 mx-auto sm:mx-0 w-fit">
+                                            <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
                                                 paciente.is_active !== false 
                                                     ? "bg-green-100 text-green-800" 
                                                     : "bg-red-100 text-red-800"
@@ -278,50 +291,85 @@ const UserPacientes = ({ data, onUserUpdate }: UserPacientesProps) => {
 
             {/* Modal de confirmación */}
             {confirmAction && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-                        <h3 className="text-lg font-semibold mb-4">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg p-4 sm:p-6 max-w-md w-full">
+                        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">
                             Confirmar Acción
                         </h3>
-                        <p className="text-gray-600 mb-6">
+                        <p className="text-gray-600 text-sm sm:text-base mb-4 sm:mb-6">
                             {confirmAction.action === 'promote' && (
                                 <>
-                                    ¿Estás seguro de que quieres promover al paciente <strong>{confirmAction.userName}</strong> a administrador?
-                                    <br /><br />
-                                    <span className="text-purple-600 font-medium">⚡ Esto le dará acceso completo al sistema de administración.</span>
+                                    ¿Promover a <strong>{confirmAction.userName}</strong> a administrador?
+                                    <br />
+                                    <span className="text-purple-600 font-medium text-xs sm:text-sm">⚡ Acceso completo al sistema.</span>
                                 </>
                             )}
                             {confirmAction.action === 'ban' && (
                                 <>
-                                    ¿Estás seguro de que quieres banear al paciente <strong>{confirmAction.userName}</strong>?
-                                    <br /><br />
-                                    <span className="text-red-600 font-medium">⚠️ Advertencia: Esto desactivará su cuenta y no podrá acceder a la plataforma.</span>
+                                    ¿Banear a <strong>{confirmAction.userName}</strong>?
+                                    <br />
+                                    <span className="text-red-600 font-medium text-xs sm:text-sm">⚠️ Desactivará su cuenta.</span>
                                 </>
                             )}
                             {confirmAction.action === 'unban' && (
                                 <>
-                                    ¿Estás seguro de que quieres desbanear al paciente <strong>{confirmAction.userName}</strong>?
-                                    <br /><br />
-                                    <span className="text-green-600 font-medium">✅ Esto reactivará su cuenta y podrá acceder nuevamente a la plataforma.</span>
+                                    ¿Desbanear a <strong>{confirmAction.userName}</strong>?
+                                    <br />
+                                    <span className="text-green-600 font-medium text-xs sm:text-sm">✅ Reactivará su cuenta.</span>
                                 </>
                             )}
                         </p>
-                        <div className="flex justify-end space-x-3">
+                        
+                        {/* Campo de motivo solo para baneo */}
+                        {confirmAction.action === 'ban' && (
+                            <div className="mb-4">
+                                <label htmlFor="banReason" className="block text-sm font-medium text-gray-700 mb-2">
+                                    Motivo del baneo <span className="text-red-500">*</span>
+                                </label>
+                                <textarea
+                                    id="banReason"
+                                    value={banReason}
+                                    onChange={(e) => setBanReason(e.target.value)}
+                                    placeholder="Describe el motivo del baneo (obligatorio)..."
+                                    className={`w-full px-2 sm:px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-red-500 resize-none text-sm ${
+                                        banReason.trim().length === 0 
+                                            ? 'border-red-300 focus:ring-red-500' 
+                                            : 'border-gray-300 focus:ring-red-500'
+                                    }`}
+                                    rows={2}
+                                    maxLength={500}
+                                    required
+                                />
+                                <div className="flex justify-between items-center mt-1">
+                                    <p className="text-xs text-red-500">
+                                        {banReason.trim().length === 0 ? 'El motivo es obligatorio' : ''}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                        {banReason.length}/500
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
                             <button
-                                onClick={() => setConfirmAction(null)}
-                                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                                onClick={handleCloseModal}
+                                className="w-full sm:w-auto px-3 sm:px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors text-sm"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={() => handleUserAction(confirmAction.userId, confirmAction.action)}
-                                className={`px-4 py-2 text-white rounded-md transition-colors ${
+                                disabled={confirmAction.action === 'ban' && banReason.trim().length === 0}
+                                className={`w-full sm:w-auto px-3 sm:px-4 py-2 text-white rounded-md transition-colors text-sm ${
                                     confirmAction.action === 'promote' 
                                         ? 'bg-purple-600 hover:bg-purple-700'
                                         : confirmAction.action === 'ban' 
-                                        ? 'bg-red-600 hover:bg-red-700' 
+                                        ? (banReason.trim().length === 0 
+                                            ? 'bg-gray-400 cursor-not-allowed' 
+                                            : 'bg-red-600 hover:bg-red-700')
                                         : 'bg-green-600 hover:bg-green-700'
-                                }`}
+                                } ${confirmAction.action === 'ban' && banReason.trim().length === 0 ? 'opacity-50' : ''}`}
                             >
                                 {confirmAction.action === 'promote' ? 'Promover a Admin' : 
                                  confirmAction.action === 'ban' ? 'Banear Usuario' : 'Desbanear Usuario'}

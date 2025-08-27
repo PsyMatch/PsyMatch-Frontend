@@ -27,7 +27,7 @@ const UserAdministrators = ({ data, onUserUpdate }: UserAdministratorsProps) => 
     const [localData, setLocalData] = useState<Paciente[]>(data);
     const [confirmAction, setConfirmAction] = useState<{
         userId: string;
-        action: 'ban' | 'unban';
+        action: 'unban';
         userName: string;
     } | null>(null);
 
@@ -38,27 +38,15 @@ const UserAdministrators = ({ data, onUserUpdate }: UserAdministratorsProps) => 
         setLocalData(data);
     }, [data]);
 
-    const handleUserAction = async (userId: string, action: 'ban' | 'unban' = 'unban') => {
+    const handleUserAction = async (userId: string) => {
         setLoading(userId);
         
         try {
-            let result;
-            
-            switch (action) {
-                case 'ban':
-                    result = await adminService.banUser(userId);
-                    break;
-                case 'unban':
-                    result = await adminService.unbanUser(userId);
-                    break;
-                default:
-                    return;
-            }
+            const result = await adminService.unbanUser(userId);
             
             // Actualizar el estado independientemente del resultado, ya que a veces
             // el backend ejecuta la acción pero devuelve un error 500
-            const actionText = action === 'ban' ? 'baneado' : 'desbaneado';
-            const updates = { is_active: action === 'unban' };
+            const updates = { is_active: true };
             
             // Actualizar el estado global y local
             onUserUpdate?.(userId, updates);
@@ -71,17 +59,16 @@ const UserAdministrators = ({ data, onUserUpdate }: UserAdministratorsProps) => 
             );
             
             if (result.success) {
-                alert(`Usuario ${actionText} exitosamente`);
+                alert(`Usuario desbaneado exitosamente`);
             } else {
                 // Mostrar el error pero mantener los cambios de estado
                 console.warn(`Advertencia: ${result.message || 'Error desconocido'}`);
-                alert(`Acción ejecutada. Usuario ${actionText}.`);
+                alert(`Acción ejecutada. Usuario desbaneado.`);
             }
         } catch (error) {
             console.error('Error en la acción:', error);
             // Aún así intentar actualizar el estado ya que la acción podría haberse ejecutado
-            const actionText = action === 'ban' ? 'baneado' : 'desbaneado';
-            const updates = { is_active: action === 'unban' };
+            const updates = { is_active: true };
             
             onUserUpdate?.(userId, updates);
             setLocalData(prevData => 
@@ -92,7 +79,7 @@ const UserAdministrators = ({ data, onUserUpdate }: UserAdministratorsProps) => 
                 )
             );
             
-            alert(`Acción ejecutada con advertencias. Usuario ${actionText}.`);
+            alert(`Acción ejecutada con advertencias. Usuario desbaneado.`);
         } finally {
             // Siempre cerrar el modal y quitar el loading
             setLoading(null);
@@ -100,14 +87,20 @@ const UserAdministrators = ({ data, onUserUpdate }: UserAdministratorsProps) => 
         }
     };
 
+    const handleCloseModal = () => {
+        setConfirmAction(null);
+    };
+
     return (
         <div className="w-full min-h-[500px] flex flex-col">
-            <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-[#5046E7] rounded-lg flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">👑</span>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-[#5046E7] rounded-lg flex items-center justify-center">
+                        <span className="text-white text-sm font-bold">👑</span>
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Gestión de Administradores</h2>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800">Gestión de Administradores</h2>
-                <div className="ml-auto bg-[#5046E7]/10 text-[#5046E7] px-3 py-1 rounded-full text-sm font-semibold">
+                <div className="bg-[#5046E7]/10 text-[#5046E7] px-3 py-1 rounded-full text-sm font-semibold w-fit">
                     {administradores.length} administradores
                 </div>
             </div>
@@ -137,18 +130,18 @@ const UserAdministrators = ({ data, onUserUpdate }: UserAdministratorsProps) => 
                                             <Image 
                                                 src={admin.profile_picture || "/person-gray-photo-placeholder-woman.webp"} 
                                                 alt={`Foto de ${admin.name}`} 
-                                                width={64}
-                                                height={64}
+                                                width={56}
+                                                height={56}
                                                 className="object-cover w-full h-full rounded-full" 
                                             />
                                         </div>
-                                        <div className="flex-1">
-                                            <h3 className="font-bold text-[#5046E7] text-lg">{admin.name}</h3>
-                                            <p className="text-gray-600 text-sm">📧 {admin.email}</p>
-                                            <p className="text-gray-600 text-sm">📱 {admin.phone}</p>
+                                        <div className="flex-1 text-center sm:text-left">
+                                            <h3 className="font-bold text-[#5046E7] text-sm sm:text-base lg:text-lg truncate">{admin.name}</h3>
+                                            <p className="text-gray-600 text-xs sm:text-sm break-all">📧 {admin.email}</p>
+                                            <p className="text-gray-600 text-xs sm:text-sm">📱 {admin.phone}</p>
                                         </div>
-                                        <div className="flex-shrink-0">
-                                            <span className={`px-3 py-1 text-sm font-semibold rounded-full ${
+                                        <div className="flex-shrink-0 mx-auto sm:mx-0">
+                                            <span className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold rounded-full ${
                                                 admin.is_active !== false 
                                                     ? "bg-green-100 text-green-800" 
                                                     : "bg-red-100 text-red-800"
@@ -157,17 +150,17 @@ const UserAdministrators = ({ data, onUserUpdate }: UserAdministratorsProps) => 
                                             </span>
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <p className="text-sm"><strong>DNI:</strong> {admin.dni}</p>
-                                        <p className="text-sm"><strong>Fecha de Nacimiento:</strong> {admin.birthdate}</p>
-                                        <div className="mt-3 p-3 bg-[#5046E7]/10 rounded-lg border border-[#5046E7]/20">   
-                                            <p className="text-sm font-semibold text-[#5046E7] mb-1">Rol de Administrador</p>
-                                            <p className="text-sm text-gray-600">Acceso completo al sistema de administración</p>
+                                    <div className="space-y-1 sm:space-y-2">
+                                        <p className="text-xs sm:text-sm"><strong>DNI:</strong> {admin.dni}</p>
+                                        <p className="text-xs sm:text-sm"><strong>Fecha de Nacimiento:</strong> {admin.birthdate}</p>
+                                        <div className="mt-2 sm:mt-3 p-2 sm:p-3 bg-[#5046E7]/10 rounded-lg border border-[#5046E7]/20">   
+                                            <p className="text-xs sm:text-sm font-semibold text-[#5046E7] mb-1">Rol de Administrador</p>
+                                            <p className="text-xs sm:text-sm text-gray-600">Acceso completo al sistema de administración</p>
                                         </div>
                                     </div>
                                     
                                     {/* Botones de acción */}
-                                    <div className="mt-4 flex gap-2">
+                                    <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row gap-1 sm:gap-2">
                                         {admin.is_active === false && (
                                             <button
                                                 onClick={() => setConfirmAction({
@@ -176,7 +169,7 @@ const UserAdministrators = ({ data, onUserUpdate }: UserAdministratorsProps) => 
                                                     userName: admin.name
                                                 })}
                                                 disabled={loading === admin.id}
-                                                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50"
+                                                className="w-full sm:w-auto px-2 sm:px-3 py-1 sm:py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-xs sm:text-sm font-medium disabled:opacity-50"
                                             >
                                                 {loading === admin.id ? 'Procesando...' : 'Desbanear Administrador'}
                                             </button>
@@ -201,15 +194,16 @@ const UserAdministrators = ({ data, onUserUpdate }: UserAdministratorsProps) => 
                             <br /><br />
                             <span className="text-green-600 font-medium">✅ Esto reactivará su cuenta y restaurará su acceso administrativo.</span>
                         </p>
+
                         <div className="flex justify-end space-x-3">
                             <button
-                                onClick={() => setConfirmAction(null)}
+                                onClick={handleCloseModal}
                                 className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
                             >
                                 Cancelar
                             </button>
                             <button
-                                onClick={() => handleUserAction(confirmAction.userId, confirmAction.action)}
+                                onClick={() => handleUserAction(confirmAction.userId)}
                                 className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors"
                             >
                                 Desbanear Administrador
