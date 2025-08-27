@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { Search, ChevronDown, Funnel, Star, MapPin, Users, Video, Calendar } from 'lucide-react';
+import { Search, ChevronDown, Funnel, MapPin, Users, Video, Calendar } from 'lucide-react';
 import { psychologistsService, PsychologistResponse } from '@/services/psychologists';
 import { mapsService } from '@/services/maps';
 import { usersApi } from '@/services/users';
@@ -31,7 +31,7 @@ const Filter = () => {
     const [precioMin, setPrecioMin] = useState('');
     const [precioMax, setPrecioMax] = useState('');
     const [distanciaMax, setDistanciaMax] = useState('');
-    const [distanciaMaxInput, setDistanciaMaxInput] = useState(''); // Valor interno del input
+    const [distanciaMaxInput, setDistanciaMaxInput] = useState('');
     const [modalidadSeleccionada, setModalidadSeleccionada] = useState('');
     const [idiomaSeleccionado, setIdiomaSeleccionado] = useState('');
     const [obraSocialSeleccionada, setObraSocialSeleccionada] = useState('');
@@ -52,7 +52,6 @@ const Filter = () => {
         router.push('/login');
     }, [router]);
 
-    // Función para obtener la dirección del usuario
     const getUserAddress = useCallback(async (): Promise<string> => {
         try {
             const authToken = getAuthToken();
@@ -84,7 +83,6 @@ const Filter = () => {
         return 50000;
     }, []);
 
-    // Función para cargar distancias de psicólogos para filtrado
     const loadPsychologistsWithDistances = useCallback(async () => {
         if (!distanciaMax || parseFloat(distanciaMax) === 0) {
             setPsychologistsWithDistance(psychologists);
@@ -96,24 +94,19 @@ const Filter = () => {
             setIsLoadingDistances(true);
             setDistanceError('');
 
-            // Obtener la dirección del usuario (valida que esté configurada)
             await getUserAddress();
 
             const maxDistanceKm = parseFloat(distanciaMax);
             const nearbyResponse = await mapsService.getNearbyPsychologists(maxDistanceKm);
 
-            // Crear un mapa de distancias por email de psicólogo (convertir metros a kilómetros)
             const distanceMap = new Map<string, number>();
             nearbyResponse.psychologists.forEach((psycho) => {
-                // Convertir distancia de metros a kilómetros
                 const distanceKm = psycho.distance / 1000;
                 distanceMap.set(psycho.email, distanceKm);
             });
 
-            // Filtrar solo los psicólogos que están en el response del backend (dentro del rango)
             const psychologistsInRange = psychologists.filter((psycho) => distanceMap.has(psycho.email));
 
-            // Agregar distancias a los psicólogos filtrados
             const psychologistsWithDist = psychologistsInRange.map((psycho) => ({
                 ...psycho,
                 distance: distanceMap.get(psycho.email)!,
@@ -123,7 +116,6 @@ const Filter = () => {
         } catch (error) {
             console.error('Error loading distances:', error);
 
-            // Si hay error al cargar distancias, mostrar mensaje informativo
             if (error instanceof Error) {
                 if (error.message.includes('Usuario no tiene dirección configurada')) {
                     setDistanceError('Para usar el filtro de distancia, necesitas configurar tu dirección en tu perfil.');
@@ -141,26 +133,21 @@ const Filter = () => {
         }
     }, [psychologists, distanciaMax, getUserAddress, redirectToLogin]);
 
-    // Función para cargar TODAS las distancias para ordenamiento (sin filtrar por rango)
     const loadAllDistancesForSorting = useCallback(async () => {
         try {
             setIsLoadingDistances(true);
             setDistanceError('');
 
-            // Obtener la dirección del usuario (valida que esté configurada)
             await getUserAddress();
 
-            // Usar un rango muy grande para obtener todas las distancias (1000 km)
             const nearbyResponse = await mapsService.getNearbyPsychologists(1000);
 
-            // Crear un mapa de distancias por email de psicólogo (convertir metros a kilómetros)
             const distanceMap = new Map<string, number>();
             nearbyResponse.psychologists.forEach((psycho) => {
                 const distanceKm = psycho.distance / 1000;
                 distanceMap.set(psycho.email, distanceKm);
             });
 
-            // Agregar distancias a TODOS los psicólogos (no filtrar por rango)
             const psychologistsWithDist = psychologists.map((psycho) => ({
                 ...psycho,
                 distance: distanceMap.get(psycho.email) || undefined,
@@ -187,7 +174,6 @@ const Filter = () => {
         }
     }, [psychologists, getUserAddress, redirectToLogin]);
 
-    // Cargar distancias cuando cambie el filtro de distancia (con debounce)
     useEffect(() => {
         if (distanciaMaxInput !== distanciaMax) {
             setIsDistanceInputPending(true);
@@ -196,12 +182,11 @@ const Filter = () => {
         const timeoutId = setTimeout(() => {
             setDistanciaMax(distanciaMaxInput);
             setIsDistanceInputPending(false);
-        }, 800); // Esperar 800ms después de que el usuario deje de escribir
+        }, 800);
 
         return () => clearTimeout(timeoutId);
     }, [distanciaMaxInput, distanciaMax]);
 
-    // Cargar distancias cuando cambie el filtro de distancia
     useEffect(() => {
         if (psychologists.length > 0) {
             loadPsychologistsWithDistances();
@@ -250,7 +235,7 @@ const Filter = () => {
     const [tipoTerapiaAbierto, setTipoTerapiaAbierto] = useState(false);
     const [ordenamientoAbierto, setOrdenamientoAbierto] = useState(false);
 
-    const [ordenamientoSeleccionado, setOrdenamientoSeleccionado] = useState('rating');
+    const [ordenamientoSeleccionado, setOrdenamientoSeleccionado] = useState('default');
 
     const FILTERS_STORAGE_KEY = 'search-professionals-filters';
 
@@ -258,8 +243,6 @@ const Filter = () => {
         (filters: {
             precioMin: string;
             precioMax: string;
-            distanciaMax: string;
-            distanciaMaxInput: string;
             modalidadSeleccionada: string;
             idiomaSeleccionado: string;
             obraSocialSeleccionada: string;
@@ -330,8 +313,6 @@ const Filter = () => {
             if (savedFilters) {
                 setPrecioMin(savedFilters.precioMin || '');
                 setPrecioMax(savedFilters.precioMax || '');
-                setDistanciaMax(savedFilters.distanciaMax || '');
-                setDistanciaMaxInput(savedFilters.distanciaMaxInput || '');
                 setModalidadSeleccionada(savedFilters.modalidadSeleccionada || '');
                 setIdiomaSeleccionado(savedFilters.idiomaSeleccionado || '');
                 setObraSocialSeleccionada(savedFilters.obraSocialSeleccionada || '');
@@ -339,7 +320,7 @@ const Filter = () => {
                 setDisponibilidadSeleccionada(savedFilters.disponibilidadSeleccionada || []);
                 setEnfoquesTerapiaSeleccionados(savedFilters.enfoquesTerapiaSeleccionados || []);
                 setEspecialidadesSeleccionadas(savedFilters.especialidadesSeleccionadas || []);
-                setOrdenamientoSeleccionado(savedFilters.ordenamientoSeleccionado || 'rating');
+                setOrdenamientoSeleccionado(savedFilters.ordenamientoSeleccionado || 'default');
                 setBusqueda(savedFilters.busqueda || '');
             }
 
@@ -366,7 +347,7 @@ const Filter = () => {
         setDisponibilidadSeleccionada([]);
         setEnfoquesTerapiaSeleccionados([]);
         setEspecialidadesSeleccionadas([]);
-        setOrdenamientoSeleccionado('rating');
+        setOrdenamientoSeleccionado('default');
         setBusqueda('');
         setPsychologistsWithDistance([]);
         setDistanceError('');
@@ -378,8 +359,6 @@ const Filter = () => {
             const currentFilters = {
                 precioMin,
                 precioMax,
-                distanciaMax,
-                distanciaMaxInput,
                 modalidadSeleccionada,
                 idiomaSeleccionado,
                 obraSocialSeleccionada,
@@ -400,8 +379,6 @@ const Filter = () => {
     }, [
         precioMin,
         precioMax,
-        distanciaMax,
-        distanciaMaxInput,
         modalidadSeleccionada,
         idiomaSeleccionado,
         obraSocialSeleccionada,
@@ -544,8 +521,8 @@ const Filter = () => {
         });
 
         switch (ordenamientoSeleccionado) {
-            case 'rating':
-                resultado = resultado.sort((a, b) => a.name.localeCompare(b.name));
+            case 'default':
+                resultado = resultado;
                 break;
             case 'price_asc':
                 resultado = resultado.sort((a, b) => {
@@ -1086,26 +1063,24 @@ const Filter = () => {
                                         className="rounded-lg border bg-white text-gray-900 shadow-sm hover:shadow-lg transition-shadow"
                                     >
                                         <div className="p-6">
-                                            <div className="flex items-start justify-between mb-4">
-                                                <div className="flex items-start">
-                                                    <Image
-                                                        alt={psicologo.name}
-                                                        className="w-16 h-16 rounded-full mr-4"
-                                                        src={psicologo.profile_picture || '/person-gray-photo-placeholder-woman.webp'}
-                                                        width={80}
-                                                        height={80}
-                                                    />
+                                            <div className="mb-4">
+                                                <div className="flex justify-between">
                                                     <div>
-                                                        <div className="flex items-center mb-2">
-                                                            <h3 className="text-lg font-semibold mr-2">Dr/a {psicologo.name}</h3>
-                                                        </div>
-                                                        <div className="flex items-center text-sm text-gray-600 mb-2">
-                                                            <Star className="h-4 w-4 mr-1" strokeWidth={2} />
-                                                            <span className="text-sm text-gray-600">4.8 (12 reseñas)</span>
-                                                        </div>
-                                                        <div className="flex items-center text-sm text-gray-600 mb-2">
-                                                            <MapPin className="h-4 w-4 mr-1" strokeWidth={2} />
-                                                            {psicologo.office_address || 'Consulta disponible'}
+                                                        <Image
+                                                            alt={psicologo.name}
+                                                            className="w-16 h-16 rounded-full mr-4"
+                                                            src={psicologo.profile_picture || '/person-gray-photo-placeholder-woman.webp'}
+                                                            width={80}
+                                                            height={80}
+                                                        />
+                                                        <div>
+                                                            <div className="flex items-center mb-2">
+                                                                <h3 className="text-lg font-semibold mr-2">Dr/a {psicologo.name}</h3>
+                                                            </div>
+                                                            <div className="flex items-center text-sm text-gray-600 mb-2">
+                                                                <MapPin className="h-4 w-4 mr-1" strokeWidth={2} />
+                                                                {psicologo.office_address || 'Consulta disponible'}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
@@ -1228,7 +1203,7 @@ const Filter = () => {
                                                 <div className="mb-3">
                                                     <span className="text-xs font-medium text-gray-700 mb-1 block">Disponibilidad:</span>
                                                     <div className="flex flex-wrap gap-1">
-                                                        {psicologo.availability.slice(0, 4).map((horario, index) => (
+                                                        {psicologo.availability.map((horario, index) => (
                                                             <span
                                                                 key={index}
                                                                 className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800"
@@ -1236,11 +1211,6 @@ const Filter = () => {
                                                                 {horario}
                                                             </span>
                                                         ))}
-                                                        {psicologo.availability.length > 4 && (
-                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
-                                                                +{psicologo.availability.length - 4} más
-                                                            </span>
-                                                        )}
                                                     </div>
                                                 </div>
                                             )}
