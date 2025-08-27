@@ -9,6 +9,8 @@ import Cookies from 'js-cookie';
 import Input from '../ui/input';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useEffect, useState } from 'react';
+import CustomPasswordInput from '../ui/Custom-password-input';
+import * as Yup from "yup";
 
 const ModalContraseña = () => {
     const { cerrarModal } = useModalContext();
@@ -16,14 +18,20 @@ const ModalContraseña = () => {
     const token = Cookies.get('authToken') || Cookies.get('auth_token');
     const [_disabled, setDisabled] = useState(false);
 
-    useEffect(() => {
-        const unlockTime = localStorage.getItem('buttonUnlockTime');
-        if (unlockTime && Date.now() < parseInt(unlockTime)) {
-            setDisabled(true);
-            const timeout = setTimeout(() => setDisabled(false), parseInt(unlockTime) - Date.now());
-            return () => clearTimeout(timeout);
-        }
-    }, []);
+
+    const changePasswordSchema = Yup.object().shape({
+    newPassword: Yup.string()
+        .required("La nueva contraseña es obligatoria")
+        .min(6, "La contraseña debe tener al menos 6 caracteres")
+        .matches(/[A-Z]/, "Debe contener al menos una letra mayúscula")
+        .matches(/[a-z]/, "Debe contener al menos una letra minúscula")
+        .matches(/[0-9]/, "Debe contener al menos un número")
+        .matches(/[!@#$%^&*(),.?":{}|<>_\-]/, "Debe contener al menos un signo o caracter especial"),
+        
+    confirmPassword: Yup.string()
+        .required("La confirmación es obligatoria")
+        .oneOf([Yup.ref("newPassword")], "Las contraseñas no coinciden"),
+    });
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -37,18 +45,7 @@ const ModalContraseña = () => {
 
                 <Formik
                     initialValues={{ newPassword: '', confirmPassword: '' }}
-                    validate={(values) => {
-                        const errors: { newPassword?: string; confirmPassword?: string } = {};
-                        if (!values.newPassword) {
-                            errors.newPassword = 'Campo requerido';
-                        }
-                        if (!values.confirmPassword) {
-                            errors.confirmPassword = 'Campo requerido';
-                        } else if (values.newPassword !== values.confirmPassword) {
-                            errors.confirmPassword = 'Las contraseñas no coinciden';
-                        }
-                        return errors;
-                    }}
+                    validationSchema={changePasswordSchema}
                     onSubmit={async (values, { setSubmitting }) => {
                         try {
                             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password`, {
@@ -77,7 +74,7 @@ const ModalContraseña = () => {
                         }
                     }}
                 >
-                    {({ isSubmitting }) => (
+                    {({ isSubmitting, handleChange, values }) => (
                         <Form className="flex flex-col items-center w-full">
                             <ToastContainer
                                 position="top-center"
@@ -93,30 +90,28 @@ const ModalContraseña = () => {
                                 transition={Bounce}
                             />
                             <div className="flex flex-col w-full mb-2">
-                                <label htmlFor="newPassword">Nueva contraseña</label>
-                                <Field
-                                    as={Input}
+                                <CustomPasswordInput
+                                    label="Nueva contraseña *"
                                     name="newPassword"
-                                    type="password"
                                     id="newPassword"
-                                    className="h-8 mb-4 placeholder:text-gray-400"
-                                    placeholder="nueva contraseña"
+                                    onChange={handleChange}
+                                    value={values.newPassword}
+                                    className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
                                 />
                                 <ErrorMessage name="newPassword" component="div" className="text-xs text-red-500" />
                             </div>
                             <div className="flex flex-col w-full mb-2">
-                                <label htmlFor="confirmPassword">Confirmar nueva contraseña</label>
-                                <Field
-                                    as={Input}
+                                <CustomPasswordInput
+                                    label="Confirmar nueva contraseña *"
                                     name="confirmPassword"
-                                    type="password"
                                     id="confirmPassword"
-                                    className="h-8 mb-4 placeholder:text-gray-400"
-                                    placeholder="confirmar nueva contraseña"
+                                    onChange={handleChange}
+                                    value={values.confirmPassword}
+                                    className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
                                 />
                                 <ErrorMessage name="confirmPassword" component="div" className="text-xs text-red-500" />
                             </div>
-                            <Button type="submit" className="mt-2 text-black w-fit bg-violet-300" disabled={isSubmitting}>
+                            <Button type="submit" className="mt-2 text-black w-fit bg-violet-300"  disabled={isSubmitting || _disabled}>
                                 Guardar nueva contraseña
                             </Button>
                         </Form>

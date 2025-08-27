@@ -7,6 +7,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { envs } from '@/config/envs.config';
 import Cookies from 'js-cookie';
+import { useModalContext } from '@/context/modalContraseña';
+import ModalContraseña from './ModalContraseña';
 
 interface MapboxSuggestion {
     id: string;
@@ -84,6 +86,7 @@ const socialWorkOptions = [
 ];
 
 const PerfilUser = () => {
+    const { modal, abrirModal } = useModalContext();
     const [editable, setEditable] = useState(false);
     const [loading, setLoading] = useState(false);
     const [profileImage, setProfileImage] = useState('');
@@ -340,7 +343,8 @@ const PerfilUser = () => {
     };
 
     return (
-        <div className="flex flex-col w-full gap-8 px-2 py-8 md:flex-row bg-white">
+        <div className="flex flex-col w-full gap-8 px-2 py-8 bg-white md:flex-row">
+            {modal && <ModalContraseña />}
             {/* Panel imagen */}
             <div className="flex flex-col items-center w-full md:w-1/2">
                 <div className="flex flex-col items-center w-full p-8 bg-white rounded-lg shadow">
@@ -378,6 +382,13 @@ const PerfilUser = () => {
                     <p className="mb-2 text-gray-500">{user.email}</p>
                     <div className="mb-2 text-sm text-gray-400">{user.phone}</div>
                     <div className="text-xs text-gray-400">Obra Social: {user.socialWork || 'No especificada'}</div>
+
+
+                    <div>
+                        <button onClick={abrirModal} className="px-4 mt-6 text-violet-600 hover:underline">
+                            ¿Quieres cambiar tu contraseña?
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -419,11 +430,11 @@ const PerfilUser = () => {
                                             {showSuggestions && editable && (
                                                 <div
                                                     ref={suggestionsRef}
-                                                    className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto mt-1"
+                                                    className="absolute left-0 right-0 z-50 mt-1 overflow-y-auto bg-white border border-gray-300 rounded-md shadow-lg top-full max-h-60"
                                                 >
                                                     {isLoadingSuggestions ? (
-                                                        <div className="p-3 text-sm font-medium flex items-center gap-2">
-                                                            <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                                        <div className="flex items-center gap-2 p-3 text-sm font-medium">
+                                                            <div className="w-4 h-4 border-2 border-blue-500 rounded-full border-t-transparent animate-spin"></div>
                                                             Buscando direcciones en Argentina...
                                                         </div>
                                                     ) : addressSuggestions.length > 0 ? (
@@ -431,19 +442,19 @@ const PerfilUser = () => {
                                                             <button
                                                                 key={suggestion.id}
                                                                 type="button"
-                                                                className="w-full text-left p-3 hover:bg-gray-50 text-sm border-b border-gray-200 last:border-b-0 transition-colors"
+                                                                className="w-full p-3 text-sm text-left transition-colors border-b border-gray-200 hover:bg-gray-50 last:border-b-0"
                                                                 onClick={() => selectAddress(suggestion)}
                                                             >
                                                                 <div className="flex items-center gap-2">
                                                                     <MapPinIcon className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
                                                                     <div className="flex-1 min-w-0">
-                                                                        <div className="text-sm flex items-center gap-2">{suggestion.place_name}</div>
+                                                                        <div className="flex items-center gap-2 text-sm">{suggestion.place_name}</div>
                                                                     </div>
                                                                 </div>
                                                             </button>
                                                         ))
                                                     ) : (
-                                                        <div className="p-3 text-sm text-gray-600 text-center">
+                                                        <div className="p-3 text-sm text-center text-gray-600">
                                                             No se encontraron direcciones en Argentina. Intente con una búsqueda más específica.
                                                         </div>
                                                     )}

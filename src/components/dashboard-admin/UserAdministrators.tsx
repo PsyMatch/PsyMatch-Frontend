@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { adminService } from '@/services/admin';
 
 interface Paciente {
@@ -19,16 +19,23 @@ interface Paciente {
 
 interface UserAdministratorsProps {
     data: Paciente[];
+    onUserUpdate?: (userId: string, updates: Partial<Paciente>) => void;
 }
 
-const UserAdministrators = ({ data }: UserAdministratorsProps) => {
+const UserAdministrators = ({ data, onUserUpdate }: UserAdministratorsProps) => {
     const [loading, setLoading] = useState<string | null>(null);
+    const [localData, setLocalData] = useState<Paciente[]>(data);
     const [confirmAction, setConfirmAction] = useState<{
         userId: string;
         userName: string;
     } | null>(null);
 
-    const administradores = data.filter((u) => u.role === 'Administrador');
+    const administradores = localData.filter((u) => u.role === 'Administrador');
+
+    // Sincronizar con nuevos datos cuando cambien las props
+    useEffect(() => {
+        setLocalData(data);
+    }, [data]);
 
     const handleUserAction = async (userId: string) => {
         setLoading(userId);
@@ -38,7 +45,16 @@ const UserAdministrators = ({ data }: UserAdministratorsProps) => {
             
             if (result.success) {
                 alert('Usuario desbaneado exitosamente');
-                window.location.reload();
+                
+                // Actualizar el estado global y local
+                onUserUpdate?.(userId, { is_active: true });
+                setLocalData(prevData => 
+                    prevData.map(user => 
+                        user.id === userId 
+                            ? { ...user, is_active: true }
+                            : user
+                    )
+                );
             } else {
                 alert(`Error: ${result.message}`);
             }

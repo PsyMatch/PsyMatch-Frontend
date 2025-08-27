@@ -5,7 +5,7 @@ export interface ValoresInfoProfesional {
     languages: string[];
     license_number: string | null;
     professional_title: string | null;
-    professional_experience: string | null;
+    professional_experience: number | null;
     office_address: string | null;
 }
 
@@ -14,7 +14,7 @@ export const initialValuesInfoProfesional: ValoresInfoProfesional = {
     languages: [],
     license_number: "",
     professional_title: "",
-    professional_experience: "",
+    professional_experience: null,
     office_address: ""
 }
 

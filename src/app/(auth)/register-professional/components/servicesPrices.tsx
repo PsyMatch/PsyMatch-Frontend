@@ -94,7 +94,7 @@ const getInitialValues = (): typeof initialValuesTipos => {
               languages: cookieData.languages || [],
               license_number: cookieData.license_number || '',
               professional_title: cookieData.professional_title || '',
-              professional_experience: cookieData.professional_experience || '',
+              professional_experience: cookieData.professional_experience || 0,
               office_address: cookieData.office_address || '',
 
               specialities: cookieData.specialities || [],

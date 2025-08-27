@@ -13,13 +13,13 @@ const DashboardUser = () => {
     const [dataCompleted, setDataCompleted] = useState(false);
     const notifications = useNotifications();
 
-    useEffect(() => {
-        if (!loading && user && !dataCompleted) {
-            const hasMissingData = checkMissingData();
-            setShowMissingDataModal(hasMissingData);
-        }
-    }, [user, loading, checkMissingData, dataCompleted]);
-
+   useEffect(() => {
+            if (!loading && user && !dataCompleted) {
+                const hasMissingData = checkMissingData();
+                setShowMissingDataModal(hasMissingData);
+            }
+        }, [user, loading, checkMissingData, dataCompleted]);
+        
     const handleSaveMissingData = async (data: UpdateUserData) => {
         try {
             await updateUserProfile(data);

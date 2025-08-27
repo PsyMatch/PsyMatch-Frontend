@@ -6,7 +6,13 @@ export default function FlowbiteInit() {
     // Inicializar Flowbite cuando el componente se monta
     if (typeof window !== 'undefined') {
       import('flowbite').then((flowbite) => {
-        flowbite.initFlowbite();
+        try {
+          // Verificar que los elementos necesarios existan antes de inicializar
+          flowbite.initFlowbite();
+        } catch (error) {
+          // Suprimir errores de elementos faltantes en Flowbite
+          console.warn('Flowbite initialization warning:', error);
+        }
       });
     }
   }, []);

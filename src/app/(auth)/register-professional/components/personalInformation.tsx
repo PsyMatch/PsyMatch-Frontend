@@ -9,6 +9,10 @@ import { AutoSaveCookies, dataToSave, getCookieObject, saveMerged } from '@/help
 import { useFotoDePerfil } from '@/context/fotoDePerfil';
 import CustomPasswordInput from '@/components/ui/Custom-password-input';
 import { envs } from '@/config/envs.config';
+import CustomPhoneProfessionalInput from '@/components/ui/Custom-phone-input-professional';
+import DniField from '@/components/register-professional-validation/DniField';
+import PhoneField from '@/components/register-professional-validation/PhoneField';
+import EmailField from '@/components/register-professional-validation/EmailField';
 
 const PersonalInformation = () => {
     const { avanzarPaso } = useBotonesRegisterContext();
@@ -83,9 +87,8 @@ const PersonalInformation = () => {
     const validationSchema = Yup.object({
         name: Yup.string().required('El nombre es obligatorio'),
         email: Yup.string().email('Correo inválido').required('El correo es obligatorio'),
-        phone: Yup.string()
-            .required('El número es obligatorio')
-            .matches(/^\+54\d{10}$/, 'El número debe empezar con +54 y tener 10 dígitos después (ej: +541134567890)'),
+        // phone: Yup.string()
+        //     .required('El número es obligatorio'),
         password: Yup.string()
             .min(8, 'La contraseña debe tener al menos 8 caracteres')
             .matches(/(?=.*[a-z])/, 'Debe contener al menos una letra minúscula')
@@ -257,7 +260,7 @@ const PersonalInformation = () => {
                     validateOnBlur={true}
                     validateOnChange={false}
                 >
-                    {({ handleChange, values, isValid, isSubmitting }) => {
+                    {({ handleChange, values, isValid, isSubmitting, handleBlur, errors, touched }) => {
                         return (
                             <Form className="space-y-6">
                                 <SyncProfileImage profileImageFile={profileImageFile} />
@@ -290,89 +293,20 @@ const PersonalInformation = () => {
 
                                 {/* Email y Teléfono */}
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-700" htmlFor="email">
-                                            Correo Electrónico *
-                                        </label>
-                                        <div className="relative flex items-center">
-                                            <Mail className="absolute w-5 h-5 text-gray-400 pointer-events-none left-3" />
-                                            <Field
-                                                name="email"
-                                                type="email"
-                                                validate={async (value: string) => {
-                                                    if (!value) return 'El correo es obligatorio';
-                                                    try {
-                                                        const res = await fetch(`${envs.next_public_api_url}/users/validate-unique`, {
-                                                            method: 'POST',
-                                                            headers: { 'Content-Type': 'application/json' },
-                                                            body: JSON.stringify({ field: 'email', emailValue: value }),
-                                                        });
-                                                        if (res.status === 409) return 'El correo ya está registrado';
-                                                    } catch {
-                                                        return 'Error de conexión';
-                                                    }
-                                                }}
-                                                className="flex w-full h-10 px-3 py-2 pl-10 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
-                                            />
-                                        </div>
-                                        <ErrorMessage name="email" component="div" className="mt-1 text-red-500" />
+                                    <div className="relative flex items-center">
+                                        <EmailField />
                                     </div>
 
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700" htmlFor="phone">
-                                            Número de Teléfono *
-                                        </label>
                                         <div className="relative flex items-center">
-                                            <Phone className="absolute w-5 h-5 text-gray-400 pointer-events-none left-3" />
-                                            <Field
-                                                name="phone"
-                                                type="text"
-                                                validate={async (value: string) => {
-                                                    if (!value) return 'El teléfono es obligatorio';
-
-                                                    try {
-                                                        const res = await fetch(`${envs.next_public_api_url}/users/validate-unique`, {
-                                                            method: 'POST',
-                                                            headers: { 'Content-Type': 'application/json' },
-                                                            body: JSON.stringify({ field: 'phone', phoneValue: value }),
-                                                        });
-                                                        if (res.status === 409) return 'El teléfono ya está registrado';
-                                                    } catch {
-                                                        return 'Error de conexión';
-                                                    }
-                                                }}
-                                                className="flex w-full h-10 px-3 py-2 pl-10 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
-                                            />
+                                            <PhoneField />
                                         </div>
-                                        <ErrorMessage name="phone" component="div" className="mt-1 text-red-500" />
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700" htmlFor="dni">
-                                            Nro de Documento *
-                                        </label>
-                                        <Field
-                                            name="dni"
-                                            type="number"
-                                            validate={async (value: string) => {
-                                                if (!value) return 'El dni es obligatorio';
-
-                                                try {
-                                                    const res = await fetch(`${envs.next_public_api_url}/users/validate-unique`, {
-                                                        method: 'POST',
-                                                        headers: { 'Content-Type': 'application/json' },
-                                                        body: JSON.stringify({ field: 'dni', dniValue: value }),
-                                                    });
-                                                    if (res.status === 409) return 'El dni ya está registrado';
-                                                } catch {
-                                                    return 'Error de conexión';
-                                                }
-                                            }}
-                                            className="flex w-full h-10 px-3 py-2 text-base bg-white border border-gray-300 rounded-md placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 md:text-sm"
-                                        />
-                                        <ErrorMessage name="dni" component="div" className="mt-1 text-red-500" />
+                                        <DniField />
                                     </div>
                                 </div>
 

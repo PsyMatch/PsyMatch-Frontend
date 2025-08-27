@@ -17,7 +17,6 @@ export function middleware(request: NextRequest) {
 
     if (
         (pathname === '/dashboard/professional' ||
-            pathname === '/dashboard/user' ||
             pathname === '/dashboard/admin' ||
             pathname.startsWith('/professionalProfile') ||
             pathname === '/search-professionals' ||
@@ -25,6 +24,11 @@ export function middleware(request: NextRequest) {
             pathname.startsWith('/session/')) &&
         !authToken
     ) {
+        const homeUrl = new URL('/', origin);
+        return NextResponse.redirect(homeUrl);
+    }
+
+    if (pathname === '/dashboard/user' && !authToken) {
         const homeUrl = new URL('/', origin);
         return NextResponse.redirect(homeUrl);
     }
