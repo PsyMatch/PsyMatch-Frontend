@@ -179,7 +179,7 @@ const Perfil = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const handleUpdateProfile = (cambios: Partial<ResponseDataProfile>, original: ResponseDataProfile) => {
+    const handleUpdateProfile = async (cambios: Partial<ResponseDataProfile>, original: ResponseDataProfile) => {
         const token = Cookies.get('auth_token') || Cookies.get('authToken');
         if (!token) return;
 
@@ -199,7 +199,7 @@ const Perfil = () => {
             formData.append('profile_picture', profileFile);
         }
 
-        fetch(`${envs.next_public_api_url}/psychologist/me`, {
+        await fetch(`${envs.next_public_api_url}/psychologist/me`, {
             method: 'PUT',
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -209,14 +209,13 @@ const Perfil = () => {
             .then((res) => res.json())
             .then((response) => {
                 setPerfil((prev) => ({ ...prev, ...response }));
-                setProfileImage(
-                    response.profileImage ||
-                        response.profile_picture ||
-                        `https://ui-avatars.com/api/?name=${encodeURIComponent(response.fullName || response.name || response.fullName || 'Usuario')}`
-                );
+                setProfileImage(`${response.data.profile_picture}?t=${new Date().getTime()}`);
                 setCambios({});
                 bodySend = {};
                 setEditable(false);
+                
+                console.log("Respuesta completa", response)
+                console.log("imagen",response.data.profile_picture)
 
                 notifications.success(`${response.message}`);
             })
@@ -241,23 +240,26 @@ const Perfil = () => {
             {/* Panel imagen y contraseña */}
             <div className="flex flex-col items-center w-full max-w-lg p-4 mb-8 bg-white rounded-lg shadow md:p-8">
                 <div className="relative mb-4">
-                    <Image
-                        src={
-                            profileImage && typeof profileImage === 'string' && profileImage.trim() !== ''
-                                ? profileImage
-                                : `https://ui-avatars.com/api/?name=${encodeURIComponent(perfil?.name || 'Usuario')}`
-                        }
-                        alt="profile"
-                        width={128}
-                        height={128}
-                        className="object-cover w-24 h-24 bg-gray-200 rounded-full md:w-32 md:h-32"
-                        onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            if (!target.src.includes('ui-avatars.com')) {
-                                target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(perfil?.name || 'Usuario')}`;
-                            }
-                        }}
-                    />
+  {profileImage && profileImage.startsWith("blob:") ? (
+    <img
+      src={profileImage}
+      alt="profile preview"
+      className="object-cover w-24 h-24 bg-gray-200 rounded-full md:w-32 md:h-32"
+    />
+  ) : (
+    <Image
+      key={profileImage} // fuerza re-render al cambiar
+      src={
+        profileImage && profileImage.trim() !== ""
+          ? profileImage
+          : `https://ui-avatars.com/api/?name=${encodeURIComponent(perfil?.name || "Usuario")}`
+      }
+      alt="profile"
+      width={128}
+      height={128}
+      className="object-cover w-24 h-24 bg-gray-200 rounded-full md:w-32 md:h-32"
+    />
+  )}
                     {editable && (
                         <>
                             <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="profile-upload" />
