@@ -12,11 +12,13 @@ import { envs } from '@/config/envs.config';
 import DniField from '@/components/register-professional-validation/DniField';
 import PhoneField from '@/components/register-professional-validation/PhoneField';
 import EmailField from '@/components/register-professional-validation/EmailField';
+import { useAuthProfessionalContext } from '@/context/registerProfessional';
+
 
 const PersonalInformation = () => {
     const { avanzarPaso } = useBotonesRegisterContext();
 
-    const [profileImage, setProfileImage] = useState<string | null>(null);
+    // const [profileImage, setProfileImage] = useState<string | null>(null);
 
     interface PersonalInformationFormValues {
         name: string;
@@ -188,58 +190,65 @@ const PersonalInformation = () => {
         avanzarPaso();
     };
 
-    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, setFieldValue: (field: string, value: File | null) => void) => {
+
+    
+const ProfilePictureField = () => {
+    const { setFieldValue, errors, touched } = useFormikContext<PersonalInformationFormValues>();
+    const { profileImagePreview, setProfileImage } = useBotonesRegisterContext();
+
+    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
 
         if (file) {
-            setFieldValue('profile_picture', file);
             const reader = new FileReader();
             reader.onload = (e) => {
-                setProfileImage(e.target?.result as string);
+                const base64 = e.target?.result as string;
+                setProfileImage(file, base64);        // guarda en contexto
+                setFieldValue('profile_picture', file); // guarda en Formik
             };
             reader.readAsDataURL(file);
         } else {
-            setFieldValue('profile_picture', null);
-            setProfileImage(null);
+            setProfileImage(null);           // elimina del contexto
+            setFieldValue('profile_picture', null); // elimina de Formik
         }
     };
 
-    const ProfilePictureField = () => {
-        const { setFieldValue, errors, touched } = useFormikContext<PersonalInformationFormValues>();
-
-        return (
-            <div>
-                <label htmlFor="profile_picture" className="text-sm font-medium text-gray-700">
-                    Foto de perfil profesional *
-                </label>
-                <div className="flex items-center mt-2 space-x-4">
-                    {profileImage && (
-                        <div className="relative w-[120px] h-[120px] border border-gray-300 rounded-full overflow-hidden">
-                            <Image src={profileImage} alt="Preview" fill sizes="120px" className="object-cover" />
-                        </div>
-                    )}
-                    <div>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleImageUpload(e, setFieldValue)}
-                            className="hidden"
-                            id="profile_picture"
-                        />
-                        <label
-                            htmlFor="profile_picture"
-                            className="inline-flex items-center px-4 py-2 text-sm font-medium text-white transition rounded-lg cursor-pointer bg-violet-600 hover:bg-violet-700"
-                        >
-                            <Upload className="w-4 h-4 mr-2" />
-                            Subir Foto
-                        </label>
-                        <p className="mt-1 text-xs text-gray-500">Máximo 2MB - JPG, PNG o WEBP</p>
+    return (
+        <div>
+            <label htmlFor="profile_picture" className="text-sm font-medium text-gray-700">
+                Foto de perfil profesional *
+            </label>
+            <div className="flex items-center mt-2 space-x-4">
+                {profileImagePreview && (
+                    <div className="relative w-[120px] h-[120px] border border-gray-300 rounded-full overflow-hidden">
+                        <Image src={profileImagePreview} alt="Preview" fill sizes="120px" className="object-cover" />
                     </div>
+                )}
+                <div>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload} // ya no necesitamos pasar setFieldValue
+                        className="hidden"
+                        id="profile_picture"
+                    />
+                    <label
+                        htmlFor="profile_picture"
+                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-white transition rounded-lg cursor-pointer bg-violet-600 hover:bg-violet-700"
+                    >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Subir Foto
+                    </label>
+                    <p className="mt-1 text-xs text-gray-500">Máximo 2MB - JPG, PNG o WEBP</p>
                 </div>
-                {touched.profile_picture && errors.profile_picture && <p className="mt-1 text-sm text-red-500">{errors.profile_picture}</p>}
             </div>
-        );
-    };
+            {touched.profile_picture && errors.profile_picture && (
+                <p className="mt-1 text-sm text-red-500">{errors.profile_picture}</p>
+            )}
+        </div>
+    );
+};
+
 
     return (
         <div className="text-gray-900 bg-white shadow-sm ">
