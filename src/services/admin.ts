@@ -254,11 +254,12 @@ export const adminService = {
 
 
     // Banear usuario
-    banUser: async (userId: string): Promise<{ success: boolean; message?: string }> => {
+    banUser: async (userId: string, reason: string): Promise<{ success: boolean; message?: string }> => {
         try {
             const response = await fetch(`${envs.next_public_api_url}/admin/${userId}/ban`, {
                 method: 'PUT',
                 headers: getAuthHeaders(),
+                body: JSON.stringify({ reason }),
             });
 
             if (response.ok) {
