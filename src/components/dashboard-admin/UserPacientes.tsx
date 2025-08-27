@@ -30,6 +30,7 @@ const UserPacientes = ({ data, onUserUpdate }: UserPacientesProps) => {
         action: 'promote' | 'ban' | 'unban';
         userName: string;
     } | null>(null);
+    const [banReason, setBanReason] = useState('');
     const [localData, setLocalData] = useState(data);
     const notifications = useNotifications();
 
@@ -60,6 +61,12 @@ const UserPacientes = ({ data, onUserUpdate }: UserPacientesProps) => {
     }, [data]);
 
     const handleUserAction = async (userId: string, action: 'promote' | 'ban' | 'unban') => {
+        // Validar que el motivo sea obligatorio para el baneo
+        if (action === 'ban' && banReason.trim().length === 0) {
+            notifications.error('El motivo del baneo es obligatorio');
+            return;
+        }
+
         setLoading(userId);
 
         try {
@@ -70,7 +77,7 @@ const UserPacientes = ({ data, onUserUpdate }: UserPacientesProps) => {
                     result = await adminService.promoteUser(userId);
                     break;
                 case 'ban':
-                    result = await adminService.banUser(userId);
+                    result = await adminService.banUser(userId, banReason.trim());
                     break;
                 case 'unban':
                     result = await adminService.unbanUser(userId);
@@ -156,7 +163,13 @@ const UserPacientes = ({ data, onUserUpdate }: UserPacientesProps) => {
             // Siempre cerrar el modal y quitar el loading
             setLoading(null);
             setConfirmAction(null);
+            setBanReason(''); // Limpiar el motivo al cerrar
         }
+    };
+
+    const handleCloseModal = () => {
+        setConfirmAction(null);
+        setBanReason(''); // Limpiar el motivo al cancelar
     };
 
     // Filtrar solo pacientes activos
@@ -306,22 +319,57 @@ const UserPacientes = ({ data, onUserUpdate }: UserPacientesProps) => {
                                 </>
                             )}
                         </p>
+                        
+                        {/* Campo de motivo solo para baneo */}
+                        {confirmAction.action === 'ban' && (
+                            <div className="mb-4">
+                                <label htmlFor="banReason" className="block text-sm font-medium text-gray-700 mb-2">
+                                    Motivo del baneo <span className="text-red-500">*</span>
+                                </label>
+                                <textarea
+                                    id="banReason"
+                                    value={banReason}
+                                    onChange={(e) => setBanReason(e.target.value)}
+                                    placeholder="Describe el motivo del baneo (obligatorio)..."
+                                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-red-500 resize-none ${
+                                        banReason.trim().length === 0 
+                                            ? 'border-red-300 focus:ring-red-500' 
+                                            : 'border-gray-300 focus:ring-red-500'
+                                    }`}
+                                    rows={3}
+                                    maxLength={500}
+                                    required
+                                />
+                                <div className="flex justify-between items-center mt-1">
+                                    <p className="text-xs text-red-500">
+                                        {banReason.trim().length === 0 ? 'El motivo es obligatorio' : ''}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                        {banReason.length}/500 caracteres
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="flex justify-end space-x-3">
                             <button
-                                onClick={() => setConfirmAction(null)}
+                                onClick={handleCloseModal}
                                 className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={() => handleUserAction(confirmAction.userId, confirmAction.action)}
+                                disabled={confirmAction.action === 'ban' && banReason.trim().length === 0}
                                 className={`px-4 py-2 text-white rounded-md transition-colors ${
                                     confirmAction.action === 'promote' 
                                         ? 'bg-purple-600 hover:bg-purple-700'
                                         : confirmAction.action === 'ban' 
-                                        ? 'bg-red-600 hover:bg-red-700' 
+                                        ? (banReason.trim().length === 0 
+                                            ? 'bg-gray-400 cursor-not-allowed' 
+                                            : 'bg-red-600 hover:bg-red-700')
                                         : 'bg-green-600 hover:bg-green-700'
-                                }`}
+                                } ${confirmAction.action === 'ban' && banReason.trim().length === 0 ? 'opacity-50' : ''}`}
                             >
                                 {confirmAction.action === 'promote' ? 'Promover a Admin' : 
                                  confirmAction.action === 'ban' ? 'Banear Usuario' : 'Desbanear Usuario'}

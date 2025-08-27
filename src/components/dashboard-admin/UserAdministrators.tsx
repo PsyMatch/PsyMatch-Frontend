@@ -27,7 +27,7 @@ const UserAdministrators = ({ data, onUserUpdate }: UserAdministratorsProps) => 
     const [localData, setLocalData] = useState<Paciente[]>(data);
     const [confirmAction, setConfirmAction] = useState<{
         userId: string;
-        action: 'ban' | 'unban';
+        action: 'unban';
         userName: string;
     } | null>(null);
 
@@ -38,27 +38,15 @@ const UserAdministrators = ({ data, onUserUpdate }: UserAdministratorsProps) => 
         setLocalData(data);
     }, [data]);
 
-    const handleUserAction = async (userId: string, action: 'ban' | 'unban' = 'unban') => {
+    const handleUserAction = async (userId: string) => {
         setLoading(userId);
         
         try {
-            let result;
-            
-            switch (action) {
-                case 'ban':
-                    result = await adminService.banUser(userId);
-                    break;
-                case 'unban':
-                    result = await adminService.unbanUser(userId);
-                    break;
-                default:
-                    return;
-            }
+            const result = await adminService.unbanUser(userId);
             
             // Actualizar el estado independientemente del resultado, ya que a veces
             // el backend ejecuta la acción pero devuelve un error 500
-            const actionText = action === 'ban' ? 'baneado' : 'desbaneado';
-            const updates = { is_active: action === 'unban' };
+            const updates = { is_active: true };
             
             // Actualizar el estado global y local
             onUserUpdate?.(userId, updates);
@@ -71,17 +59,16 @@ const UserAdministrators = ({ data, onUserUpdate }: UserAdministratorsProps) => 
             );
             
             if (result.success) {
-                alert(`Usuario ${actionText} exitosamente`);
+                alert(`Usuario desbaneado exitosamente`);
             } else {
                 // Mostrar el error pero mantener los cambios de estado
                 console.warn(`Advertencia: ${result.message || 'Error desconocido'}`);
-                alert(`Acción ejecutada. Usuario ${actionText}.`);
+                alert(`Acción ejecutada. Usuario desbaneado.`);
             }
         } catch (error) {
             console.error('Error en la acción:', error);
             // Aún así intentar actualizar el estado ya que la acción podría haberse ejecutado
-            const actionText = action === 'ban' ? 'baneado' : 'desbaneado';
-            const updates = { is_active: action === 'unban' };
+            const updates = { is_active: true };
             
             onUserUpdate?.(userId, updates);
             setLocalData(prevData => 
@@ -92,12 +79,16 @@ const UserAdministrators = ({ data, onUserUpdate }: UserAdministratorsProps) => 
                 )
             );
             
-            alert(`Acción ejecutada con advertencias. Usuario ${actionText}.`);
+            alert(`Acción ejecutada con advertencias. Usuario desbaneado.`);
         } finally {
             // Siempre cerrar el modal y quitar el loading
             setLoading(null);
             setConfirmAction(null);
         }
+    };
+
+    const handleCloseModal = () => {
+        setConfirmAction(null);
     };
 
     return (
@@ -201,15 +192,16 @@ const UserAdministrators = ({ data, onUserUpdate }: UserAdministratorsProps) => 
                             <br /><br />
                             <span className="text-green-600 font-medium">✅ Esto reactivará su cuenta y restaurará su acceso administrativo.</span>
                         </p>
+
                         <div className="flex justify-end space-x-3">
                             <button
-                                onClick={() => setConfirmAction(null)}
+                                onClick={handleCloseModal}
                                 className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
                             >
                                 Cancelar
                             </button>
                             <button
-                                onClick={() => handleUserAction(confirmAction.userId, confirmAction.action)}
+                                onClick={() => handleUserAction(confirmAction.userId)}
                                 className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors"
                             >
                                 Desbanear Administrador
