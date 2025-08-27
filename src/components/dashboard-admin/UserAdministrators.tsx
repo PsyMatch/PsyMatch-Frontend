@@ -93,12 +93,14 @@ const UserAdministrators = ({ data, onUserUpdate }: UserAdministratorsProps) => 
 
     return (
         <div className="w-full min-h-[500px] flex flex-col">
-            <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-[#5046E7] rounded-lg flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">👑</span>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-[#5046E7] rounded-lg flex items-center justify-center">
+                        <span className="text-white text-sm font-bold">👑</span>
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Gestión de Administradores</h2>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800">Gestión de Administradores</h2>
-                <div className="ml-auto bg-[#5046E7]/10 text-[#5046E7] px-3 py-1 rounded-full text-sm font-semibold">
+                <div className="bg-[#5046E7]/10 text-[#5046E7] px-3 py-1 rounded-full text-sm font-semibold w-fit">
                     {administradores.length} administradores
                 </div>
             </div>
@@ -128,18 +130,18 @@ const UserAdministrators = ({ data, onUserUpdate }: UserAdministratorsProps) => 
                                             <Image 
                                                 src={admin.profile_picture || "/person-gray-photo-placeholder-woman.webp"} 
                                                 alt={`Foto de ${admin.name}`} 
-                                                width={64}
-                                                height={64}
+                                                width={56}
+                                                height={56}
                                                 className="object-cover w-full h-full rounded-full" 
                                             />
                                         </div>
-                                        <div className="flex-1">
-                                            <h3 className="font-bold text-[#5046E7] text-lg">{admin.name}</h3>
-                                            <p className="text-gray-600 text-sm">📧 {admin.email}</p>
-                                            <p className="text-gray-600 text-sm">📱 {admin.phone}</p>
+                                        <div className="flex-1 text-center sm:text-left">
+                                            <h3 className="font-bold text-[#5046E7] text-sm sm:text-base lg:text-lg truncate">{admin.name}</h3>
+                                            <p className="text-gray-600 text-xs sm:text-sm break-all">📧 {admin.email}</p>
+                                            <p className="text-gray-600 text-xs sm:text-sm">📱 {admin.phone}</p>
                                         </div>
-                                        <div className="flex-shrink-0">
-                                            <span className={`px-3 py-1 text-sm font-semibold rounded-full ${
+                                        <div className="flex-shrink-0 mx-auto sm:mx-0">
+                                            <span className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold rounded-full ${
                                                 admin.is_active !== false 
                                                     ? "bg-green-100 text-green-800" 
                                                     : "bg-red-100 text-red-800"
@@ -148,17 +150,17 @@ const UserAdministrators = ({ data, onUserUpdate }: UserAdministratorsProps) => 
                                             </span>
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <p className="text-sm"><strong>DNI:</strong> {admin.dni}</p>
-                                        <p className="text-sm"><strong>Fecha de Nacimiento:</strong> {admin.birthdate}</p>
-                                        <div className="mt-3 p-3 bg-[#5046E7]/10 rounded-lg border border-[#5046E7]/20">   
-                                            <p className="text-sm font-semibold text-[#5046E7] mb-1">Rol de Administrador</p>
-                                            <p className="text-sm text-gray-600">Acceso completo al sistema de administración</p>
+                                    <div className="space-y-1 sm:space-y-2">
+                                        <p className="text-xs sm:text-sm"><strong>DNI:</strong> {admin.dni}</p>
+                                        <p className="text-xs sm:text-sm"><strong>Fecha de Nacimiento:</strong> {admin.birthdate}</p>
+                                        <div className="mt-2 sm:mt-3 p-2 sm:p-3 bg-[#5046E7]/10 rounded-lg border border-[#5046E7]/20">   
+                                            <p className="text-xs sm:text-sm font-semibold text-[#5046E7] mb-1">Rol de Administrador</p>
+                                            <p className="text-xs sm:text-sm text-gray-600">Acceso completo al sistema de administración</p>
                                         </div>
                                     </div>
                                     
                                     {/* Botones de acción */}
-                                    <div className="mt-4 flex gap-2">
+                                    <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row gap-1 sm:gap-2">
                                         {admin.is_active === false && (
                                             <button
                                                 onClick={() => setConfirmAction({
@@ -167,7 +169,7 @@ const UserAdministrators = ({ data, onUserUpdate }: UserAdministratorsProps) => 
                                                     userName: admin.name
                                                 })}
                                                 disabled={loading === admin.id}
-                                                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium disabled:opacity-50"
+                                                className="w-full sm:w-auto px-2 sm:px-3 py-1 sm:py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-xs sm:text-sm font-medium disabled:opacity-50"
                                             >
                                                 {loading === admin.id ? 'Procesando...' : 'Desbanear Administrador'}
                                             </button>
