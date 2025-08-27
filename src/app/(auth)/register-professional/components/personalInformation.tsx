@@ -2,14 +2,13 @@
 import { ErrorMessage, Field, Form, Formik, FormikHelpers, useFormikContext } from 'formik';
 import Image from 'next/image';
 import * as Yup from 'yup';
-import { User, Mail, Phone, Upload } from 'lucide-react';
+import { User, Upload } from 'lucide-react';
 import { useBotonesRegisterContext } from '@/context/botonesRegisterContext';
 import { useEffect, useState } from 'react';
 import { AutoSaveCookies, dataToSave, getCookieObject, saveMerged } from '@/helpers/formRegister/helpers';
-import { useFotoDePerfil } from '@/context/fotoDePerfil';
+
 import CustomPasswordInput from '@/components/ui/Custom-password-input';
 import { envs } from '@/config/envs.config';
-import CustomPhoneProfessionalInput from '@/components/ui/Custom-phone-input-professional';
 import DniField from '@/components/register-professional-validation/DniField';
 import PhoneField from '@/components/register-professional-validation/PhoneField';
 import EmailField from '@/components/register-professional-validation/EmailField';
@@ -17,7 +16,7 @@ import EmailField from '@/components/register-professional-validation/EmailField
 const PersonalInformation = () => {
     const { avanzarPaso } = useBotonesRegisterContext();
 
-    const { profileImagePreview, handleImageUpload, profileImageFile } = useFotoDePerfil();
+    const [profileImage, setProfileImage] = useState<string | null>(null);
 
     interface PersonalInformationFormValues {
         name: string;
@@ -111,7 +110,10 @@ const PersonalInformation = () => {
             // .test("fileType", "Solo se permiten imágenes", (value) => {
             //     return value instanceof File; // Verifica que sea un archivo
             // })
-            .test('fileSize', 'El archivo debe pesar menos de 2 MB', (value) => value instanceof File && value.size <= 2 * 1024 * 1024),
+            .test('fileSize', 'El archivo debe pesar menos de 2 MB', (value) => {
+                if (!value) return true; // Si no hay archivo, está bien
+                return value instanceof File && value.size <= 2 * 1024 * 1024;
+            }),
     });
 
     interface PersonalInformationFormValues {
@@ -185,21 +187,24 @@ const PersonalInformation = () => {
         avanzarPaso();
     };
 
-    // Componente interno para sincronizar el archivo de imagen de perfil con Formik
-    const SyncProfileImage = ({ profileImageFile }: { profileImageFile: File | null }) => {
-        const { setFieldValue, values } = useFormikContext<PersonalInformationFormValues>();
+    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, setFieldValue: (field: string, value: File | null) => void) => {
+        const file = event.target.files?.[0];
 
-        useEffect(() => {
-            if (profileImageFile && values.profile_picture !== profileImageFile) {
-                setFieldValue('profile_picture', profileImageFile);
-            }
-        }, [profileImageFile, setFieldValue, values.profile_picture]);
-
-        return null;
+        if (file) {
+            setFieldValue('profile_picture', file);
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setProfileImage(e.target?.result as string);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            setFieldValue('profile_picture', null);
+            setProfileImage(null);
+        }
     };
 
     const ProfilePictureField = () => {
-        const { setFieldValue, setFieldTouched, errors, touched } = useFormikContext<PersonalInformationFormValues>();
+        const { setFieldValue, errors, touched } = useFormikContext<PersonalInformationFormValues>();
 
         return (
             <div>
@@ -207,21 +212,16 @@ const PersonalInformation = () => {
                     Foto de perfil profesional *
                 </label>
                 <div className="flex items-center mt-2 space-x-4">
-                    {profileImagePreview && (
+                    {profileImage && (
                         <div className="relative w-[120px] h-[120px] border border-gray-300 rounded-full overflow-hidden">
-                            <Image src={profileImagePreview} alt="Preview" fill sizes="120px" className="object-cover" />
+                            <Image src={profileImage} alt="Preview" fill sizes="120px" className="object-cover" />
                         </div>
                     )}
                     <div>
                         <input
                             type="file"
                             accept="image/*"
-                            onChange={(e) => {
-                                const file = e.target.files?.[0] ?? null;
-                                handleImageUpload(e); // contexto
-                                setFieldValue('profile_picture', file);
-                                setFieldTouched('profile_picture', true, true);
-                            }}
+                            onChange={(e) => handleImageUpload(e, setFieldValue)}
                             className="hidden"
                             id="profile_picture"
                         />
@@ -232,11 +232,10 @@ const PersonalInformation = () => {
                             <Upload className="w-4 h-4 mr-2" />
                             Subir Foto
                         </label>
+                        <p className="mt-1 text-xs text-gray-500">Máximo 2MB - JPG, PNG o WEBP</p>
                     </div>
                 </div>
-                {touched?.profile_picture && errors?.profile_picture && (
-                    <div className="mt-1 text-sm text-red-500">{String(errors.profile_picture)}</div>
-                )}
+                {touched.profile_picture && errors.profile_picture && <p className="mt-1 text-sm text-red-500">{errors.profile_picture}</p>}
             </div>
         );
     };
@@ -257,13 +256,10 @@ const PersonalInformation = () => {
                     validationSchema={validationSchema}
                     onSubmit={handleSubmit}
                     enableReinitialize
-                    validateOnBlur={true}
-                    validateOnChange={false}
                 >
-                    {({ handleChange, values, isValid, isSubmitting, handleBlur, errors, touched }) => {
+                    {({ handleChange, values, isValid, isSubmitting, handleBlur, errors, touched, setFieldValue }) => {
                         return (
                             <Form className="space-y-6">
-                                <SyncProfileImage profileImageFile={profileImageFile} />
                                 <AutoSaveCookies />
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div>
@@ -293,14 +289,12 @@ const PersonalInformation = () => {
 
                                 {/* Email y Teléfono */}
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                    <div className="relative flex items-center">
+                                    <div>
                                         <EmailField />
                                     </div>
 
                                     <div>
-                                        <div className="relative flex items-center">
-                                            <PhoneField />
-                                        </div>
+                                        <PhoneField />
                                     </div>
                                 </div>
 
@@ -343,7 +337,7 @@ const PersonalInformation = () => {
                                 <button
                                     type="submit"
                                     className="px-4 py-1 mt-10 text-white rounded-xl bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    disabled={!isValid || isSubmitting}
+                                    disabled={isSubmitting}
                                 >
                                     Continuar
                                 </button>

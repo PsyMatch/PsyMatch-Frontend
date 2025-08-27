@@ -1,10 +1,6 @@
 import React from 'react';
 import { toast } from 'react-toastify';
 
-/**
- * Muestra un toast con botones de Confirmar/Cancelar y retorna una Promise<boolean>
- * que se resuelve según la elección del usuario.
- */
 export const showConfirm = (message: string): Promise<boolean> => {
     return new Promise<boolean>((resolve) => {
         let toastId: React.ReactText | null = null;

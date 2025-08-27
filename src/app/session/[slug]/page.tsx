@@ -11,9 +11,6 @@ import { useParams, useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { useNotifications } from '@/hooks/useNotifications';
 
-// Horarios disponibles (constante fuera del componente)
-const AVAILABLE_TIMES = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM'];
-
 const SessionPage = () => {
     const params = useParams();
     const router = useRouter();
@@ -30,6 +27,7 @@ const SessionPage = () => {
     const [modality, setModality] = useState('');
     const [userId, setUserId] = useState<string>('');
     const [isClient, setIsClient] = useState(false);
+    const [availableTimes, setAvailableTimes] = useState<string[]>([]);
 
     // Estados para el flujo de pago
     const [showPayment, setShowPayment] = useState(false);
@@ -138,6 +136,35 @@ const SessionPage = () => {
         loadPsychologist();
     }, [psychologistId, router, redirectToLogin]);
 
+    // Función para obtener horarios disponibles del psicólogo
+    const getAvailableTimesForPsychologist = useCallback(() => {
+        if (!psychologist) return;
+
+        try {
+            // Si el psicólogo tiene working_hours definidos, usarlos
+            if (psychologist.working_hours && psychologist.working_hours.length > 0) {
+                // Convertir formato de 24h a 12h para mostrar
+                const formattedTimes = psychologist.working_hours.map(time => {
+                    const [hours, minutes] = time.split(':');
+                    const hour24 = parseInt(hours);
+                    const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+                    const ampm = hour24 >= 12 ? 'PM' : 'AM';
+                    return `${hour12.toString().padStart(2, '0')}:${minutes} ${ampm}`;
+                });
+                setAvailableTimes(formattedTimes);
+            } else {
+                // Horarios por defecto si no tiene working_hours definidos
+                const defaultTimes = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM'];
+                setAvailableTimes(defaultTimes);
+            }
+        } catch (error) {
+            console.error('Error al obtener horarios disponibles:', error);
+            // Usar horarios por defecto en caso de error
+            const defaultTimes = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM'];
+            setAvailableTimes(defaultTimes);
+        }
+    }, [psychologist]);
+
     // useEffect separado para manejar la configuración inicial cuando se carga el psicólogo
     useEffect(() => {
         if (psychologist) {
@@ -148,13 +175,16 @@ const SessionPage = () => {
             } else {
                 setModality('En línea'); // Valor por defecto
             }
+
+            // Cargar los horarios disponibles del psicólogo
+            getAvailableTimesForPsychologist();
         }
-    }, [psychologist]);
+    }, [psychologist, getAvailableTimesForPsychologist]);
 
     // Función para verificar si un horario está disponible
     const isTimeAvailable = useCallback(
         (time: string): boolean => {
-            if (!selectedDate) return false;
+            if (!selectedDate || !availableTimes.includes(time)) return false;
 
             const today = new Date();
             const selectedDateObj = new Date(selectedDate + 'T00:00:00');
@@ -183,7 +213,7 @@ const SessionPage = () => {
 
             return timeDate > currentTimePlusBuffer;
         },
-        [selectedDate]
+        [selectedDate, availableTimes]
     );
 
     // useEffect para verificar periódicamente si la hora seleccionada sigue siendo válida
@@ -334,7 +364,7 @@ const SessionPage = () => {
 
     // Función para obtener horarios filtrados
     const getFilteredTimes = useCallback((): string[] => {
-        return AVAILABLE_TIMES.filter((time) => isTimeAvailable(time));
+        return availableTimes.filter((time) => isTimeAvailable(time));
     }, [isTimeAvailable]);
 
     // Función para formatear la fecha ISO a formato legible
@@ -628,7 +658,13 @@ const SessionPage = () => {
                                         <h3 className="text-lg font-semibold text-gray-900">Seleccionar Fecha</h3>
                                     </div>
                                     <p className="mb-6 text-sm text-gray-600">Elige el día para tu sesión</p>
-                                    <Calendario value={selectedDate} onChange={handleDateChange} placeholder="Elije el día" className="w-full" />
+                                    <Calendario 
+                                        value={selectedDate} 
+                                        onChange={handleDateChange} 
+                                        placeholder="Elije el día" 
+                                        className="w-full"
+                                        availableDays={psychologist?.availability || []}
+                                    />
                                 </div>
                             </div>
 
@@ -770,14 +806,7 @@ const SessionPage = () => {
                                                     <option key={obra} value={obra}>
                                                         {obra}
                                                     </option>
-                                                )) || (
-                                                    <>
-                                                        <option value="OSDE">OSDE</option>
-                                                        <option value="Swiss Medical">Swiss Medical</option>
-                                                        <option value="IOMA">IOMA</option>
-                                                        <option value="PAMI">PAMI</option>
-                                                    </>
-                                                )}
+                                                ))}
                                             </select>
                                         </div>
 

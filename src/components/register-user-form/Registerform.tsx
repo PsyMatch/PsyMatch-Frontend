@@ -44,6 +44,19 @@ const RegisterSchema = Yup.object().shape({
             return value !== phone;
         }),
     socialWork: Yup.string().nullable(),
+    profileImage: Yup.mixed()
+        .nullable()
+        .test('fileSize', 'La imagen debe ser menor a 2MB', function (value) {
+            if (!value) return true; // Si no hay archivo, está bien
+            const file = value as File;
+            return file.size <= 2 * 1024 * 1024; // 2MB
+        })
+        .test('fileType', 'Solo se permiten archivos JPG, PNG o WEBP', function (value) {
+            if (!value) return true; // Si no hay archivo, está bien
+            const file = value as File;
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            return validTypes.includes(file.type);
+        }),
 });
 
 export interface RegisterFormValues {
@@ -58,6 +71,7 @@ export interface RegisterFormValues {
     address: string;
     socialWork: string;
     emergencyContact: string;
+    profileImage: File | null;
 }
 
 interface MapboxSuggestion {
@@ -80,7 +94,6 @@ export default function RegisterForm() {
     const router = useRouter();
     const notifications = useNotifications();
     const [profileImage, setProfileImage] = useState<string | null>(null);
-    const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
     const [registerError, setRegisterError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -122,8 +135,8 @@ export default function RegisterForm() {
                 formData.append('emergency_contact', values.emergencyContact);
             }
 
-            if (profileImageFile) {
-                formData.append('profile_picture', profileImageFile);
+            if (values.profileImage) {
+                formData.append('profile_picture', values.profileImage);
             } else {
                 formData.append(
                     'profile_picture',
@@ -193,15 +206,19 @@ export default function RegisterForm() {
         }
     };
 
-    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, setFieldValue: (field: string, value: File | null) => void) => {
         const file = event.target.files?.[0];
+
         if (file) {
-            setProfileImageFile(file);
+            setFieldValue('profileImage', file);
             const reader = new FileReader();
             reader.onload = (e) => {
                 setProfileImage(e.target?.result as string);
             };
             reader.readAsDataURL(file);
+        } else {
+            setFieldValue('profileImage', null);
+            setProfileImage(null);
         }
     };
 
@@ -296,6 +313,7 @@ export default function RegisterForm() {
                     address: '',
                     socialWork: '',
                     emergencyContact: '',
+                    profileImage: null,
                 }}
                 validationSchema={RegisterSchema}
                 onSubmit={handleSubmit}
@@ -544,13 +562,23 @@ export default function RegisterForm() {
                                     )}
                                 </Avatar>
                                 <div>
-                                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="profile-upload" />
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => handleImageUpload(e, setFieldValue)}
+                                        className="hidden"
+                                        id="profile-upload"
+                                    />
                                     <Label
                                         htmlFor="profile-upload"
-                                        className="px-3 py-2 text-xs bg-gray-200 rounded-md cursor-pointer hover:bg-gray-300 sm:px-4 sm:py-2 sm:text-sm"
+                                        className="flex justify-center px-3 py-2 text-xs w-24 bg-gray-200 rounded-md cursor-pointer hover:bg-gray-300 sm:px-4 sm:py-2 sm:text-sm"
                                     >
                                         Subir foto
                                     </Label>
+                                    <p className="mt-1 text-xs text-gray-500">Máximo 2MB - JPG, PNG o WEBP</p>
+                                    {errors.profileImage && touched.profileImage && (
+                                        <p className="mt-1 text-sm text-red-600">{errors.profileImage}</p>
+                                    )}
                                 </div>
                             </div>
                         </div>

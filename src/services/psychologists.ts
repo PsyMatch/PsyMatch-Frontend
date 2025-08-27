@@ -19,6 +19,7 @@ export interface PsychologistResponse {
     modality?: string;
     insurance_accepted?: string[];
     availability?: string[];
+    working_hours?: string[];
     profile_picture?: string;
     created_at: string;
     updated_at?: string;

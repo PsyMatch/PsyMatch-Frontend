@@ -1,5 +1,5 @@
 'use client';
-import { initialValuesTipos, validationSchema, Valores } from '@/helpers/formRegister/register-profesional';
+import { initialValuesTipos, validationSchema, Valores, horarios } from '@/helpers/formRegister/register-profesional';
 import { Formik, Form, ErrorMessage, Field } from 'formik';
 import React, { useState } from 'react';
 import Cookies from 'js-cookie';
@@ -103,6 +103,7 @@ const getInitialValues = (): typeof initialValuesTipos => {
               modality: cookieData.modality || '',
               insurance_accepted: cookieData.insurance_accepted || [],
               availability: cookieData.availability || [],
+              working_hours: cookieData.working_hours || [],
               consultation_fee: cookieData.consultation_fee || 0,
           }
         : {
@@ -127,6 +128,7 @@ const getInitialValues = (): typeof initialValuesTipos => {
               modality: '',
               insurance_accepted: [],
               availability: [],
+              working_hours: [],
               consultation_fee: 0,
           };
 };
@@ -460,6 +462,40 @@ const Services_Prices = () => {
                                         }}
                                     />
                                     {dia}
+                                </label>
+                            ))}
+                        </div>
+
+                        <div className="mt-12 text-sm font-medium text-gray-700">Horarios de Trabajo Disponibles *</div>
+                        <ErrorMessage name="working_hours" component="div" className="mt-1 text-sm text-red-600" />
+                        <span className="text-xs text-gray-500">Selecciona los horarios en los que puedes atender a tus pacientes.</span>
+                        <div className="grid grid-cols-4 gap-3 mt-5">
+                            {horarios.map((horario) => (
+                                <label key={horario} className="text-[12px]">
+                                    <input
+                                        type="checkbox"
+                                        name="working_hours"
+                                        className="mb-1 mr-1 border-gray-600"
+                                        value={horario}
+                                        checked={values.working_hours.includes(horario)}
+                                        onChange={() => {
+                                            let newWorkingHours;
+                                            if (values.working_hours.includes(horario)) {
+                                                // SACAR OPCION SI ESTA SELECCIONADA
+                                                newWorkingHours = values.working_hours.filter((item) => item !== horario);
+                                            } else {
+                                                // AGREGAR LA OPCION
+                                                newWorkingHours = [...values.working_hours, horario];
+                                            }
+
+                                            // actualizar Formik
+                                            setFieldValue('working_hours', newWorkingHours);
+
+                                            // actualizar cookie
+                                            saveMerged({ working_hours: newWorkingHours });
+                                        }}
+                                    />
+                                    {horario}
                                 </label>
                             ))}
                         </div>
