@@ -18,9 +18,11 @@ interface Paciente {
 
 interface MenuNavegacionAdminProps {
     data: Paciente[];
+    onUserUpdate?: (userId: string, updates: Partial<Paciente>) => void;
+    onRefreshData?: () => void;
 }
 
-const MenuNavegacionAdmin = ({ data }: MenuNavegacionAdminProps) => {
+const MenuNavegacionAdmin = ({ data, onUserUpdate, onRefreshData }: MenuNavegacionAdminProps) => {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pestañaInicial = searchParams?.get("tab") || "pacientes";
@@ -46,6 +48,8 @@ const MenuNavegacionAdmin = ({ data }: MenuNavegacionAdminProps) => {
                     : user
             )
         );
+        // También actualizar el estado del componente padre si se proporciona la función
+        onUserUpdate?.(userId, updates);
     };
 
     const cambiarPestaña = (id: string) => {
@@ -59,7 +63,7 @@ const MenuNavegacionAdmin = ({ data }: MenuNavegacionAdminProps) => {
     { id: "reseñas", label: "Reseñas", component: <ReseñasAdmin /> },
     { id: "turnos", label: "Turnos", component: <TurnosAdmin /> },
     { id: "administradores", label: "Administradores", component: <UserAdministrators data={usersData} onUserUpdate={updateUserInGlobalState} /> },
-    { id: "baneados", label: "Usuarios Baneados", component: <BannedUsers /> },
+    { id: "baneados", label: "Usuarios Baneados", component: <BannedUsers onUserUpdate={updateUserInGlobalState} onUserUnbanned={() => onRefreshData?.()} /> },
   ]
 
   const handleTabChange = (newTab: string) => {
