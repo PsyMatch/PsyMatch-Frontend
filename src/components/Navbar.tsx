@@ -164,6 +164,10 @@ const Navbar = () => {
                 return false;
             }
 
+            if (userRole === 'Psicólogo' && item.href === '/search-professionals') {
+                return false;
+            }
+
             return true;
         });
     };
@@ -241,7 +245,7 @@ const Navbar = () => {
                 </div>
             )}
 
-            <nav className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
+            <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
                 <div className="flex items-center justify-between w-full h-16 px-4 md:px-8 lg:px-12">
                     <Link
                         href="/"
@@ -255,7 +259,7 @@ const Navbar = () => {
                             height={32}
                             className="md:w-10 md:h-10"
                         />
-                        <h1 className="text-lg md:text-xl font-bold text-gray-900">PsyMatch</h1>
+                        <h1 className="text-lg font-bold text-gray-900 md:text-xl">PsyMatch</h1>
                     </Link>
 
                     <div className="hidden lg:block">
@@ -270,7 +274,7 @@ const Navbar = () => {
 
                     <button
                         onClick={toggleMenu}
-                        className="lg:hidden p-2 rounded-md transition-colors duration-200 hover:bg-gray-100"
+                        className="p-2 transition-colors duration-200 rounded-md lg:hidden hover:bg-gray-100"
                         aria-expanded={isMenuOpen}
                         aria-controls="mobile-menu"
                         aria-label={isMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
@@ -298,7 +302,7 @@ const Navbar = () => {
 
                         <div
                             id="mobile-menu"
-                            className="absolute left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg top-full lg:hidden animate-in slide-in-from-top-2 duration-300"
+                            className="absolute left-0 right-0 z-50 duration-300 bg-white border-t border-gray-200 shadow-lg top-full lg:hidden animate-in slide-in-from-top-2"
                         >
                             <ul className="flex flex-col p-4 space-y-2 max-h-[70vh] overflow-y-auto" role="menu">
                                 {navItems.map((item, index) => (
@@ -308,7 +312,7 @@ const Navbar = () => {
                                 ))}
                             </ul>
 
-                            <div className="px-4 pb-4 pt-2 border-t border-gray-100 text-sm text-gray-600">
+                            <div className="px-4 pt-2 pb-4 text-sm text-gray-600 border-t border-gray-100">
                                 {token ? (
                                     <div>
                                         <p>
