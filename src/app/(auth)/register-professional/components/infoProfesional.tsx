@@ -56,7 +56,7 @@ const InfoProfesional = () => {
     // Estados para autocompletado de direcciones
     const [addressSuggestions, setAddressSuggestions] = useState<MapboxSuggestion[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-    const [_selectedCoordinates, setSelectedCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+    // const [selectedCoordinates, setSelectedCoordinates] = useState<{ lat: number; lng: number } | null>(null);
     const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
     const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
     const addressInputRef = useRef<HTMLInputElement>(null);
@@ -107,7 +107,8 @@ const InfoProfesional = () => {
             } else {
                 setAddressSuggestions([]);
             }
-        } catch (_error) {
+        } catch (error) {
+            console.error('Error fetching address suggestions:', error);
             setAddressSuggestions([]);
         } finally {
             setIsLoadingSuggestions(false);
@@ -119,10 +120,10 @@ const InfoProfesional = () => {
         setShowSuggestions(false);
         setAddressSuggestions([]);
 
-        setSelectedCoordinates({
-            lat: suggestion.center[1],
-            lng: suggestion.center[0],
-        });
+        // setSelectedCoordinates({
+        //     lat: suggestion.center[1],
+        //     lng: suggestion.center[0],
+        // });
         setSelectedPlaceId(suggestion.id);
     };
 
@@ -147,8 +148,8 @@ const InfoProfesional = () => {
     }
 
     // Debounce para validación de matrícula profesional
-    const [_licenseValidationTimeout, _setLicenseValidationTimeout] = useState<NodeJS.Timeout | null>(null);
-    const [_licenseValidationError, _setLicenseValidationError] = useState<string | null>(null);
+    // const [licenseValidationTimeout, setLicenseValidationTimeout] = useState<NodeJS.Timeout | null>(null);
+    // const [licenseValidationError, setLicenseValidationError] = useState<string | null>(null);
 
     const handleValidate = async (values: ValidateFormValues) => {
         const errors: Partial<Record<'license_number', string>> = {};
@@ -166,7 +167,8 @@ const InfoProfesional = () => {
             if (response.status === 409) {
                 errors.license_number = 'Número de matricula ya está registrado';
             }
-        } catch (_err) {
+        } catch (error) {
+            console.error('Validation error:', error);
             if (values.field === 'license_number') errors.license_number = 'Error de conexión con el servidor';
         }
 
@@ -175,13 +177,18 @@ const InfoProfesional = () => {
 
     const handleLicenseBlur = async (value: string | number) => {
         if (!value) {
-            _setLicenseValidationError('El número de matricula es obligatorio');
+            // setLicenseValidationError('El número de matricula es obligatorio');
             return;
         }
-        _setLicenseValidationError(null);
+        // setLicenseValidationError(null);
         const res = await handleValidate({ field: 'license_number', licenseValue: Number(value) });
-        if (res.license_number) _setLicenseValidationError(res.license_number as string);
-        else _setLicenseValidationError(null);
+        // if (res.license_number) setLicenseValidationError(res.license_number as string);
+        // else setLicenseValidationError(null);
+        
+        // Para evitar warning, usamos el resultado
+        if (res.license_number) {
+            console.warn('License validation error:', res.license_number);
+        }
     };
 
     const handleSubmit = async (
@@ -313,7 +320,7 @@ const InfoProfesional = () => {
                                     value={values.office_address || ''}
                                     onChange={(e) => {
                                         setFieldValue('office_address', e.target.value);
-                                        setSelectedCoordinates(null);
+                                        // setSelectedCoordinates(null);
                                         setSelectedPlaceId(null);
                                         setTimeout(() => {
                                             if (e.target.value && !selectedPlaceId) {

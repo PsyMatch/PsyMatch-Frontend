@@ -4,7 +4,7 @@ import CustomPhoneProfessionalInput from '../ui/Custom-phone-input-professional'
 import { envs } from '@/config/envs.config';
 
 const PhoneField = () => {
-  const [field, meta, helpers] = useField('phone');
+  const [, meta] = useField('phone');
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const validatePhone = (value: string) =>

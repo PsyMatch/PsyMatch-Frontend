@@ -14,7 +14,10 @@ const Finanzas = () => {
 
     // Calcular estadísticas básicas
     const completedPayments = displayPayments.filter(p => p.pay_status === 'COMPLETED');
-    const totalAmount = completedPayments.reduce((sum, payment) => sum + payment.amount, 0);
+    const totalAmount = completedPayments.reduce((sum, payment) => {
+        const amount = typeof payment.amount === 'number' ? payment.amount : parseFloat(payment.amount) || 0;
+        return sum + amount;
+    }, 0);
     const lastPayment = completedPayments.length > 0 
         ? completedPayments[0] 
         : null;
@@ -110,7 +113,7 @@ const Finanzas = () => {
                                 <p className="text-sm font-medium text-gray-500">Último Pago</p>
                                 <p className="text-lg font-semibold text-gray-900">
                                     {lastPayment 
-                                        ? `$${lastPayment.amount.toFixed(2)}` 
+                                        ? `$${(typeof lastPayment.amount === 'number' ? lastPayment.amount : parseFloat(lastPayment.amount) || 0).toFixed(2)}` 
                                         : '-'
                                     }
                                 </p>
@@ -196,7 +199,7 @@ const Finanzas = () => {
                                 <p className="text-sm font-medium text-gray-500">Último Pago</p>
                                 <p className="text-lg font-semibold text-gray-900">
                                     {lastPayment 
-                                        ? `$${lastPayment.amount.toFixed(2)}` 
+                                        ? `$${(typeof lastPayment.amount === 'number' ? lastPayment.amount : parseFloat(lastPayment.amount) || 0).toFixed(2)}` 
                                         : '-'
                                     }
                                 </p>

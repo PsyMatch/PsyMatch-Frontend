@@ -130,6 +130,7 @@ const Navbar = () => {
             href: '/register-professional',
             label: 'Únete como Profesional',
             requiresGuest: true,
+            isPrimary: true,
             description: 'Regístrate como terapeuta',
         },
         {
@@ -206,13 +207,29 @@ const Navbar = () => {
 
         const baseClasses = 'relative transition-all duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 rounded-md focus:ring-blue-500';
 
+        // Estilos específicos para "Únete como Profesional" - Responsivo
+        const professionalClasses = 'px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base text-white bg-black  hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0 font-medium';
+        
         const primaryClasses =
-            'px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0';
-        const secondaryClasses = 'text-gray-700 hover:text-blue-600 hover:bg-gray-50 px-2 py-1';
+            'px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base text-white bg-blue-600 hover:bg-blue-700 hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0 font-medium';
+        const secondaryClasses = 'text-gray-700 hover:text-blue-600 hover:bg-gray-50 px-2 py-1 text-sm sm:text-base';
+
+        // Determinar qué estilos usar
+        let buttonClasses = secondaryClasses;
+        if (item.isPrimary) {
+            buttonClasses = item.label === 'Únete como Profesional' ? professionalClasses : primaryClasses;
+        }
 
         const content = (
-            <span className={`${baseClasses} ${item.isPrimary ? primaryClasses : secondaryClasses} flex items-center gap-2`} title={item.description}>
-                {item.label}
+            <span className={`${baseClasses} ${buttonClasses} flex items-center gap-1 sm:gap-2`} title={item.description}>
+                {item.label === 'Únete como Profesional' ? (
+                    <>
+                        <span className="sm:hidden">Únete</span>
+                        <span className="hidden sm:inline">{item.label}</span>
+                    </>
+                ) : (
+                    item.label
+                )}
             </span>
         );
 

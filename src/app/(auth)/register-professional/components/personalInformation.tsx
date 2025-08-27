@@ -2,14 +2,14 @@
 import { ErrorMessage, Field, Form, Formik, FormikHelpers, useFormikContext } from 'formik';
 import Image from 'next/image';
 import * as Yup from 'yup';
-import { User, Mail, Phone, Upload } from 'lucide-react';
+import { User, Upload } from 'lucide-react';
 import { useBotonesRegisterContext } from '@/context/botonesRegisterContext';
 import { useEffect, useState } from 'react';
 import { AutoSaveCookies, dataToSave, getCookieObject, saveMerged } from '@/helpers/formRegister/helpers';
 import { useFotoDePerfil } from '@/context/fotoDePerfil';
 import CustomPasswordInput from '@/components/ui/Custom-password-input';
 import { envs } from '@/config/envs.config';
-import CustomPhoneProfessionalInput from '@/components/ui/Custom-phone-input-professional';
+// import CustomPhoneProfessionalInput from '@/components/ui/Custom-phone-input-professional';
 import DniField from '@/components/register-professional-validation/DniField';
 import PhoneField from '@/components/register-professional-validation/PhoneField';
 import EmailField from '@/components/register-professional-validation/EmailField';
@@ -149,7 +149,8 @@ const PersonalInformation = () => {
                 errors.phone = 'El telefono ya está registrado';
                 errors.dni = 'El dni ya está registrado';
             }
-        } catch (_err) {
+        } catch (error) {
+            console.error('Validation error:', error);
             if (values.field === 'email') errors.email = 'Error de conexión con el servidor';
             if (values.field === 'phone') errors.phone = 'Error de conexión con el servidor';
             if (values.field === 'dni') errors.dni = 'Error de conexión con el servidor';
@@ -260,7 +261,7 @@ const PersonalInformation = () => {
                     validateOnBlur={true}
                     validateOnChange={false}
                 >
-                    {({ handleChange, values, isValid, isSubmitting, handleBlur, errors, touched }) => {
+                    {({ handleChange, values, isValid, isSubmitting }) => {
                         return (
                             <Form className="space-y-6">
                                 <SyncProfileImage profileImageFile={profileImageFile} />

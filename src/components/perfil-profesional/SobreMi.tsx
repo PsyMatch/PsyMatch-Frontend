@@ -1,4 +1,4 @@
-import { User, Quote as _Quote } from 'lucide-react';
+import { User } from 'lucide-react';
 import type { IProfessional } from '@/services/prrofessionalProfile';
 
 const SobreMi = ({ data }: { data: IProfessional }) => {
