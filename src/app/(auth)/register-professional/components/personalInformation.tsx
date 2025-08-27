@@ -151,7 +151,8 @@ const PersonalInformation = () => {
                 errors.phone = 'El telefono ya está registrado';
                 errors.dni = 'El dni ya está registrado';
             }
-        } catch (_err) {
+        } catch (error) {
+            console.error('Validation error:', error);
             if (values.field === 'email') errors.email = 'Error de conexión con el servidor';
             if (values.field === 'phone') errors.phone = 'Error de conexión con el servidor';
             if (values.field === 'dni') errors.dni = 'Error de conexión con el servidor';

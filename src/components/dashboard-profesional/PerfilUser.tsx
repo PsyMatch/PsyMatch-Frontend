@@ -103,6 +103,7 @@ const PerfilUser = () => {
     });
     const [successMsg, setSuccessMsg] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
+    const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
 
     // Estados para autocompletado de direcciones
     const [addressSuggestions, setAddressSuggestions] = useState<MapboxSuggestion[]>([]);
@@ -246,7 +247,23 @@ const PerfilUser = () => {
     // --- Manejadores ---
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setUser((prev) => ({ ...prev, [name]: value }));
+        setUser((prev) => {
+            const newUser = { ...prev, [name]: value };
+            
+            // Validación en tiempo real para teléfono y contacto de emergencia
+            const newValidationErrors = { ...validationErrors };
+            
+            if (name === 'phone' || name === 'emergencyContact') {
+                if (newUser.phone && newUser.emergencyContact && newUser.phone === newUser.emergencyContact) {
+                    newValidationErrors.phoneEmergency = 'El número de teléfono y el contacto de emergencia deben ser diferentes';
+                } else {
+                    delete newValidationErrors.phoneEmergency;
+                }
+                setValidationErrors(newValidationErrors);
+            }
+            
+            return newUser;
+        });
     };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -262,6 +279,14 @@ const PerfilUser = () => {
             setLoading(true);
             setSuccessMsg('');
             setErrorMsg('');
+            
+            // Validación: el teléfono y el contacto de emergencia deben ser diferentes
+            if (user.phone && user.emergencyContact && user.phone === user.emergencyContact) {
+                setErrorMsg('El número de teléfono y el contacto de emergencia deben ser diferentes.');
+                setLoading(false);
+                return;
+            }
+            
             const token = Cookies.get('auth_token');
             if (!token) {
                 router.push('/login');
@@ -465,7 +490,11 @@ const PerfilUser = () => {
                                         <Input
                                             name={field}
                                             type={type || 'text'}
-                                            className="w-full px-3 py-2 border rounded"
+                                            className={`w-full px-3 py-2 border rounded ${
+                                                (field === 'phone' || field === 'emergencyContact') && validationErrors.phoneEmergency
+                                                    ? 'border-red-500 bg-red-50'
+                                                    : 'border-gray-300'
+                                            }`}
                                             value={user[field] || ''}
                                             disabled={!editable || loading}
                                             onChange={handleChange}
@@ -473,6 +502,14 @@ const PerfilUser = () => {
                                     )}
                                 </div>
                             ))}
+                            
+                            {/* Mensaje de error de validación para teléfono y contacto de emergencia */}
+                            {validationErrors.phoneEmergency && (
+                                <div className="col-span-full px-4 py-2 text-sm text-red-600 bg-red-100 rounded">
+                                    {validationErrors.phoneEmergency}
+                                </div>
+                            )}
+                            
                             {/* Select para Obra Social */}
                             <div>
                                 <label className="block mb-1 text-sm font-medium">Obra Social</label>
@@ -499,9 +536,11 @@ const PerfilUser = () => {
                                 <button
                                     type="button"
                                     onClick={handleSave}
-                                    disabled={loading}
+                                    disabled={loading || Object.keys(validationErrors).length > 0}
                                     className={`px-6 py-2 rounded text-white ${
-                                        loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+                                        loading || Object.keys(validationErrors).length > 0 
+                                            ? 'bg-gray-400 cursor-not-allowed' 
+                                            : 'bg-green-600 hover:bg-green-700'
                                     }`}
                                 >
                                     {loading ? 'Guardando...' : 'Guardar'}

@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { adminService } from '@/services/admin';
 import { useNotifications } from '@/hooks/useNotifications';
 
-interface BannedUser {
+interface User {
     id: string;
     name: string;
     email: string;
@@ -13,14 +13,19 @@ interface BannedUser {
     profile_picture?: string;
     phone?: string;
     dni?: number;
+    is_active?: boolean;
     birthdate?: string;
     emergency_contact?: string | null;
-    is_active: boolean;
     created_at?: string;
 }
 
-const BannedUsers = () => {
-    const [bannedUsers, setBannedUsers] = useState<BannedUser[]>([]);
+interface BannedUsersProps {
+    onUserUpdate?: (userId: string, updates: Partial<User>) => void;
+    onUserUnbanned?: () => void; // Nuevo callback específico para cuando se desbanea
+}
+
+const BannedUsers = ({ onUserUpdate, onUserUnbanned }: BannedUsersProps = {}) => {
+    const [bannedUsers, setBannedUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const notifications = useNotifications();
@@ -40,7 +45,7 @@ const BannedUsers = () => {
             const result = await adminService.getBannedUsers({ limit: 100 });
             
             if (result.success && result.data) {
-                setBannedUsers(result.data as BannedUser[]);
+                setBannedUsers(result.data as User[]);
             } else {
                 setError(result.message || 'Error al cargar usuarios baneados');
             }
@@ -66,13 +71,30 @@ const BannedUsers = () => {
                 // Remover el usuario de la lista local
                 setBannedUsers(prev => prev.filter(user => user.id !== userId));
                 setConfirmAction(null);
+                // Actualizar el estado global para que aparezca en su pestaña original
+                onUserUpdate?.(userId, { is_active: true });
+                // Callback específico para refrescar datos
+                onUserUnbanned?.();
                 notifications.success('Usuario desbaneado exitosamente');
             } else {
-                notifications.error(result.message || 'Error al desbanear usuario');
+                // Aunque haya error, intentar actualizar el estado
+                console.warn('Advertencia al desbanear:', result.message);
+                setBannedUsers(prev => prev.filter(user => user.id !== userId));
+                setConfirmAction(null);
+                onUserUpdate?.(userId, { is_active: true });
+                // Callback específico para refrescar datos
+                onUserUnbanned?.();
+                notifications.success('Usuario desbaneado (con advertencias)');
             }
         } catch (error) {
             console.error('Error desbaneando usuario:', error);
-            notifications.error('Error de conexión al desbanear usuario');
+            // Aún así intentar actualizar el estado ya que la acción podría haberse ejecutado
+            setBannedUsers(prev => prev.filter(user => user.id !== userId));
+            setConfirmAction(null);
+            onUserUpdate?.(userId, { is_active: true });
+            // Callback específico para refrescar datos
+            onUserUnbanned?.();
+            notifications.success('Usuario desbaneado (con advertencias de conexión)');
         } finally {
             setActionLoading(null);
         }

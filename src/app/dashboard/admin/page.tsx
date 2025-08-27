@@ -23,6 +23,7 @@ interface User {
     birthdate?: string;
     emergency_contact?: string | null;
     professional_experience?: number;
+    is_active?: boolean;
 }
 
 const AdminDashboard = () => {
@@ -45,6 +46,44 @@ const AdminDashboard = () => {
         };
         fetchUsers();
     }, []);
+
+    // Función para actualizar el estado global de usuarios
+    const updateUserInGlobalState = async (userId: string, updates: Partial<User>) => {
+        setUsers(prevUsers => {
+            const userExists = prevUsers.find(user => user.id === userId);
+            
+            if (userExists) {
+                // Usuario existe, actualizar
+                return prevUsers.map(user => 
+                    user.id === userId 
+                        ? { ...user, ...updates }
+                        : user
+                );
+            } else {
+                // Usuario no existe, puede ser que necesite ser reinsertado
+                return prevUsers;
+            }
+        });
+
+        // Si es un desbaneo, refrescar datos para asegurar consistencia
+        if (updates.is_active === true) {
+            setTimeout(() => {
+                fetchUsers();
+            }, 100);
+        }
+    };
+
+    // Función para recargar usuarios
+    const fetchUsers = async () => {
+        try {
+            const result = await adminService.getUsers({ limit: 50 });
+            if (result.success && result.data) {
+                setUsers(Array.isArray(result.data) ? result.data : []);
+            }
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        }
+    };
 
     // Mostrar solo datos reales semanales si existen
     const totalUsers = metrics?.weekly?.users?.at(-1)?.value ?? 0;
@@ -272,7 +311,11 @@ const AdminDashboard = () => {
                         </div>
                     </div>
 
-                    <MenuNavegacionAdmin data={users} />
+                                <MenuNavegacionAdmin 
+                data={users} 
+                onUserUpdate={updateUserInGlobalState} 
+                onRefreshData={fetchUsers}
+            />
                 </div>
             </div>
         </div>
