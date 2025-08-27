@@ -4,6 +4,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { appointmentsService, AppointmentResponse } from '@/services/appointments';
 import { getAppointmentDisplayStatus, AppointmentWithPayment, StatusInfo } from '@/services/appointmentStatus';
 import { useNotifications } from '@/hooks/useNotifications';
+import showConfirm from '../ui/ConfirmToast';
 
 const Citas = () => {
     const searchParams = useSearchParams();
@@ -158,9 +159,8 @@ const Citas = () => {
     // Función para cancelar cita (actualizada)
     const handleCancelAppointment = async (id: string) => {
         try {
-            const confirmCancel = window.confirm('¿Estás seguro de que deseas cancelar esta cita?');
-
-            if (!confirmCancel) return;
+            const confirmed = await showConfirm('¿Estás seguro que deseas cancelar esta cita? Esta acción no se puede deshacer.');
+            if (!confirmed) return;
 
             await appointmentsService.cancelAppointment(id);
 

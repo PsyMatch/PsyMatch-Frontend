@@ -9,6 +9,7 @@ interface CalendarProps {
     minDate?: string; // Fecha mínima permitida (formato dd/mm/yyyy). Por defecto es hoy.
     format?: 'mm-dd-yyyy' | 'dd-mm-yyyy' | 'yyyy-mm-dd' | 'iso-8601';
     className?: string;
+    availableDays?: string[]; // Días disponibles del psicólogo (ej: ['Lunes', 'Miércoles', 'Viernes'])
 }
 
 export default function Calendario({
@@ -18,6 +19,7 @@ export default function Calendario({
     minDate,
     format = 'iso-8601',
     className = 'placeholder:text-gray-400',
+    availableDays,
 }: CalendarProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState(value);
@@ -110,7 +112,7 @@ export default function Calendario({
     };
 
     const handleDateSelect = (date: Date) => {
-        if (date < minDateObj) return;
+        if (isDateDisabled(date)) return;
 
         // Crear una nueva fecha asegurándose de que esté en zona horaria local
         const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -120,8 +122,31 @@ export default function Calendario({
         setIsOpen(false);
     };
 
+    // Mapeo de días en español a números (0 = Domingo, 1 = Lunes, etc.)
+    const dayNameToNumber = (dayName: string): number => {
+        const dayMap: { [key: string]: number } = {
+            'Domingo': 0,
+            'Lunes': 1,
+            'Martes': 2,
+            'Miércoles': 3,
+            'Jueves': 4,
+            'Viernes': 5,
+            'Sábado': 6,
+        };
+        return dayMap[dayName] ?? -1;
+    };
+
     const isDateDisabled = (date: Date): boolean => {
-        return date < minDateObj;
+        // Verificar fecha mínima
+        if (date < minDateObj) return true;
+
+        // Si no hay días disponibles especificados, permitir todos los días
+        if (!availableDays || availableDays.length === 0) return false;
+
+        // Verificar si el día de la semana está en los días disponibles
+        const dayOfWeek = date.getDay();
+        const availableDayNumbers = availableDays.map(dayNameToNumber).filter(day => day !== -1);
+        return !availableDayNumbers.includes(dayOfWeek);
     };
 
     const isToday = (date: Date): boolean => {
