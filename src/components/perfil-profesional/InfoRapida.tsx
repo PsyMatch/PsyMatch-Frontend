@@ -1,4 +1,4 @@
-import { Clock, Globe, Video, Shield, AlertCircle, Calendar, CheckCircle as _CheckCircle } from 'lucide-react';
+import { Clock, Globe, Video, Shield, AlertCircle, Calendar } from 'lucide-react';
 import type { IProfessional } from '@/services/prrofessionalProfile';
 
 const InfoRapida = ({ data }: { data: IProfessional }) => {

@@ -99,7 +99,6 @@ export default function RegisterForm() {
 
     const [addressSuggestions, setAddressSuggestions] = useState<MapboxSuggestion[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-    const [_selectedCoordinates, setSelectedCoordinates] = useState<{ lat: number; lng: number } | null>(null);
     const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
     const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
     const addressInputRef = useRef<HTMLInputElement>(null);
@@ -158,7 +157,8 @@ export default function RegisterForm() {
             } else {
                 setRegisterError(data.message || 'Error al crear la cuenta');
             }
-        } catch (_error) {
+        } catch (error) {
+            console.error('Error creating account:', error);
             setRegisterError('Error de conexión. Intenta nuevamente.');
         } finally {
             setIsLoading(false);
@@ -200,7 +200,8 @@ export default function RegisterForm() {
                 notifications.warning('Cuenta creada exitosamente. Por favor inicia sesión.');
                 router.push('/login');
             }
-        } catch (_error) {
+        } catch (error) {
+            console.error('Error auto-login:', error);
             notifications.warning('Cuenta creada exitosamente. Por favor inicia sesión.');
             router.push('/login');
         }
@@ -252,7 +253,8 @@ export default function RegisterForm() {
             } else {
                 setAddressSuggestions([]);
             }
-        } catch (_error) {
+        } catch (error) {
+            console.error('Error searching addresses:', error);
             setAddressSuggestions([]);
         } finally {
             setIsLoadingSuggestions(false);
@@ -264,10 +266,6 @@ export default function RegisterForm() {
         setShowSuggestions(false);
         setAddressSuggestions([]);
 
-        setSelectedCoordinates({
-            lat: suggestion.center[1],
-            lng: suggestion.center[0],
-        });
         setSelectedPlaceId(suggestion.id);
     };
 
@@ -419,7 +417,6 @@ export default function RegisterForm() {
                                         value={values.address}
                                         onChange={(e) => {
                                             handleChange(e);
-                                            setSelectedCoordinates(null);
                                             setSelectedPlaceId(null);
                                             setTimeout(() => {
                                                 if (e.target.value && !selectedPlaceId) {

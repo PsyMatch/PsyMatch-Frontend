@@ -181,6 +181,7 @@ const Navbar = () => {
     }, []);
 
     const isItemAvailable = useCallback((_item: NavItem): { available: boolean; reason?: string } => {
+        // Always return available for now
         return { available: true };
     }, []);
 
@@ -212,8 +213,9 @@ const Navbar = () => {
         const baseClasses = 'relative transition-all duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 rounded-md focus:ring-blue-500';
 
         // Estilos específicos para "Únete como Profesional" - Responsivo
-        const professionalClasses = 'px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base text-white bg-black  hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0 font-medium';
-        
+        const professionalClasses =
+            'px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base text-white bg-black  hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0 font-medium';
+
         const primaryClasses =
             'px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base text-white bg-blue-600 hover:bg-blue-700 hover:shadow-md transform hover:-translate-y-0.5 active:translate-y-0 font-medium';
         const secondaryClasses = 'text-gray-700 hover:text-blue-600 hover:bg-gray-50 px-2 py-1 text-sm sm:text-base';

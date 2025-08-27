@@ -108,7 +108,6 @@ const PerfilUser = () => {
     // Estados para autocompletado de direcciones
     const [addressSuggestions, setAddressSuggestions] = useState<MapboxSuggestion[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-    const [_selectedCoordinates, setSelectedCoordinates] = useState<{ lat: number; lng: number } | null>(null);
     const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
     const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
     const addressInputRef = useRef<HTMLInputElement>(null);
@@ -147,7 +146,8 @@ const PerfilUser = () => {
             } else {
                 setAddressSuggestions([]);
             }
-        } catch (_error) {
+        } catch (error) {
+            console.error('Error searching addresses:', error);
             setAddressSuggestions([]);
         } finally {
             setIsLoadingSuggestions(false);
@@ -159,17 +159,12 @@ const PerfilUser = () => {
         setShowSuggestions(false);
         setAddressSuggestions([]);
 
-        setSelectedCoordinates({
-            lat: suggestion.center[1],
-            lng: suggestion.center[0],
-        });
         setSelectedPlaceId(suggestion.id);
     };
 
     const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { value } = e.target;
         setUser((prev) => ({ ...prev, address: value }));
-        setSelectedCoordinates(null);
         setSelectedPlaceId(null);
         setTimeout(() => {
             if (value && !selectedPlaceId) {
@@ -249,10 +244,10 @@ const PerfilUser = () => {
         const { name, value } = e.target;
         setUser((prev) => {
             const newUser = { ...prev, [name]: value };
-            
+
             // Validación en tiempo real para teléfono y contacto de emergencia
             const newValidationErrors = { ...validationErrors };
-            
+
             if (name === 'phone' || name === 'emergencyContact') {
                 if (newUser.phone && newUser.emergencyContact && newUser.phone === newUser.emergencyContact) {
                     newValidationErrors.phoneEmergency = 'El número de teléfono y el contacto de emergencia deben ser diferentes';
@@ -261,7 +256,7 @@ const PerfilUser = () => {
                 }
                 setValidationErrors(newValidationErrors);
             }
-            
+
             return newUser;
         });
     };
@@ -279,14 +274,14 @@ const PerfilUser = () => {
             setLoading(true);
             setSuccessMsg('');
             setErrorMsg('');
-            
+
             // Validación: el teléfono y el contacto de emergencia deben ser diferentes
             if (user.phone && user.emergencyContact && user.phone === user.emergencyContact) {
                 setErrorMsg('El número de teléfono y el contacto de emergencia deben ser diferentes.');
                 setLoading(false);
                 return;
             }
-            
+
             const token = Cookies.get('auth_token');
             if (!token) {
                 router.push('/login');
@@ -408,7 +403,6 @@ const PerfilUser = () => {
                     <div className="mb-2 text-sm text-gray-400">{user.phone}</div>
                     <div className="text-xs text-gray-400">Obra Social: {user.socialWork || 'No especificada'}</div>
 
-
                     <div>
                         <button onClick={abrirModal} className="px-4 mt-6 text-violet-600 hover:underline">
                             ¿Quieres cambiar tu contraseña?
@@ -502,14 +496,14 @@ const PerfilUser = () => {
                                     )}
                                 </div>
                             ))}
-                            
+
                             {/* Mensaje de error de validación para teléfono y contacto de emergencia */}
                             {validationErrors.phoneEmergency && (
                                 <div className="col-span-full px-4 py-2 text-sm text-red-600 bg-red-100 rounded">
                                     {validationErrors.phoneEmergency}
                                 </div>
                             )}
-                            
+
                             {/* Select para Obra Social */}
                             <div>
                                 <label className="block mb-1 text-sm font-medium">Obra Social</label>
@@ -538,8 +532,8 @@ const PerfilUser = () => {
                                     onClick={handleSave}
                                     disabled={loading || Object.keys(validationErrors).length > 0}
                                     className={`px-6 py-2 rounded text-white ${
-                                        loading || Object.keys(validationErrors).length > 0 
-                                            ? 'bg-gray-400 cursor-not-allowed' 
+                                        loading || Object.keys(validationErrors).length > 0
+                                            ? 'bg-gray-400 cursor-not-allowed'
                                             : 'bg-green-600 hover:bg-green-700'
                                     }`}
                                 >

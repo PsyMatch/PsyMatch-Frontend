@@ -68,14 +68,11 @@ const Perfil = () => {
         profile_picture: '',
     });
 
-    const [_cambios, setCambios] = useState<Partial<ResponseDataProfile>>({});
-
     const { modal, abrirModal } = useModalContext();
 
     // Estados para autocompletado de direcciones
     const [addressSuggestions, setAddressSuggestions] = useState<MapboxSuggestion[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-    const [_selectedCoordinates, setSelectedCoordinates] = useState<{ lat: number; lng: number } | null>(null);
     const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
     const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
     const addressInputRef = useRef<HTMLInputElement>(null);
@@ -157,10 +154,6 @@ const Perfil = () => {
         setShowSuggestions(false);
         setAddressSuggestions([]);
 
-        setSelectedCoordinates({
-            lat: suggestion.center[1],
-            lng: suggestion.center[0],
-        });
         setSelectedPlaceId(suggestion.id);
     };
 
@@ -210,12 +203,11 @@ const Perfil = () => {
             .then((response) => {
                 setPerfil((prev) => ({ ...prev, ...response }));
                 setProfileImage(`${response.data.profile_picture}?t=${new Date().getTime()}`);
-                setCambios({});
                 bodySend = {};
                 setEditable(false);
-                
-                console.log("Respuesta completa", response)
-                console.log("imagen",response.data.profile_picture)
+
+                console.log('Respuesta completa', response);
+                console.log('imagen', response.data.profile_picture);
 
                 notifications.success(`${response.message}`);
             })
@@ -240,26 +232,28 @@ const Perfil = () => {
             {/* Panel imagen y contraseña */}
             <div className="flex flex-col items-center w-full max-w-lg p-4 mb-8 bg-white rounded-lg shadow md:p-8">
                 <div className="relative mb-4">
-  {profileImage && profileImage.startsWith("blob:") ? (
-    <img
-      src={profileImage}
-      alt="profile preview"
-      className="object-cover w-24 h-24 bg-gray-200 rounded-full md:w-32 md:h-32"
-    />
-  ) : (
-    <Image
-      key={profileImage} // fuerza re-render al cambiar
-      src={
-        profileImage && profileImage.trim() !== ""
-          ? profileImage
-          : `https://ui-avatars.com/api/?name=${encodeURIComponent(perfil?.name || "Usuario")}`
-      }
-      alt="profile"
-      width={128}
-      height={128}
-      className="object-cover w-24 h-24 bg-gray-200 rounded-full md:w-32 md:h-32"
-    />
-  )}
+                    {profileImage && profileImage.startsWith('blob:') ? (
+                        <Image
+                            src={profileImage}
+                            alt="profile preview"
+                            className="object-cover w-24 h-24 bg-gray-200 rounded-full md:w-32 md:h-32"
+                            width={128}
+                            height={128}
+                        />
+                    ) : (
+                        <Image
+                            key={profileImage} // fuerza re-render al cambiar
+                            src={
+                                profileImage && profileImage.trim() !== ''
+                                    ? profileImage
+                                    : `https://ui-avatars.com/api/?name=${encodeURIComponent(perfil?.name || 'Usuario')}`
+                            }
+                            alt="profile"
+                            width={128}
+                            height={128}
+                            className="object-cover w-24 h-24 bg-gray-200 rounded-full md:w-32 md:h-32"
+                        />
+                    )}
                     {editable && (
                         <>
                             <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="profile-upload" />
@@ -358,7 +352,6 @@ const Perfil = () => {
                                                         disabled={!editable}
                                                         onChange={(e) => {
                                                             setFieldValue('office_address', e.target.value);
-                                                            setSelectedCoordinates(null);
                                                             setSelectedPlaceId(null);
                                                             setTimeout(() => {
                                                                 if (e.target.value && !selectedPlaceId && editable) {

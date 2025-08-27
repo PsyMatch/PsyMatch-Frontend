@@ -252,13 +252,8 @@ const PersonalInformation = () => {
             </div>
 
             <div className="pb-6 space-y-6">
-                <Formik
-                    initialValues={initialValues}
-                    validationSchema={validationSchema}
-                    onSubmit={handleSubmit}
-                    enableReinitialize
-                >
-                    {({ handleChange, values, isValid, isSubmitting, handleBlur, errors, touched, setFieldValue }) => {
+                <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit} enableReinitialize>
+                    {({ handleChange, values, isSubmitting }) => {
                         return (
                             <Form className="space-y-6">
                                 <AutoSaveCookies />

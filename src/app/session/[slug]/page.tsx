@@ -144,7 +144,7 @@ const SessionPage = () => {
             // Si el psicólogo tiene working_hours definidos, usarlos
             if (psychologist.working_hours && psychologist.working_hours.length > 0) {
                 // Convertir formato de 24h a 12h para mostrar
-                const formattedTimes = psychologist.working_hours.map(time => {
+                const formattedTimes = psychologist.working_hours.map((time) => {
                     const [hours, minutes] = time.split(':');
                     const hour24 = parseInt(hours);
                     const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
@@ -365,7 +365,7 @@ const SessionPage = () => {
     // Función para obtener horarios filtrados
     const getFilteredTimes = useCallback((): string[] => {
         return availableTimes.filter((time) => isTimeAvailable(time));
-    }, [isTimeAvailable]);
+    }, [availableTimes, isTimeAvailable]);
 
     // Función para formatear la fecha ISO a formato legible
     const formatDisplayDate = (isoDate: string): string => {
@@ -658,10 +658,10 @@ const SessionPage = () => {
                                         <h3 className="text-lg font-semibold text-gray-900">Seleccionar Fecha</h3>
                                     </div>
                                     <p className="mb-6 text-sm text-gray-600">Elige el día para tu sesión</p>
-                                    <Calendario 
-                                        value={selectedDate} 
-                                        onChange={handleDateChange} 
-                                        placeholder="Elije el día" 
+                                    <Calendario
+                                        value={selectedDate}
+                                        onChange={handleDateChange}
+                                        placeholder="Elije el día"
                                         className="w-full"
                                         availableDays={psychologist?.availability || []}
                                     />
