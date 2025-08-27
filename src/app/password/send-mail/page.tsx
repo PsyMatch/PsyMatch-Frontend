@@ -52,7 +52,8 @@ const SendMail = () => {
         });
         const response = await res.json();
 
-        const _mail = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emails/new-password`, {
+        // Enviar email de recuperación
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emails/new-password`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

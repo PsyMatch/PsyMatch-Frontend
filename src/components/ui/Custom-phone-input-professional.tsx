@@ -45,11 +45,14 @@ export default function CustomPhoneProfessionalInput({
           width: '100%',
           height: '40px',
           paddingLeft: '45px',
-          padding: '8px 12px',
+          paddingRight: '12px',
+          paddingTop: '8px',
+          paddingBottom: '8px',
           border: `1px solid ${meta.touched && meta.error ? '#ef4444' : '#d1d5db'}`,
           borderRadius: '6px',
           fontSize: '14px',
           outline: 'none',
+          boxSizing: 'border-box',
         }}
         buttonStyle={{
           borderTop: `1px solid ${meta.touched && meta.error ? '#ef4444' : '#d1d5db'}`,
@@ -58,6 +61,8 @@ export default function CustomPhoneProfessionalInput({
           borderRight: 'none',
           borderRadius: '6px 0 0 6px',
           backgroundColor: 'white',
+          height: '40px',
+          boxSizing: 'border-box',
         }}
         dropdownStyle={{
           width: '600%',

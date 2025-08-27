@@ -1,4 +1,4 @@
-import { MessageCircle, Calendar, MapPin as _MapPin, Clock } from 'lucide-react';
+import { Calendar, Clock } from 'lucide-react';
 import type { IProfessional } from '@/services/prrofessionalProfile';
 import Image from 'next/image';
 import Link from 'next/link';

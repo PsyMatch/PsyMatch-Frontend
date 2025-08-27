@@ -2,23 +2,25 @@
 
 import CardMatch from './CardMatch';
 import { useAuthState } from '@/hooks/useAuthState';
+import Cookies from 'js-cookie';
 
 const Match = () => {
     const { isAuthenticated } = useAuthState();
+    const role = Cookies.get("role")
 
     return (
-        <section className="py-20 relative">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <section className="relative py-20">
+            <div className="px-4 mx-auto text-center max-w-7xl sm:px-6 lg:px-8">
                 <div className={`relative ${!isAuthenticated ? 'filter blur-sm pointer-events-none' : ''}`}>
                     <CardMatch />
                 </div>
 
-                {!isAuthenticated && (
+                {!isAuthenticated || role === "Psicólogo" && (
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="bg-white/95 backdrop-blur-sm rounded-lg px-8 py-2 shadow-lg border border-gray-200 max-w-md mx-4">
+                        <div className="max-w-md px-8 py-2 mx-4 border border-gray-200 rounded-lg shadow-lg bg-white/95 backdrop-blur-sm">
                             <div className="text-center">
                                 <div className="mb-4">
-                                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg className="w-12 h-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path
                                             strokeLinecap="round"
                                             strokeLinejoin="round"
@@ -27,8 +29,14 @@ const Match = () => {
                                         />
                                     </svg>
                                 </div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-2">Inicia sesión para continuar</h3>
-                                <p className="text-gray-600 mb-6">Debes estar logueado para usar nuestra herramienta de búsqueda de psicólogos</p>
+                                {role === "Psicólogo" ?
+                                <p className="mb-6 text-gray-600">Debes ser un usuario paciente para usar nuestra herramienta de búsqueda de psicólogos</p>
+                                : 
+                                <>
+                                        <h3 className="mb-2 text-lg font-semibold text-gray-900">Inicia sesión para continuar</h3>
+                                    <p className="mb-6 text-gray-600">Debes estar logueado para usar nuestra herramienta de búsqueda de psicólogos</p>
+                                </>
+                                }
                             </div>
                         </div>
                     </div>

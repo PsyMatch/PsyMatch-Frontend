@@ -2,13 +2,12 @@
 import { useModalContext } from '@/context/modalContraseña';
 import { ToastContainer, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { ErrorMessage, Field, Form, Formik } from 'formik';
+import { ErrorMessage, Form, Formik } from 'formik';
 import { X } from 'lucide-react';
 import Button from '../ui/button';
 import Cookies from 'js-cookie';
-import Input from '../ui/input';
 import { useNotifications } from '@/hooks/useNotifications';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import CustomPasswordInput from '../ui/Custom-password-input';
 import * as Yup from "yup";
 
@@ -59,7 +58,8 @@ const ModalContraseña = () => {
                                 }),
                             });
 
-                            const _response = await res.text();
+                            // Obtener respuesta para verificar el éxito
+                            await res.text();
                             setDisabled(true);
 
                             notifications.success('Contraseña cambiada correctamente');

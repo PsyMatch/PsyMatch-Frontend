@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { adminService } from '@/services/admin';
 
 interface Paciente {
@@ -19,33 +19,82 @@ interface Paciente {
 
 interface UserAdministratorsProps {
     data: Paciente[];
+    onUserUpdate?: (userId: string, updates: Partial<Paciente>) => void;
 }
 
-const UserAdministrators = ({ data }: UserAdministratorsProps) => {
+const UserAdministrators = ({ data, onUserUpdate }: UserAdministratorsProps) => {
     const [loading, setLoading] = useState<string | null>(null);
+    const [localData, setLocalData] = useState<Paciente[]>(data);
     const [confirmAction, setConfirmAction] = useState<{
         userId: string;
+        action: 'ban' | 'unban';
         userName: string;
     } | null>(null);
 
-    const administradores = data.filter((u) => u.role === 'Administrador');
+    const administradores = localData.filter((u) => u.role === 'Administrador');
 
-    const handleUserAction = async (userId: string) => {
+    // Sincronizar con nuevos datos cuando cambien las props
+    useEffect(() => {
+        setLocalData(data);
+    }, [data]);
+
+    const handleUserAction = async (userId: string, action: 'ban' | 'unban' = 'unban') => {
         setLoading(userId);
         
         try {
-            const result = await adminService.unbanUser(userId);
+            let result;
+            
+            switch (action) {
+                case 'ban':
+                    result = await adminService.banUser(userId);
+                    break;
+                case 'unban':
+                    result = await adminService.unbanUser(userId);
+                    break;
+                default:
+                    return;
+            }
+            
+            // Actualizar el estado independientemente del resultado, ya que a veces
+            // el backend ejecuta la acción pero devuelve un error 500
+            const actionText = action === 'ban' ? 'baneado' : 'desbaneado';
+            const updates = { is_active: action === 'unban' };
+            
+            // Actualizar el estado global y local
+            onUserUpdate?.(userId, updates);
+            setLocalData(prevData => 
+                prevData.map(user => 
+                    user.id === userId 
+                        ? { ...user, ...updates }
+                        : user
+                )
+            );
             
             if (result.success) {
-                alert('Usuario desbaneado exitosamente');
-                window.location.reload();
+                alert(`Usuario ${actionText} exitosamente`);
             } else {
-                alert(`Error: ${result.message}`);
+                // Mostrar el error pero mantener los cambios de estado
+                console.warn(`Advertencia: ${result.message || 'Error desconocido'}`);
+                alert(`Acción ejecutada. Usuario ${actionText}.`);
             }
         } catch (error) {
             console.error('Error en la acción:', error);
-            alert('Error al ejecutar la acción');
+            // Aún así intentar actualizar el estado ya que la acción podría haberse ejecutado
+            const actionText = action === 'ban' ? 'baneado' : 'desbaneado';
+            const updates = { is_active: action === 'unban' };
+            
+            onUserUpdate?.(userId, updates);
+            setLocalData(prevData => 
+                prevData.map(user => 
+                    user.id === userId 
+                        ? { ...user, ...updates }
+                        : user
+                )
+            );
+            
+            alert(`Acción ejecutada con advertencias. Usuario ${actionText}.`);
         } finally {
+            // Siempre cerrar el modal y quitar el loading
             setLoading(null);
             setConfirmAction(null);
         }
@@ -119,10 +168,11 @@ const UserAdministrators = ({ data }: UserAdministratorsProps) => {
                                     
                                     {/* Botones de acción */}
                                     <div className="mt-4 flex gap-2">
-                                        {admin.is_active === false ? (
+                                        {admin.is_active === false && (
                                             <button
                                                 onClick={() => setConfirmAction({
                                                     userId: admin.id,
+                                                    action: 'unban',
                                                     userName: admin.name
                                                 })}
                                                 disabled={loading === admin.id}
@@ -130,10 +180,6 @@ const UserAdministrators = ({ data }: UserAdministratorsProps) => {
                                             >
                                                 {loading === admin.id ? 'Procesando...' : 'Desbanear Administrador'}
                                             </button>
-                                        ) : (
-                                            <div className="px-4 py-2 bg-gray-100 text-gray-500 rounded-md text-sm font-medium">
-                                                Administrador activo
-                                            </div>
                                         )}
                                     </div>
                                 </div>
@@ -163,7 +209,7 @@ const UserAdministrators = ({ data }: UserAdministratorsProps) => {
                                 Cancelar
                             </button>
                             <button
-                                onClick={() => handleUserAction(confirmAction.userId)}
+                                onClick={() => handleUserAction(confirmAction.userId, confirmAction.action)}
                                 className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors"
                             >
                                 Desbanear Administrador

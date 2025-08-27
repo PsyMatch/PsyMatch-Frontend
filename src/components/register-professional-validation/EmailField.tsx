@@ -33,8 +33,8 @@ const EmailField = () => {
       <label className="text-sm font-medium text-gray-700" htmlFor="email">
         Correo Electrónico *
       </label>
-      <div className="relative flex items-center">
-        <Mail className="absolute w-5 h-5 text-gray-400 pointer-events-none left-3" />
+      <div className="relative">
+        <Mail className="absolute w-5 h-5 text-gray-400 pointer-events-none left-3 top-1/2 transform -translate-y-1/2" />
         <input
           {...field}
           id="email"

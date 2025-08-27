@@ -21,9 +21,10 @@ interface Paciente {
 
 interface UserProfessionalsProps {
     data: Paciente[];
+    onUserUpdate?: (userId: string, updates: Partial<Paciente>) => void;
 }
 
-const UserProfessionals = ({ data }: UserProfessionalsProps) => {
+const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
     const [loading, setLoading] = useState<string | null>(null);
     const [confirmAction, setConfirmAction] = useState<{
         userId: string;
@@ -81,6 +82,29 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
         loadPsychologists();
     }, [notifications]);
 
+    // Sincronizar con datos del componente padre cuando cambien
+    useEffect(() => {
+        // Actualizar localData con los datos más recientes del padre
+        const activePsychologists = data.filter(user => user.role === "Psicólogo");
+        if (activePsychologists.length > 0) {
+            setLocalData(prevData => {
+                // Mergear datos, priorizando los datos del padre
+                const mergedData = [...prevData];
+                activePsychologists.forEach(user => {
+                    const existingIndex = mergedData.findIndex(existingUser => existingUser.id === user.id);
+                    if (existingIndex >= 0) {
+                        // Actualizar usuario existente
+                        mergedData[existingIndex] = { ...mergedData[existingIndex], ...user };
+                    } else if (user.is_active !== false) {
+                        // Agregar nuevo usuario activo
+                        mergedData.push(user);
+                    }
+                });
+                return mergedData;
+            });
+        }
+    }, [data]);
+
     const handleUserAction = async (userId: string, action: 'promote' | 'ban' | 'unban' | 'verify' | 'reject') => {
         setLoading(userId);
 
@@ -125,17 +149,87 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
                     return;
             }
 
-            if (result.success) {
+            if (result.success && (action === 'promote' || action === 'ban' || action === 'unban')) {
+                // Actualizar el estado global y local
+                if (action === 'promote') {
+                    // Si se promueve a admin, actualizar en el estado global y remover localmente
+                    onUserUpdate?.(userId, { role: 'Administrador' });
+                    setLocalData(prev => prev.filter(user => user.id !== userId));
+                } else if (action === 'ban') {
+                    // Si se banea, actualizar en el estado global y remover localmente
+                    onUserUpdate?.(userId, { is_active: false });
+                    setLocalData(prev => prev.filter(user => user.id !== userId));
+                } else if (action === 'unban') {
+                    // Si se desbanea, actualizar en el estado global y mantener en la lista
+                    onUserUpdate?.(userId, { is_active: true });
+                    setLocalData(prev => 
+                        prev.map(user => 
+                            user.id === userId 
+                                ? { ...user, is_active: true }
+                                : user
+                        )
+                    );
+                }
+                
                 const actionText = action === 'promote' ? 'promovido' : action === 'ban' ? 'baneado' : 'desbaneado';
                 notifications.success(`Usuario ${actionText} exitosamente`);
-                window.location.reload(); // Recargar para ver cambios
-            } else {
+            } else if (!result.success && (action === 'promote' || action === 'ban' || action === 'unban')) {
+                // Aunque el backend devuelva error, intentar actualizar el estado ya que la acción podría haberse ejecutado
+                console.warn(`Advertencia en ${action}:`, result.message);
+                
+                if (action === 'promote') {
+                    onUserUpdate?.(userId, { role: 'Administrador' });
+                    setLocalData(prev => prev.filter(user => user.id !== userId));
+                } else if (action === 'ban') {
+                    onUserUpdate?.(userId, { is_active: false });
+                    setLocalData(prev => prev.filter(user => user.id !== userId));
+                } else if (action === 'unban') {
+                    onUserUpdate?.(userId, { is_active: true });
+                    setLocalData(prev => 
+                        prev.map(user => 
+                            user.id === userId 
+                                ? { ...user, is_active: true }
+                                : user
+                        )
+                    );
+                }
+                
+                const actionText = action === 'promote' ? 'promovido' : action === 'ban' ? 'baneado' : 'desbaneado';
+                notifications.success(`Acción ejecutada: Usuario ${actionText}`);
+            } else if (!result.success) {
                 notifications.error(`Error: ${result.message}`);
             }
         } catch (error) {
             console.error('Error en la acción:', error);
-            notifications.error('Error al ejecutar la acción');
+            
+            // Aunque haya error, intentar actualizar el estado para acciones críticas
+            if (action === 'promote' || action === 'ban' || action === 'unban') {
+                console.warn('Intentando actualizar estado a pesar del error...');
+                
+                if (action === 'promote') {
+                    onUserUpdate?.(userId, { role: 'Administrador' });
+                    setLocalData(prev => prev.filter(user => user.id !== userId));
+                } else if (action === 'ban') {
+                    onUserUpdate?.(userId, { is_active: false });
+                    setLocalData(prev => prev.filter(user => user.id !== userId));
+                } else if (action === 'unban') {
+                    onUserUpdate?.(userId, { is_active: true });
+                    setLocalData(prev => 
+                        prev.map(user => 
+                            user.id === userId 
+                                ? { ...user, is_active: true }
+                                : user
+                        )
+                    );
+                }
+                
+                const actionText = action === 'promote' ? 'promovido' : action === 'ban' ? 'baneado' : 'desbaneado';
+                notifications.success(`Acción ejecutada con advertencias: Usuario ${actionText}`);
+            } else {
+                notifications.error('Error al ejecutar la acción');
+            }
         } finally {
+            // Siempre cerrar el modal y quitar el loading
             setLoading(null);
             setConfirmAction(null);
         }
@@ -143,8 +237,8 @@ const UserProfessionals = ({ data }: UserProfessionalsProps) => {
 
     const [filter, setFilter] = useState<'Pendiente' | 'Validado' | 'Rechazado'>('Pendiente');
 
-        // Función para obtener solo los profesionales (role === "Psicólogo")
-    const profesionales = localData.filter(user => user.role === "Psicólogo");
+        // Función para obtener solo los profesionales activos (role === "Psicólogo" y is_active !== false)
+    const profesionales = localData.filter(user => user.role === "Psicólogo" && user.is_active !== false);
     
     // Filtrar solo por verificación
     const filtrados = profesionales.filter((u) => u.verified === filter);

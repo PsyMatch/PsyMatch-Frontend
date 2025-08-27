@@ -42,6 +42,12 @@ export const tipos = ['Individual', 'Pareja', 'Familia', 'Grupo'];
 
 export const Dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
+export const horarios = [
+    '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', 
+    '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', 
+    '20:00', '21:00', '22:00'
+];
+
 export const obrasSociales = [
     'OSDE',
     'Swiss Medical (SMG)',
@@ -85,6 +91,7 @@ export interface Valores {
     modality: string;
     insurance_accepted: string[];
     availability: string[];
+    working_hours: string[];
     consultation_fee: number;
 }
 
@@ -110,6 +117,7 @@ export const initialValuesTipos: Valores = {
     modality: '',
     insurance_accepted: [],
     availability: [],
+    working_hours: [],
     consultation_fee: 0
 };
 
@@ -140,6 +148,8 @@ export const validationSchema = Yup.object().shape({
       ),
 
     availability: Yup.array().min(1, 'Selecciona al menos un día disponible').required('Debes seleccionar días disponibles'),
+
+    working_hours: Yup.array().min(1, 'Selecciona al menos un horario de trabajo').required('Debes seleccionar horarios disponibles'),
 
     consultation_fee: Yup.number()
         .positive('El precio debe ser un número positivo')

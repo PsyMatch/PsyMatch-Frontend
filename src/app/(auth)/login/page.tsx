@@ -12,7 +12,7 @@ const LoginPage =() => {
           <p className="text-sm opacity-90">Accede a tu cuenta</p>
         </div>
       </div>
-      <div className="flex items-center justify-center w-full p-4 bg-gray-100 lg:w-1/2 sm:p-6 lg:p-8 lg:order-2">
+      <div className="flex items-center flex-grow justify-center w-full p-4 bg-gray-100 lg:w-1/2 sm:p-6 lg:p-8 lg:order-2">
         <div className="w-full max-w-sm space-y-4 sm:max-w-md sm:space-y-6">
           <LoginForm />
           <div className="text-xs text-center text-gray-600 sm:text-sm">

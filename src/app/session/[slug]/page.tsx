@@ -1,18 +1,15 @@
 'use client';
 
 import Calendario from '@/components/session/Calendar';
-import { psychologistsService, PsychologistResponse } from '@/services/psychologists';
-import { appointmentsService, CreateAppointmentRequest, AppointmentResponse } from '@/services/appointments';
+import { psychologistsService, type PsychologistResponse } from '@/services/psychologists';
+import { appointmentsService, type CreateAppointmentRequest, type AppointmentResponse } from '@/services/appointments';
 import MercadoPagoPayment from '@/components/payments/MercadoPagoPayment';
-import { Calendar, Clock, MapPin } from 'lucide-react';
+import { Calendar, Clock, MapPin, User, Award, Globe, Target, Shield, CheckCircle } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { useNotifications } from '@/hooks/useNotifications';
-
-// Horarios disponibles (constante fuera del componente)
-const AVAILABLE_TIMES = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM'];
 
 const SessionPage = () => {
     const params = useParams();
@@ -30,6 +27,7 @@ const SessionPage = () => {
     const [modality, setModality] = useState('');
     const [userId, setUserId] = useState<string>('');
     const [isClient, setIsClient] = useState(false);
+    const [availableTimes, setAvailableTimes] = useState<string[]>([]);
 
     // Estados para el flujo de pago
     const [showPayment, setShowPayment] = useState(false);
@@ -138,6 +136,35 @@ const SessionPage = () => {
         loadPsychologist();
     }, [psychologistId, router, redirectToLogin]);
 
+    // Función para obtener horarios disponibles del psicólogo
+    const getAvailableTimesForPsychologist = useCallback(() => {
+        if (!psychologist) return;
+
+        try {
+            // Si el psicólogo tiene working_hours definidos, usarlos
+            if (psychologist.working_hours && psychologist.working_hours.length > 0) {
+                // Convertir formato de 24h a 12h para mostrar
+                const formattedTimes = psychologist.working_hours.map((time) => {
+                    const [hours, minutes] = time.split(':');
+                    const hour24 = parseInt(hours);
+                    const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+                    const ampm = hour24 >= 12 ? 'PM' : 'AM';
+                    return `${hour12.toString().padStart(2, '0')}:${minutes} ${ampm}`;
+                });
+                setAvailableTimes(formattedTimes);
+            } else {
+                // Horarios por defecto si no tiene working_hours definidos
+                const defaultTimes = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM'];
+                setAvailableTimes(defaultTimes);
+            }
+        } catch (error) {
+            console.error('Error al obtener horarios disponibles:', error);
+            // Usar horarios por defecto en caso de error
+            const defaultTimes = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM'];
+            setAvailableTimes(defaultTimes);
+        }
+    }, [psychologist]);
+
     // useEffect separado para manejar la configuración inicial cuando se carga el psicólogo
     useEffect(() => {
         if (psychologist) {
@@ -148,13 +175,16 @@ const SessionPage = () => {
             } else {
                 setModality('En línea'); // Valor por defecto
             }
+
+            // Cargar los horarios disponibles del psicólogo
+            getAvailableTimesForPsychologist();
         }
-    }, [psychologist]);
+    }, [psychologist, getAvailableTimesForPsychologist]);
 
     // Función para verificar si un horario está disponible
     const isTimeAvailable = useCallback(
         (time: string): boolean => {
-            if (!selectedDate) return false;
+            if (!selectedDate || !availableTimes.includes(time)) return false;
 
             const today = new Date();
             const selectedDateObj = new Date(selectedDate + 'T00:00:00');
@@ -183,7 +213,7 @@ const SessionPage = () => {
 
             return timeDate > currentTimePlusBuffer;
         },
-        [selectedDate]
+        [selectedDate, availableTimes]
     );
 
     // useEffect para verificar periódicamente si la hora seleccionada sigue siendo válida
@@ -334,8 +364,8 @@ const SessionPage = () => {
 
     // Función para obtener horarios filtrados
     const getFilteredTimes = useCallback((): string[] => {
-        return AVAILABLE_TIMES.filter((time) => isTimeAvailable(time));
-    }, [isTimeAvailable]);
+        return availableTimes.filter((time) => isTimeAvailable(time));
+    }, [availableTimes, isTimeAvailable]);
 
     // Función para formatear la fecha ISO a formato legible
     const formatDisplayDate = (isoDate: string): string => {
@@ -361,511 +391,540 @@ const SessionPage = () => {
     };
 
     return (
-        <div className="max-w-4xl px-4 py-8 mx-auto sm:px-6 lg:px-8">
-            {!isClient ? (
-                <div className="py-8 text-center">
-                    <p className="text-gray-500">Cargando...</p>
-                </div>
-            ) : !psychologist ? (
-                <div className="py-8 text-center">
-                    <p className="text-gray-500">Psicólogo no encontrado</p>
-                </div>
-            ) : !getAuthToken() ? (
-                <div className="py-8 text-center">
-                    <div className="p-6 border border-yellow-200 rounded-lg bg-yellow-50">
-                        <p className="mb-4 text-yellow-800">Debes iniciar sesión para agendar una cita</p>
-                        <button
-                            onClick={redirectToLogin}
-                            className="px-4 py-2 font-medium text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
-                        >
-                            Iniciar Sesión
-                        </button>
+        <div className="min-h-screen bg-gray-50">
+            <div className="max-w-6xl px-4 py-8 mx-auto sm:px-6 lg:px-8">
+                {!isClient ? (
+                    <div className="flex items-center justify-center py-16">
+                        <div className="text-center">
+                            <div className="w-8 h-8 mx-auto mb-4 border-2 border-blue-600 rounded-full animate-spin border-t-transparent"></div>
+                            <p className="text-gray-600">Cargando...</p>
+                        </div>
                     </div>
-                </div>
-            ) : showPayment && createdAppointment ? (
-                // Mostrar componente de pago
-                <div className="py-8 text-center">
-                    <div className="p-6 mb-6 border border-green-200 rounded-lg bg-green-50">
-                        <h2 className="mb-2 text-2xl font-bold text-green-800">¡Cita Creada Exitosamente!</h2>
-                        <p className="mb-4 text-green-700">
-                            Tu cita con {psychologist.name} para el {formatDisplayDate(selectedDate)} a las {selectedTime} ha sido creada.
-                        </p>
-                        <p className="text-sm text-green-600">Ahora necesitas completar el pago para confirmar tu turno.</p>
+                ) : !psychologist ? (
+                    <div className="flex items-center justify-center py-16">
+                        <div className="text-center">
+                            <div className="w-16 h-16 mx-auto mb-4 text-gray-400">
+                                <User className="w-full h-full" />
+                            </div>
+                            <p className="text-gray-600">Psicólogo no encontrado</p>
+                        </div>
                     </div>
-
-                    <MercadoPagoPayment
-                        amount={psychologist.consultation_fee || 5000}
-                        appointmentId={createdAppointment.id}
-                        onSuccess={handlePaymentSuccess}
-                        onError={handlePaymentError}
-                        disabled={loading}
-                    />
-
-                    {paymentCompleted && (
-                        <div className="p-6 mt-6 border border-blue-200 rounded-lg bg-blue-50">
-                            <h3 className="mb-3 text-lg font-semibold text-blue-800">¡Pago Procesado!</h3>
-                            <p className="mb-4 text-blue-700">Una vez que MercadoPago confirme tu pago, podrás confirmar definitivamente tu turno.</p>
+                ) : !getAuthToken() ? (
+                    <div className="flex items-center justify-center py-16">
+                        <div className="max-w-md p-8 text-center bg-white border border-amber-200 rounded-xl shadow-sm">
+                            <div className="w-16 h-16 mx-auto mb-4 text-amber-500">
+                                <Shield className="w-full h-full" />
+                            </div>
+                            <h3 className="mb-2 text-lg font-semibold text-gray-900">Acceso Requerido</h3>
+                            <p className="mb-6 text-gray-600">Debes iniciar sesión para agendar una cita</p>
                             <button
-                                onClick={handleConfirmAppointment}
-                                disabled={loading}
-                                className="px-6 py-2 font-medium text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                                onClick={redirectToLogin}
+                                className="w-full px-6 py-3 font-medium text-white transition-all duration-200 bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                             >
-                                {loading ? 'Confirmando...' : 'Confirmar Turno'}
+                                Iniciar Sesión
                             </button>
                         </div>
-                    )}
-
-                    <div className="mt-4">
-                        <button
-                            onClick={() => {
-                                setShowPayment(false);
-                                setCreatedAppointment(null);
-                                setPaymentCompleted(false);
-                            }}
-                            className="text-sm text-gray-600 underline hover:text-gray-800"
-                        >
-                            Volver a la selección de horario
-                        </button>
                     </div>
-                </div>
-            ) : (
-                <>
-                    <div className="mb-8 text-gray-900 bg-white border rounded-lg shadow-sm">
-                        <div className="p-6">
-                            <div className="flex items-center">
-                                <Image
-                                    alt={psychologist.name}
-                                    className="mr-4 rounded-full"
-                                    width={64}
-                                    height={64}
-                                    src={psychologist.profile_picture || '/person-gray-photo-placeholder-woman.webp'}
-                                />
-                                <div>
-                                    <h2 className="text-2xl font-bold text-gray-900">Dr/a {psychologist.name}</h2>
-                                    <p className="text-lg text-gray-600">{psychologist.professional_title || 'Psicólogo/a'}</p>
-                                    <p className="mt-1 text-sm text-gray-500">{psychologist.personal_biography}</p>
+                ) : showPayment && createdAppointment ? (
+                    <div className="max-w-2xl mx-auto">
+                        <div className="p-8 mb-8 text-center bg-white border border-green-200 rounded-xl shadow-sm">
+                            <div className="w-16 h-16 mx-auto mb-4 text-green-600">
+                                <CheckCircle className="w-full h-full" />
+                            </div>
+                            <h2 className="mb-3 text-2xl font-bold text-gray-900">Cita Creada Exitosamente</h2>
+                            <p className="mb-2 text-gray-700">
+                                Tu cita con <span className="font-semibold">{psychologist.name}</span>
+                            </p>
+                            <p className="mb-4 text-gray-700">
+                                {formatDisplayDate(selectedDate)} a las {selectedTime}
+                            </p>
+                            <p className="text-sm text-gray-600">Completa el pago para confirmar tu turno</p>
+                        </div>
 
-                                    <div className="flex items-center gap-4 mt-3">
-                                        <div className="flex items-center">
-                                            <MapPin className="w-4 h-4 mr-1 text-gray-400" />
-                                            <span className="text-sm text-gray-600">
-                                                {psychologist.office_address || 'Ubicación no especificada'}
-                                            </span>
+                        <div className="bg-white border rounded-xl shadow-sm">
+                            <div className="p-8">
+                                <MercadoPagoPayment
+                                    amount={psychologist.consultation_fee || 5000}
+                                    appointmentId={createdAppointment.id}
+                                    onSuccess={handlePaymentSuccess}
+                                    onError={handlePaymentError}
+                                    disabled={loading}
+                                />
+                            </div>
+                        </div>
+
+                        {paymentCompleted && (
+                            <div className="p-8 mt-8 text-center bg-white border border-blue-200 rounded-xl shadow-sm">
+                                <h3 className="mb-3 text-lg font-semibold text-gray-900">Pago Procesado</h3>
+                                <p className="mb-6 text-gray-600">
+                                    Una vez que MercadoPago confirme tu pago, podrás confirmar definitivamente tu turno.
+                                </p>
+                                <button
+                                    onClick={handleConfirmAppointment}
+                                    disabled={loading}
+                                    className="px-8 py-3 font-medium text-white transition-all duration-200 bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {loading ? 'Confirmando...' : 'Confirmar Turno'}
+                                </button>
+                            </div>
+                        )}
+
+                        <div className="mt-6 text-center">
+                            <button
+                                onClick={() => {
+                                    setShowPayment(false);
+                                    setCreatedAppointment(null);
+                                    setPaymentCompleted(false);
+                                }}
+                                className="text-sm text-gray-500 transition-colors hover:text-gray-700 focus:outline-none"
+                            >
+                                Volver a la selección de horario
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="space-y-8">
+                        <div className="bg-white border rounded-xl shadow-sm">
+                            <div className="p-6 sm:p-8">
+                                <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
+                                    <div className="flex-shrink-0">
+                                        <Image
+                                            alt={psychologist.name}
+                                            className="w-20 h-20 rounded-full sm:w-24 sm:h-24"
+                                            width={96}
+                                            height={96}
+                                            src={psychologist.profile_picture || '/person-gray-photo-placeholder-woman.webp'}
+                                        />
+                                    </div>
+
+                                    <div className="flex-1 min-w-0">
+                                        <div className="mb-4">
+                                            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Dr/a {psychologist.name}</h1>
+                                            <p className="text-lg text-gray-600 sm:text-xl">{psychologist.professional_title || 'Psicólogo/a'}</p>
+                                            {psychologist.personal_biography && (
+                                                <p className="mt-2 text-gray-600">{psychologist.personal_biography}</p>
+                                            )}
                                         </div>
-                                        {psychologist.professional_experience && (
-                                            <div className="flex items-center">
-                                                <span className="text-sm text-gray-600">
-                                                    📅 {psychologist.professional_experience} años de experiencia
+
+                                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                            <div className="flex items-center gap-2">
+                                                <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                                <span className="text-sm text-gray-600 truncate">
+                                                    {psychologist.office_address || 'Ubicación no especificada'}
                                                 </span>
                                             </div>
-                                        )}
-                                    </div>
 
-                                    <div className="flex items-center gap-4 mt-2">
-                                        <span className="text-sm text-gray-600">⭐ 4.8 (Reviews próximamente)</span>
-                                        <span className="text-sm font-semibold text-green-600">💰 {psychologist.consultation_fee || 50000}</span>
-                                        {psychologist.verified && (
-                                            <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">
-                                                ✓ Verificado
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    {psychologist.languages && psychologist.languages.length > 0 && (
-                                        <div className="mt-2">
-                                            <span className="text-sm text-gray-600">🗣️ Idiomas: {psychologist.languages.join(', ')}</span>
-                                        </div>
-                                    )}
-
-                                    {psychologist.specialities && psychologist.specialities.length > 0 && (
-                                        <div className="mt-2">
-                                            <span className="text-sm text-gray-600">🎯 Especialidades: </span>
-                                            <div className="flex flex-wrap gap-1 mt-1">
-                                                {psychologist.specialities.slice(0, 3).map((specialty, index) => (
-                                                    <span
-                                                        key={index}
-                                                        className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-full"
-                                                    >
-                                                        {specialty}
+                                            {psychologist.professional_experience && (
+                                                <div className="flex items-center gap-2">
+                                                    <Award className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                                    <span className="text-sm text-gray-600">
+                                                        {psychologist.professional_experience} años de experiencia
                                                     </span>
-                                                ))}
-                                                {psychologist.specialities.length > 3 && (
-                                                    <span className="text-xs text-gray-500">+{psychologist.specialities.length - 3} más</span>
+                                                </div>
+                                            )}
+
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm font-semibold text-green-600">
+                                                    ${psychologist.consultation_fee || 50000}
+                                                </span>
+                                                {psychologist.verified && (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">
+                                                        <CheckCircle className="w-3 h-3" />
+                                                        Verificado
+                                                    </span>
                                                 )}
                                             </div>
                                         </div>
+
+                                        {psychologist.languages && psychologist.languages.length > 0 && (
+                                            <div className="flex items-center gap-2 mt-4">
+                                                <Globe className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                                <span className="text-sm text-gray-600">Idiomas: {psychologist.languages.join(', ')}</span>
+                                            </div>
+                                        )}
+
+                                        {psychologist.specialities && psychologist.specialities.length > 0 && (
+                                            <div className="mt-4">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <Target className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                                    <span className="text-sm font-medium text-gray-700">Especialidades:</span>
+                                                </div>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {psychologist.specialities.map((specialty, index) => (
+                                                        <span
+                                                            key={index}
+                                                            className="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-800 bg-blue-100 rounded-full"
+                                                        >
+                                                            {specialty}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white border rounded-xl shadow-sm">
+                            <div className="p-6 sm:p-8">
+                                <h3 className="mb-6 text-lg font-semibold text-gray-900">Información del Profesional</h3>
+
+                                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                                    <div className="space-y-2">
+                                        <h4 className="text-sm font-medium text-gray-700">Modalidad de Atención</h4>
+                                        <p className="text-sm text-gray-600">{psychologist.modality || 'No especificado'}</p>
+                                    </div>
+
+                                    {psychologist.session_types && psychologist.session_types.length > 0 && (
+                                        <div className="space-y-2">
+                                            <h4 className="text-sm font-medium text-gray-700">Tipos de Sesión</h4>
+                                            <div className="flex flex-wrap gap-1">
+                                                {psychologist.session_types.map((type, index) => (
+                                                    <span
+                                                        key={index}
+                                                        className="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-800 bg-purple-100 rounded-full"
+                                                    >
+                                                        {type}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {psychologist.therapy_approaches && psychologist.therapy_approaches.length > 0 && (
+                                        <div className="space-y-2">
+                                            <h4 className="text-sm font-medium text-gray-700">Enfoques Terapéuticos</h4>
+                                            <div className="flex flex-wrap gap-1">
+                                                {psychologist.therapy_approaches.map((approach, index) => (
+                                                    <span
+                                                        key={index}
+                                                        className="inline-flex items-center px-2 py-1 text-xs font-medium text-orange-800 bg-orange-100 rounded-full"
+                                                    >
+                                                        {approach}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {psychologist.insurance_accepted && psychologist.insurance_accepted.length > 0 && (
+                                        <div className="space-y-2">
+                                            <h4 className="text-sm font-medium text-gray-700">Obras Sociales Aceptadas</h4>
+                                            <div className="flex flex-wrap gap-1">
+                                                {psychologist.insurance_accepted.map((insurance, index) => (
+                                                    <span
+                                                        key={index}
+                                                        className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-800 bg-gray-100 rounded-full"
+                                                    >
+                                                        {insurance}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {psychologist.license_number && (
+                                        <div className="space-y-2">
+                                            <h4 className="text-sm font-medium text-gray-700">Número de Licencia</h4>
+                                            <p className="text-sm text-gray-600">#{psychologist.license_number}</p>
+                                        </div>
+                                    )}
+
+                                    {psychologist.availability && psychologist.availability.length > 0 && (
+                                        <div className="space-y-2">
+                                            <h4 className="text-sm font-medium text-gray-700">Disponibilidad</h4>
+                                            <div className="flex flex-wrap gap-1">
+                                                {psychologist.availability.map((day, index) => (
+                                                    <span
+                                                        key={index}
+                                                        className="inline-flex items-center px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full"
+                                                    >
+                                                        {day}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
                                     )}
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Información adicional del psicólogo */}
-                    <div className="mb-8 text-gray-900 bg-white border rounded-lg shadow-sm">
-                        <div className="p-6">
-                            <h3 className="mb-4 text-lg font-semibold text-gray-900">Información del Profesional</h3>
-
-                            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                                {/* Modalidad */}
-                                <div>
-                                    <h4 className="mb-2 text-sm font-medium text-gray-700">Modalidad de Atención</h4>
-                                    <p className="text-sm text-gray-600">{psychologist.modality || 'No especificado'}</p>
+                        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                            <div className="bg-white border rounded-xl shadow-sm">
+                                <div className="p-6">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <Calendar className="w-5 h-5 text-blue-600" />
+                                        <h3 className="text-lg font-semibold text-gray-900">Seleccionar Fecha</h3>
+                                    </div>
+                                    <p className="mb-6 text-sm text-gray-600">Elige el día para tu sesión</p>
+                                    <Calendario
+                                        value={selectedDate}
+                                        onChange={handleDateChange}
+                                        placeholder="Elije el día"
+                                        className="w-full"
+                                        availableDays={psychologist?.availability || []}
+                                    />
                                 </div>
-
-                                {/* Tipos de sesión */}
-                                {psychologist.session_types && psychologist.session_types.length > 0 && (
-                                    <div>
-                                        <h4 className="mb-2 text-sm font-medium text-gray-700">Tipos de Sesión</h4>
-                                        <div className="flex flex-wrap gap-1">
-                                            {psychologist.session_types.map((type, index) => (
-                                                <span
-                                                    key={index}
-                                                    className="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-800 bg-purple-100 rounded-full"
-                                                >
-                                                    {type}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Enfoques terapéuticos */}
-                                {psychologist.therapy_approaches && psychologist.therapy_approaches.length > 0 && (
-                                    <div>
-                                        <h4 className="mb-2 text-sm font-medium text-gray-700">Enfoques Terapéuticos</h4>
-                                        <div className="flex flex-wrap gap-1">
-                                            {psychologist.therapy_approaches.slice(0, 2).map((approach, index) => (
-                                                <span
-                                                    key={index}
-                                                    className="inline-flex items-center px-2 py-1 text-xs font-medium text-orange-800 bg-orange-100 rounded-full"
-                                                >
-                                                    {approach}
-                                                </span>
-                                            ))}
-                                            {psychologist.therapy_approaches.length > 2 && (
-                                                <span className="text-xs text-gray-500">+{psychologist.therapy_approaches.length - 2} más</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Seguros aceptados */}
-                                {psychologist.insurance_accepted && psychologist.insurance_accepted.length > 0 && (
-                                    <div>
-                                        <h4 className="mb-2 text-sm font-medium text-gray-700">Obras Sociales Aceptadas</h4>
-                                        <div className="flex flex-wrap gap-1">
-                                            {psychologist.insurance_accepted.slice(0, 3).map((insurance, index) => (
-                                                <span
-                                                    key={index}
-                                                    className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-800 bg-gray-100 rounded-full"
-                                                >
-                                                    {insurance}
-                                                </span>
-                                            ))}
-                                            {psychologist.insurance_accepted.length > 3 && (
-                                                <span className="text-xs text-gray-500">+{psychologist.insurance_accepted.length - 3} más</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Número de licencia */}
-                                {psychologist.license_number && (
-                                    <div>
-                                        <h4 className="mb-2 text-sm font-medium text-gray-700">Número de Licencia</h4>
-                                        <p className="text-sm text-gray-600">#{psychologist.license_number}</p>
-                                    </div>
-                                )}
-
-                                {/* Disponibilidad */}
-                                {psychologist.availability && psychologist.availability.length > 0 && (
-                                    <div>
-                                        <h4 className="mb-2 text-sm font-medium text-gray-700">Disponibilidad</h4>
-                                        <div className="flex flex-wrap gap-1">
-                                            {psychologist.availability.slice(0, 4).map((day, index) => (
-                                                <span
-                                                    key={index}
-                                                    className="inline-flex items-center px-2 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full"
-                                                >
-                                                    {day}
-                                                </span>
-                                            ))}
-                                            {psychologist.availability.length > 4 && (
-                                                <span className="text-xs text-gray-500">+{psychologist.availability.length - 4} más</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
                             </div>
-                        </div>
-                    </div>
 
-                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-                        <div className="text-gray-900 bg-white border rounded-lg shadow-sm">
-                            <div className="flex flex-col space-y-1.5 p-6">
-                                <div className="flex items-center text-2xl font-semibold leading-none tracking-tight">
-                                    <Calendar className="w-5 h-5 mr-2" />
-                                    Seleccionar Fecha
-                                </div>
-                                <div className="mb-4 text-sm text-gray-500">Elige el día para tu sesión</div>
-                            </div>
-                            <div className="p-6 pt-0">
-                                <Calendario value={selectedDate} onChange={handleDateChange} placeholder="Elije el día" className="w-full" />
-                            </div>
-                        </div>
-                        <div className="text-gray-900 bg-white border rounded-lg shadow-sm">
-                            <div className="flex flex-col space-y-1.5 p-6">
-                                <div className="flex items-center text-2xl font-semibold leading-none tracking-tight">
-                                    <Clock className="w-5 h-5 mr-2" />
-                                    Horarios Disponibles
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                    {selectedDate ? (
-                                        <div>
-                                            <div>{formatDisplayDate(selectedDate)}</div>
-                                            {selectedTime && <div className="mt-1 font-medium text-blue-600">Hora seleccionada: {selectedTime}</div>}
+                            <div className="bg-white border rounded-xl shadow-sm">
+                                <div className="p-6">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <Clock className="w-5 h-5 text-blue-600" />
+                                        <h3 className="text-lg font-semibold text-gray-900">Horarios Disponibles</h3>
+                                    </div>
+                                    <div className="mb-6 text-sm text-gray-600">
+                                        {selectedDate ? (
+                                            <div className="space-y-1">
+                                                <div>{formatDisplayDate(selectedDate)}</div>
+                                                {selectedTime && <div className="font-medium text-blue-600">Hora seleccionada: {selectedTime}</div>}
+                                            </div>
+                                        ) : (
+                                            'Selecciona una fecha primero'
+                                        )}
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {selectedDate &&
+                                            getFilteredTimes().map((time) => (
+                                                <button
+                                                    key={time}
+                                                    onClick={() => handleTimeSelect(time)}
+                                                    className={`
+                                                        px-4 py-3 border rounded-lg text-sm font-medium transition-all duration-200
+                                                        ${
+                                                            selectedTime === time
+                                                                ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                                                                : 'border-gray-300 hover:bg-gray-50 text-gray-900 hover:border-gray-400'
+                                                        }
+                                                    `}
+                                                >
+                                                    {time}
+                                                </button>
+                                            ))}
+                                    </div>
+
+                                    {!selectedDate && (
+                                        <div className="py-12 text-center">
+                                            <Clock className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                                            <p className="text-gray-500">Selecciona una fecha para ver los horarios disponibles</p>
                                         </div>
-                                    ) : (
-                                        'Selecciona una fecha primero'
+                                    )}
+
+                                    {selectedDate && getFilteredTimes().length === 0 && (
+                                        <div className="py-12 text-center">
+                                            <Clock className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                                            <p className="text-gray-500">
+                                                No hay horarios disponibles para esta fecha.
+                                                {new Date(selectedDate + 'T00:00:00').toDateString() === new Date().toDateString()
+                                                    ? ' Los horarios deben ser al menos 1 hora después de la hora actual.'
+                                                    : ''}
+                                            </p>
+                                        </div>
                                     )}
                                 </div>
                             </div>
-                            <div className="p-6 pt-0">
-                                <div className="grid grid-cols-2 gap-3">
-                                    {selectedDate &&
-                                        getFilteredTimes().map((time) => (
-                                            <button
-                                                key={time}
-                                                onClick={() => handleTimeSelect(time)}
-                                                className={`
-                                        px-4 py-2 border rounded-lg text-sm transition-colors
-                                        ${
-                                            selectedTime === time
-                                                ? 'bg-blue-500 text-white border-blue-500'
-                                                : 'border-gray-300 hover:bg-gray-50 text-gray-900'
-                                        }
-                                    `}
-                                            >
-                                                {time}
-                                            </button>
-                                        ))}
-                                </div>
-                                {!selectedDate && (
-                                    <p className="py-8 text-center text-gray-500">Selecciona una fecha para ver los horarios disponibles</p>
-                                )}
-                                {selectedDate && getFilteredTimes().length === 0 && (
-                                    <p className="py-8 text-center text-gray-500">
-                                        No hay horarios disponibles para esta fecha.
-                                        {new Date(selectedDate + 'T00:00:00').toDateString() === new Date().toDateString()
-                                            ? ' Los horarios deben ser al menos 1 hora después de la hora actual.'
-                                            : ''}
-                                    </p>
-                                )}
-                            </div>
                         </div>
-                    </div>
 
-                    {/* Detalles adicionales de la sesión */}
-                    {selectedDate && selectedTime && (
-                        <div className="mt-8">
-                            <div className="text-gray-900 bg-white border rounded-lg shadow-sm">
-                                <div className="flex flex-col space-y-1.5 p-6">
-                                    <div className="text-2xl font-semibold leading-none tracking-tight">Detalles de la Sesión</div>
-                                    <div className="text-sm text-gray-500">
+                        {selectedDate && selectedTime && (
+                            <div className="bg-white border rounded-xl shadow-sm">
+                                <div className="p-6 sm:p-8">
+                                    <h3 className="mb-2 text-lg font-semibold text-gray-900">Detalles de la Sesión</h3>
+                                    <p className="mb-8 text-sm text-gray-600">
                                         Completa la información adicional. Los campos marcados con <span className="text-red-500">*</span> son
                                         obligatorios.
-                                    </div>
-                                </div>
-                                <div className="p-6 pt-0 space-y-6">
-                                    {/* Tipo de sesión */}
-                                    <div>
-                                        <label htmlFor="session-type" className="block mb-2 text-sm font-medium text-gray-700">
-                                            Tipo de Sesión <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
-                                            id="session-type"
-                                            value={sessionType}
-                                            onChange={(e) => setSessionType(e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        >
-                                            <option value="">Selecciona el tipo de sesión</option>
-                                            {psychologist?.session_types?.map((tipo: string) => (
-                                                <option key={tipo} value={tipo}>
-                                                    {tipo}
-                                                </option>
-                                            )) || (
-                                                // Opciones por defecto si no hay datos
-                                                <>
-                                                    <option value="Individual">Individual</option>
-                                                    <option value="Pareja">Pareja</option>
-                                                    <option value="Familiar">Familiar</option>
-                                                    <option value="Grupo">Grupo</option>
-                                                </>
-                                            )}
-                                        </select>
-                                    </div>
+                                    </p>
 
-                                    {/* Enfoque terapéutico */}
-                                    <div>
-                                        <label htmlFor="therapy-approach" className="block mb-2 text-sm font-medium text-gray-700">
-                                            Enfoque Terapéutico <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
-                                            id="therapy-approach"
-                                            value={therapyApproach}
-                                            onChange={(e) => setTherapyApproach(e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        >
-                                            <option value="">Selecciona el enfoque</option>
-                                            {psychologist?.therapy_approaches?.map((enfoque: string) => (
-                                                <option key={enfoque} value={enfoque}>
-                                                    {enfoque}
-                                                </option>
-                                            )) || (
-                                                // Opciones por defecto si no hay datos
-                                                <>
-                                                    <option value="Terapia cognitivo-conductual">Terapia cognitivo-conductual</option>
-                                                    <option value="Terapia psicodinámica">Terapia psicodinámica</option>
-                                                    <option value="Terapia centrada en la persona">Terapia centrada en la persona</option>
-                                                    <option value="Terapia de sistemas familiares">Terapia de sistemas familiares</option>
-                                                </>
-                                            )}
-                                        </select>
-                                    </div>
+                                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                        <div className="space-y-2">
+                                            <label htmlFor="session-type" className="block text-sm font-medium text-gray-700">
+                                                Tipo de Sesión <span className="text-red-500">*</span>
+                                            </label>
+                                            <select
+                                                id="session-type"
+                                                value={sessionType}
+                                                onChange={(e) => setSessionType(e.target.value)}
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                                required
+                                            >
+                                                <option value="">Selecciona el tipo de sesión</option>
+                                                {psychologist?.session_types?.map((tipo: string) => (
+                                                    <option key={tipo} value={tipo}>
+                                                        {tipo}
+                                                    </option>
+                                                )) || (
+                                                    <>
+                                                        <option value="Individual">Individual</option>
+                                                        <option value="Pareja">Pareja</option>
+                                                        <option value="Familiar">Familiar</option>
+                                                        <option value="Grupo">Grupo</option>
+                                                    </>
+                                                )}
+                                            </select>
+                                        </div>
 
-                                    {/* Seguro médico */}
-                                    <div>
-                                        <label htmlFor="insurance" className="block mb-2 text-sm font-medium text-gray-700">
-                                            Seguro Médico
-                                        </label>
-                                        <select
-                                            id="insurance"
-                                            value={insurance}
-                                            onChange={(e) => setInsurance(e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                                        >
-                                            <option value="">Sin seguro médico</option>
-                                            {psychologist?.insurance_accepted?.map((obra: string) => (
-                                                <option key={obra} value={obra}>
-                                                    {obra}
-                                                </option>
-                                            )) || (
-                                                // Opciones por defecto si no hay datos
-                                                <>
-                                                    <option value="OSDE">OSDE</option>
-                                                    <option value="Swiss Medical">Swiss Medical</option>
-                                                    <option value="IOMA">IOMA</option>
-                                                    <option value="PAMI">PAMI</option>
-                                                </>
-                                            )}
-                                        </select>
-                                    </div>
+                                        <div className="space-y-2">
+                                            <label htmlFor="therapy-approach" className="block text-sm font-medium text-gray-700">
+                                                Enfoque Terapéutico <span className="text-red-500">*</span>
+                                            </label>
+                                            <select
+                                                id="therapy-approach"
+                                                value={therapyApproach}
+                                                onChange={(e) => setTherapyApproach(e.target.value)}
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                                required
+                                            >
+                                                <option value="">Selecciona el enfoque</option>
+                                                {psychologist?.therapy_approaches?.map((enfoque: string) => (
+                                                    <option key={enfoque} value={enfoque}>
+                                                        {enfoque}
+                                                    </option>
+                                                )) || (
+                                                    <>
+                                                        <option value="Terapia cognitivo-conductual">Terapia cognitivo-conductual</option>
+                                                        <option value="Terapia psicodinámica">Terapia psicodinámica</option>
+                                                        <option value="Terapia centrada en la persona">Terapia centrada en la persona</option>
+                                                        <option value="Terapia de sistemas familiares">Terapia de sistemas familiares</option>
+                                                    </>
+                                                )}
+                                            </select>
+                                        </div>
 
-                                    {/* Modalidad */}
-                                    <div>
-                                        <label htmlFor="modality" className="block mb-2 text-sm font-medium text-gray-700">
-                                            Modalidad <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
-                                            id="modality"
-                                            value={modality}
-                                            onChange={(e) => setModality(e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        >
-                                            <option value="">Selecciona modalidad</option>
-                                            {/* Si el psicólogo ofrece modalidad híbrida, permitir elegir entre presencial y en línea */}
-                                            {psychologist?.modality === 'Híbrido' ? (
-                                                <>
-                                                    <option value="Presencial">Presencial</option>
-                                                    <option value="En línea">En línea</option>
-                                                </>
-                                            ) : psychologist?.modality ? (
-                                                <option value={psychologist.modality}>{psychologist.modality}</option>
-                                            ) : (
-                                                // Opciones por defecto si no hay datos específicos
-                                                <>
-                                                    <option value="Presencial">Presencial</option>
-                                                    <option value="En línea">En línea</option>
-                                                    <option value="Híbrido">Híbrido</option>
-                                                </>
-                                            )}
-                                        </select>
-                                    </div>
+                                        <div className="space-y-2">
+                                            <label htmlFor="insurance" className="block text-sm font-medium text-gray-700">
+                                                Seguro Médico
+                                            </label>
+                                            <select
+                                                id="insurance"
+                                                value={insurance}
+                                                onChange={(e) => setInsurance(e.target.value)}
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                            >
+                                                <option value="">Sin seguro médico</option>
+                                                {psychologist?.insurance_accepted?.map((obra: string) => (
+                                                    <option key={obra} value={obra}>
+                                                        {obra}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
 
-                                    {/* Información de duración y precio (solo lectura) */}
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block mb-2 text-sm font-medium text-gray-700">Duración de la Sesión</label>
-                                            <div className="w-full px-3 py-2 text-gray-600 border border-gray-300 rounded-lg bg-gray-50">
+                                        <div className="space-y-2">
+                                            <label htmlFor="modality" className="block text-sm font-medium text-gray-700">
+                                                Modalidad <span className="text-red-500">*</span>
+                                            </label>
+                                            <select
+                                                id="modality"
+                                                value={modality}
+                                                onChange={(e) => setModality(e.target.value)}
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                                required
+                                            >
+                                                <option value="">Selecciona modalidad</option>
+                                                {psychologist?.modality === 'Híbrido' ? (
+                                                    <>
+                                                        <option value="Presencial">Presencial</option>
+                                                        <option value="En línea">En línea</option>
+                                                    </>
+                                                ) : psychologist?.modality ? (
+                                                    <option value={psychologist.modality}>{psychologist.modality}</option>
+                                                ) : (
+                                                    <>
+                                                        <option value="Presencial">Presencial</option>
+                                                        <option value="En línea">En línea</option>
+                                                        <option value="Híbrido">Híbrido</option>
+                                                    </>
+                                                )}
+                                            </select>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="block text-sm font-medium text-gray-700">Duración de la Sesión</label>
+                                            <div className="w-full px-4 py-3 text-gray-600 border border-gray-300 rounded-lg bg-gray-50">
                                                 45 minutos
                                             </div>
                                         </div>
-                                        <div>
-                                            <label className="block mb-2 text-sm font-medium text-gray-700">Precio de la Sesión</label>
-                                            <div className="w-full px-3 py-2 text-gray-600 border border-gray-300 rounded-lg bg-gray-50">
-                                                {psychologist.consultation_fee || 50000}
+
+                                        <div className="space-y-2">
+                                            <label className="block text-sm font-medium text-gray-700">Precio de la Sesión</label>
+                                            <div className="w-full px-4 py-3 text-gray-600 border border-gray-300 rounded-lg bg-gray-50">
+                                                ${psychologist.consultation_fee || 50000}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    {/* Botón de confirmación */}
-                    {selectedDate && selectedTime && sessionType && therapyApproach && modality && (
-                        <div className="mt-8">
-                            <div className="text-gray-900 bg-white border rounded-lg shadow-sm">
-                                <div className="p-6">
-                                    <h3 className="mb-4 text-lg font-semibold">Confirmar Cita</h3>
-                                    <div className="p-4 mb-4 space-y-2 rounded-lg bg-gray-50">
-                                        <p className="text-sm text-gray-600">
-                                            <strong>Fecha:</strong> {formatDisplayDate(selectedDate)}
-                                        </p>
-                                        <p className="text-sm text-gray-600">
-                                            <strong>Hora:</strong> {selectedTime}
-                                        </p>
-                                        <p className="text-sm text-gray-600">
-                                            <strong>Tipo de Sesión:</strong> {sessionType}
-                                        </p>
-                                        <p className="text-sm text-gray-600">
-                                            <strong>Enfoque Terapéutico:</strong> {therapyApproach}
-                                        </p>
-                                        <p className="text-sm text-gray-600">
-                                            <strong>Modalidad:</strong> {modality}
-                                        </p>
-                                        <p className="text-sm text-gray-600">
-                                            <strong>Duración:</strong> 45 minutos
-                                        </p>
-                                        {insurance && (
-                                            <p className="text-sm text-gray-600">
-                                                <strong>Seguro:</strong> {insurance}
-                                            </p>
-                                        )}
-                                        <p className="text-sm text-gray-600">
-                                            <strong>Precio:</strong> {psychologist.consultation_fee || 50000}
-                                        </p>
+                        {selectedDate && selectedTime && sessionType && therapyApproach && modality && (
+                            <div className="bg-white border rounded-xl shadow-sm">
+                                <div className="p-6 sm:p-8">
+                                    <h3 className="mb-6 text-lg font-semibold text-gray-900">Confirmar Cita</h3>
+
+                                    <div className="p-6 mb-8 space-y-3 border border-gray-200 rounded-lg bg-gray-50">
+                                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                            <div>
+                                                <span className="text-sm font-medium text-gray-700">Fecha:</span>
+                                                <p className="text-sm text-gray-900">{formatDisplayDate(selectedDate)}</p>
+                                            </div>
+                                            <div>
+                                                <span className="text-sm font-medium text-gray-700">Hora:</span>
+                                                <p className="text-sm text-gray-900">{selectedTime}</p>
+                                            </div>
+                                            <div>
+                                                <span className="text-sm font-medium text-gray-700">Tipo de Sesión:</span>
+                                                <p className="text-sm text-gray-900">{sessionType}</p>
+                                            </div>
+                                            <div>
+                                                <span className="text-sm font-medium text-gray-700">Modalidad:</span>
+                                                <p className="text-sm text-gray-900">{modality}</p>
+                                            </div>
+                                            <div>
+                                                <span className="text-sm font-medium text-gray-700">Enfoque:</span>
+                                                <p className="text-sm text-gray-900">{therapyApproach}</p>
+                                            </div>
+                                            <div>
+                                                <span className="text-sm font-medium text-gray-700">Duración:</span>
+                                                <p className="text-sm text-gray-900">45 minutos</p>
+                                            </div>
+                                            {insurance && (
+                                                <div>
+                                                    <span className="text-sm font-medium text-gray-700">Seguro:</span>
+                                                    <p className="text-sm text-gray-900">{insurance}</p>
+                                                </div>
+                                            )}
+                                            <div>
+                                                <span className="text-sm font-medium text-gray-700">Precio:</span>
+                                                <p className="text-sm font-semibold text-green-600">${psychologist.consultation_fee || 50000}</p>
+                                            </div>
+                                        </div>
                                     </div>
+
                                     <button
                                         onClick={handleSubmitAppointment}
                                         disabled={loading}
-                                        className={`w-full font-medium py-3 px-4 rounded-lg transition-colors ${
-                                            loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+                                        className={`w-full font-medium py-4 px-6 rounded-lg transition-all duration-200 ${
+                                            loading
+                                                ? 'bg-gray-400 cursor-not-allowed'
+                                                : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
                                         } text-white`}
                                     >
-                                        {loading ? 'Enviando...' : 'Confirmar Cita'}
+                                        {loading ? (
+                                            <div className="flex items-center justify-center gap-2">
+                                                <div className="w-4 h-4 border-2 border-white rounded-full animate-spin border-t-transparent"></div>
+                                                Enviando...
+                                            </div>
+                                        ) : (
+                                            'Confirmar Cita'
+                                        )}
                                     </button>
                                 </div>
                             </div>
-                        </div>
-                    )}
-
-                    <div></div>
-                </>
-            )}
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

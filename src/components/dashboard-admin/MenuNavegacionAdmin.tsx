@@ -18,18 +18,39 @@ interface Paciente {
 
 interface MenuNavegacionAdminProps {
     data: Paciente[];
+    onUserUpdate?: (userId: string, updates: Partial<Paciente>) => void;
+    onRefreshData?: () => void;
 }
 
-const MenuNavegacionAdmin = ({ data }: MenuNavegacionAdminProps) => {
+const MenuNavegacionAdmin = ({ data, onUserUpdate, onRefreshData }: MenuNavegacionAdminProps) => {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pestañaInicial = searchParams?.get("tab") || "pacientes";
     const [pestañaActiva, setpestañaActiva] = useState(pestañaInicial);
+    const [usersData, setUsersData] = useState<Paciente[]>(data);
+
+    // Sincronizar con nuevos datos cuando cambien las props
+    useEffect(() => {
+        setUsersData(data);
+    }, [data]);
 
     useEffect(() => {
         const tab = searchParams?.get('tab');
         if (tab) setpestañaActiva(tab);
     }, [searchParams]);
+
+    // Función para actualizar el estado global de usuarios
+    const updateUserInGlobalState = (userId: string, updates: Partial<Paciente>) => {
+        setUsersData(prevData => 
+            prevData.map(user => 
+                user.id === userId 
+                    ? { ...user, ...updates }
+                    : user
+            )
+        );
+        // También actualizar el estado del componente padre si se proporciona la función
+        onUserUpdate?.(userId, updates);
+    };
 
     const cambiarPestaña = (id: string) => {
         setpestañaActiva(id);
@@ -37,12 +58,12 @@ const MenuNavegacionAdmin = ({ data }: MenuNavegacionAdminProps) => {
     };
 
   const pestañas = [
-    { id: "pacientes", label: "Pacientes", component: <UserPacientes data={data} /> },
-    { id: "profesionales", label: "Profesionales", component: <UserProfessionals data={data} /> },
+    { id: "pacientes", label: "Pacientes", component: <UserPacientes data={usersData} onUserUpdate={updateUserInGlobalState} /> },
+    { id: "profesionales", label: "Profesionales", component: <UserProfessionals data={usersData} onUserUpdate={updateUserInGlobalState} /> },
     { id: "reseñas", label: "Reseñas", component: <ReseñasAdmin /> },
     { id: "turnos", label: "Turnos", component: <TurnosAdmin /> },
-    { id: "administradores", label: "Administradores", component: <UserAdministrators data={data} /> },
-    { id: "baneados", label: "Usuarios Baneados", component: <BannedUsers /> },
+    { id: "administradores", label: "Administradores", component: <UserAdministrators data={usersData} onUserUpdate={updateUserInGlobalState} /> },
+    { id: "baneados", label: "Usuarios Baneados", component: <BannedUsers onUserUpdate={updateUserInGlobalState} onUserUnbanned={() => onRefreshData?.()} /> },
   ]
 
   const handleTabChange = (newTab: string) => {
