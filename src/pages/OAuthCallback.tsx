@@ -1,4 +1,6 @@
 'use client';
+
+import Cookies from 'js-cookie';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -11,7 +13,7 @@ export default function OAuthCallback() {
 
     if (token) {
       // Guardar token
-      localStorage.setItem('auth_token', token);
+      Cookies.set('auth_token', token);
 
       // Limpiar la URL (sacamos el query param)
       window.history.replaceState({}, document.title, window.location.pathname);

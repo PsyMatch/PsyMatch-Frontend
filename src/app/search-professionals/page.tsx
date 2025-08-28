@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { Search, ChevronDown, Funnel, MapPin, Users, Video, Calendar } from 'lucide-react';
+import { Search, ChevronDown, Funnel, Star, MapPin, Users, Video, Calendar } from 'lucide-react';
 import { psychologistsService, PsychologistResponse } from '@/services/psychologists';
 import { mapsService } from '@/services/maps';
 import { usersApi } from '@/services/users';
@@ -31,7 +31,7 @@ const Filter = () => {
     const [precioMin, setPrecioMin] = useState('');
     const [precioMax, setPrecioMax] = useState('');
     const [distanciaMax, setDistanciaMax] = useState('');
-    const [distanciaMaxInput, setDistanciaMaxInput] = useState('');
+    const [distanciaMaxInput, setDistanciaMaxInput] = useState(''); // Valor interno del input
     const [modalidadSeleccionada, setModalidadSeleccionada] = useState('');
     const [idiomaSeleccionado, setIdiomaSeleccionado] = useState('');
     const [obraSocialSeleccionada, setObraSocialSeleccionada] = useState('');
@@ -52,6 +52,7 @@ const Filter = () => {
         router.push('/login');
     }, [router]);
 
+    // Función para obtener la dirección del usuario
     const getUserAddress = useCallback(async (): Promise<string> => {
         try {
             const authToken = getAuthToken();
@@ -83,6 +84,7 @@ const Filter = () => {
         return 50000;
     }, []);
 
+    // Función para cargar distancias de psicólogos para filtrado
     const loadPsychologistsWithDistances = useCallback(async () => {
         if (!distanciaMax || parseFloat(distanciaMax) === 0) {
             setPsychologistsWithDistance(psychologists);
@@ -94,19 +96,24 @@ const Filter = () => {
             setIsLoadingDistances(true);
             setDistanceError('');
 
+            // Obtener la dirección del usuario (valida que esté configurada)
             await getUserAddress();
 
             const maxDistanceKm = parseFloat(distanciaMax);
             const nearbyResponse = await mapsService.getNearbyPsychologists(maxDistanceKm);
 
+            // Crear un mapa de distancias por email de psicólogo (convertir metros a kilómetros)
             const distanceMap = new Map<string, number>();
             nearbyResponse.psychologists.forEach((psycho) => {
+                // Convertir distancia de metros a kilómetros
                 const distanceKm = psycho.distance / 1000;
                 distanceMap.set(psycho.email, distanceKm);
             });
 
+            // Filtrar solo los psicólogos que están en el response del backend (dentro del rango)
             const psychologistsInRange = psychologists.filter((psycho) => distanceMap.has(psycho.email));
 
+            // Agregar distancias a los psicólogos filtrados
             const psychologistsWithDist = psychologistsInRange.map((psycho) => ({
                 ...psycho,
                 distance: distanceMap.get(psycho.email)!,
@@ -116,6 +123,7 @@ const Filter = () => {
         } catch (error) {
             console.error('Error loading distances:', error);
 
+            // Si hay error al cargar distancias, mostrar mensaje informativo
             if (error instanceof Error) {
                 if (error.message.includes('Usuario no tiene dirección configurada')) {
                     setDistanceError('Para usar el filtro de distancia, necesitas configurar tu dirección en tu perfil.');
@@ -133,21 +141,26 @@ const Filter = () => {
         }
     }, [psychologists, distanciaMax, getUserAddress, redirectToLogin]);
 
+    // Función para cargar TODAS las distancias para ordenamiento (sin filtrar por rango)
     const loadAllDistancesForSorting = useCallback(async () => {
         try {
             setIsLoadingDistances(true);
             setDistanceError('');
 
+            // Obtener la dirección del usuario (valida que esté configurada)
             await getUserAddress();
 
+            // Usar un rango muy grande para obtener todas las distancias (1000 km)
             const nearbyResponse = await mapsService.getNearbyPsychologists(1000);
 
+            // Crear un mapa de distancias por email de psicólogo (convertir metros a kilómetros)
             const distanceMap = new Map<string, number>();
             nearbyResponse.psychologists.forEach((psycho) => {
                 const distanceKm = psycho.distance / 1000;
                 distanceMap.set(psycho.email, distanceKm);
             });
 
+            // Agregar distancias a TODOS los psicólogos (no filtrar por rango)
             const psychologistsWithDist = psychologists.map((psycho) => ({
                 ...psycho,
                 distance: distanceMap.get(psycho.email) || undefined,
@@ -174,6 +187,7 @@ const Filter = () => {
         }
     }, [psychologists, getUserAddress, redirectToLogin]);
 
+    // Cargar distancias cuando cambie el filtro de distancia (con debounce)
     useEffect(() => {
         if (distanciaMaxInput !== distanciaMax) {
             setIsDistanceInputPending(true);
@@ -182,11 +196,12 @@ const Filter = () => {
         const timeoutId = setTimeout(() => {
             setDistanciaMax(distanciaMaxInput);
             setIsDistanceInputPending(false);
-        }, 800);
+        }, 800); // Esperar 800ms después de que el usuario deje de escribir
 
         return () => clearTimeout(timeoutId);
     }, [distanciaMaxInput, distanciaMax]);
 
+    // Cargar distancias cuando cambie el filtro de distancia
     useEffect(() => {
         if (psychologists.length > 0) {
             loadPsychologistsWithDistances();
@@ -243,6 +258,8 @@ const Filter = () => {
         (filters: {
             precioMin: string;
             precioMax: string;
+            distanciaMax: string;
+            distanciaMaxInput: string;
             modalidadSeleccionada: string;
             idiomaSeleccionado: string;
             obraSocialSeleccionada: string;
@@ -313,6 +330,8 @@ const Filter = () => {
             if (savedFilters) {
                 setPrecioMin(savedFilters.precioMin || '');
                 setPrecioMax(savedFilters.precioMax || '');
+                setDistanciaMax(savedFilters.distanciaMax || '');
+                setDistanciaMaxInput(savedFilters.distanciaMaxInput || '');
                 setModalidadSeleccionada(savedFilters.modalidadSeleccionada || '');
                 setIdiomaSeleccionado(savedFilters.idiomaSeleccionado || '');
                 setObraSocialSeleccionada(savedFilters.obraSocialSeleccionada || '');
@@ -359,6 +378,8 @@ const Filter = () => {
             const currentFilters = {
                 precioMin,
                 precioMax,
+                distanciaMax,
+                distanciaMaxInput,
                 modalidadSeleccionada,
                 idiomaSeleccionado,
                 obraSocialSeleccionada,
@@ -379,6 +400,8 @@ const Filter = () => {
     }, [
         precioMin,
         precioMax,
+        distanciaMax,
+        distanciaMaxInput,
         modalidadSeleccionada,
         idiomaSeleccionado,
         obraSocialSeleccionada,
@@ -588,7 +611,7 @@ const Filter = () => {
                                 value={busqueda}
                                 onChange={(e) => setBusqueda(e.target.value)}
                                 className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base placeholder:text-gray-400 pl-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                                placeholder="Buscar por nombre, especialidad o síntomas..."
+                                placeholder="Buscar por nombre..."
                             />
                         </div>
                     </div>
@@ -1039,15 +1062,17 @@ const Filter = () => {
                 <div className="lg:w-3/4">
                     <div className="mb-6 flex items-center justify-between">
                         <div>
-                            <p className="text-gray-600">
-                                {psicologosFiltrados.length} terapeutas encontrados
-                                {distanciaMax && parseFloat(distanciaMax) > 0 && psychologistsWithDistance.length > 0 && (
-                                    <span className="text-blue-600 ml-1">dentro de {distanciaMax} km</span>
-                                )}
-                                {(ordenamientoSeleccionado === 'distance_asc' || ordenamientoSeleccionado === 'distance_desc') &&
-                                    (!distanciaMax || parseFloat(distanciaMax) === 0) &&
-                                    psychologistsWithDistance.length > 0 && <span className="text-green-600 ml-1">ordenados por distancia</span>}
-                            </p>
+                            {!isLoadingDistances && !isDistanceInputPending && (
+                                <p className="text-gray-600">
+                                    {psicologosFiltrados.length} terapeutas encontrados
+                                    {distanciaMax && parseFloat(distanciaMax) > 0 && psychologistsWithDistance.length > 0 && (
+                                        <span className="text-blue-600 ml-1">dentro de {distanciaMax} km</span>
+                                    )}
+                                    {(ordenamientoSeleccionado === 'distance_asc' || ordenamientoSeleccionado === 'distance_desc') &&
+                                        (!distanciaMax || parseFloat(distanciaMax) === 0) &&
+                                        psychologistsWithDistance.length > 0 && <span className="text-green-600 ml-1">ordenados por distancia</span>}
+                                </p>
+                            )}
                             {((distanciaMax && parseFloat(distanciaMax) > 0) ||
                                 ordenamientoSeleccionado === 'distance_asc' ||
                                 ordenamientoSeleccionado === 'distance_desc') &&
@@ -1064,8 +1089,8 @@ const Filter = () => {
                                     >
                                         <div className="p-6">
                                             <div className="mb-4">
-                                                <div className="flex justify-between">
-                                                    <div>
+                                                <div className="flex items-start justify-between">
+                                                    <div className="flex">
                                                         <Image
                                                             alt={psicologo.name}
                                                             className="w-16 h-16 rounded-full mr-4"
