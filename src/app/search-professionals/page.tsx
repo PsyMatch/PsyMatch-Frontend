@@ -250,7 +250,7 @@ const Filter = () => {
     const [tipoTerapiaAbierto, setTipoTerapiaAbierto] = useState(false);
     const [ordenamientoAbierto, setOrdenamientoAbierto] = useState(false);
 
-    const [ordenamientoSeleccionado, setOrdenamientoSeleccionado] = useState('rating');
+    const [ordenamientoSeleccionado, setOrdenamientoSeleccionado] = useState('default');
 
     const FILTERS_STORAGE_KEY = 'search-professionals-filters';
 
@@ -339,7 +339,7 @@ const Filter = () => {
                 setDisponibilidadSeleccionada(savedFilters.disponibilidadSeleccionada || []);
                 setEnfoquesTerapiaSeleccionados(savedFilters.enfoquesTerapiaSeleccionados || []);
                 setEspecialidadesSeleccionadas(savedFilters.especialidadesSeleccionadas || []);
-                setOrdenamientoSeleccionado(savedFilters.ordenamientoSeleccionado || 'rating');
+                setOrdenamientoSeleccionado(savedFilters.ordenamientoSeleccionado || 'default');
                 setBusqueda(savedFilters.busqueda || '');
             }
 
@@ -366,7 +366,7 @@ const Filter = () => {
         setDisponibilidadSeleccionada([]);
         setEnfoquesTerapiaSeleccionados([]);
         setEspecialidadesSeleccionadas([]);
-        setOrdenamientoSeleccionado('rating');
+        setOrdenamientoSeleccionado('default');
         setBusqueda('');
         setPsychologistsWithDistance([]);
         setDistanceError('');
@@ -544,8 +544,8 @@ const Filter = () => {
         });
 
         switch (ordenamientoSeleccionado) {
-            case 'rating':
-                resultado = resultado.sort((a, b) => a.name.localeCompare(b.name));
+            case 'default':
+                resultado = resultado;
                 break;
             case 'price_asc':
                 resultado = resultado.sort((a, b) => {
@@ -611,7 +611,7 @@ const Filter = () => {
                                 value={busqueda}
                                 onChange={(e) => setBusqueda(e.target.value)}
                                 className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base placeholder:text-gray-400 pl-10 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                                placeholder="Buscar por nombre, especialidad o síntomas..."
+                                placeholder="Buscar por nombre..."
                             />
                         </div>
                     </div>
@@ -1062,15 +1062,17 @@ const Filter = () => {
                 <div className="lg:w-3/4">
                     <div className="mb-6 flex items-center justify-between">
                         <div>
-                            <p className="text-gray-600">
-                                {psicologosFiltrados.length} terapeutas encontrados
-                                {distanciaMax && parseFloat(distanciaMax) > 0 && psychologistsWithDistance.length > 0 && (
-                                    <span className="text-blue-600 ml-1">dentro de {distanciaMax} km</span>
-                                )}
-                                {(ordenamientoSeleccionado === 'distance_asc' || ordenamientoSeleccionado === 'distance_desc') &&
-                                    (!distanciaMax || parseFloat(distanciaMax) === 0) &&
-                                    psychologistsWithDistance.length > 0 && <span className="text-green-600 ml-1">ordenados por distancia</span>}
-                            </p>
+                            {!isLoadingDistances && !isDistanceInputPending && (
+                                <p className="text-gray-600">
+                                    {psicologosFiltrados.length} terapeutas encontrados
+                                    {distanciaMax && parseFloat(distanciaMax) > 0 && psychologistsWithDistance.length > 0 && (
+                                        <span className="text-blue-600 ml-1">dentro de {distanciaMax} km</span>
+                                    )}
+                                    {(ordenamientoSeleccionado === 'distance_asc' || ordenamientoSeleccionado === 'distance_desc') &&
+                                        (!distanciaMax || parseFloat(distanciaMax) === 0) &&
+                                        psychologistsWithDistance.length > 0 && <span className="text-green-600 ml-1">ordenados por distancia</span>}
+                                </p>
+                            )}
                             {((distanciaMax && parseFloat(distanciaMax) > 0) ||
                                 ordenamientoSeleccionado === 'distance_asc' ||
                                 ordenamientoSeleccionado === 'distance_desc') &&
@@ -1086,26 +1088,24 @@ const Filter = () => {
                                         className="rounded-lg border bg-white text-gray-900 shadow-sm hover:shadow-lg transition-shadow"
                                     >
                                         <div className="p-6">
-                                            <div className="flex items-start justify-between mb-4">
-                                                <div className="flex items-start">
-                                                    <Image
-                                                        alt={psicologo.name}
-                                                        className="w-16 h-16 rounded-full mr-4"
-                                                        src={psicologo.profile_picture || '/person-gray-photo-placeholder-woman.webp'}
-                                                        width={80}
-                                                        height={80}
-                                                    />
-                                                    <div>
-                                                        <div className="flex items-center mb-2">
-                                                            <h3 className="text-lg font-semibold mr-2">Dr/a {psicologo.name}</h3>
-                                                        </div>
-                                                        <div className="flex items-center text-sm text-gray-600 mb-2">
-                                                            <Star className="h-4 w-4 mr-1" strokeWidth={2} />
-                                                            <span className="text-sm text-gray-600">4.8 (12 reseñas)</span>
-                                                        </div>
-                                                        <div className="flex items-center text-sm text-gray-600 mb-2">
-                                                            <MapPin className="h-4 w-4 mr-1" strokeWidth={2} />
-                                                            {psicologo.office_address || 'Consulta disponible'}
+                                            <div className="mb-4">
+                                                <div className="flex items-start justify-between">
+                                                    <div className="flex">
+                                                        <Image
+                                                            alt={psicologo.name}
+                                                            className="w-16 h-16 rounded-full mr-4"
+                                                            src={psicologo.profile_picture || '/person-gray-photo-placeholder-woman.webp'}
+                                                            width={80}
+                                                            height={80}
+                                                        />
+                                                        <div>
+                                                            <div className="flex items-center mb-2">
+                                                                <h3 className="text-lg font-semibold mr-2">Dr/a {psicologo.name}</h3>
+                                                            </div>
+                                                            <div className="flex items-center text-sm text-gray-600 mb-2">
+                                                                <MapPin className="h-4 w-4 mr-1" strokeWidth={2} />
+                                                                {psicologo.office_address || 'Consulta disponible'}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
@@ -1228,7 +1228,7 @@ const Filter = () => {
                                                 <div className="mb-3">
                                                     <span className="text-xs font-medium text-gray-700 mb-1 block">Disponibilidad:</span>
                                                     <div className="flex flex-wrap gap-1">
-                                                        {psicologo.availability.slice(0, 4).map((horario, index) => (
+                                                        {psicologo.availability.map((horario, index) => (
                                                             <span
                                                                 key={index}
                                                                 className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800"
@@ -1236,11 +1236,6 @@ const Filter = () => {
                                                                 {horario}
                                                             </span>
                                                         ))}
-                                                        {psicologo.availability.length > 4 && (
-                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">
-                                                                +{psicologo.availability.length - 4} más
-                                                            </span>
-                                                        )}
                                                     </div>
                                                 </div>
                                             )}
