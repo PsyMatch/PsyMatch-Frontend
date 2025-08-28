@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { Search, ChevronDown, Funnel, Star, MapPin, Users, Video, Calendar } from 'lucide-react';
+import { Search, ChevronDown, Funnel, MapPin, Users, Video, Calendar } from 'lucide-react';
 import { psychologistsService, PsychologistResponse } from '@/services/psychologists';
 import { mapsService } from '@/services/maps';
 import { usersApi } from '@/services/users';
@@ -127,7 +127,7 @@ const Filter = () => {
         } finally {
             setIsLoadingDistances(false);
         }
-    }, [psychologists, distanciaMax, getUserAddress, redirectToLogin]);
+    }, [psychologists, distanciaMax, getUserAddress]);
 
     // Función para cargar TODAS las distancias para ordenamiento (sin filtrar por rango)
     const loadAllDistancesForSorting = useCallback(async () => {

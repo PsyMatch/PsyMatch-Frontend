@@ -236,7 +236,7 @@ const PerfilUser = () => {
             }
         };
         fetchUser();
-    }, []);
+    }, [router]);
 
 
     const extractPhoneNumber = (text: string) => {
