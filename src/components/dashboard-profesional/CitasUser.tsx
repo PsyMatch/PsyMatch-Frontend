@@ -82,7 +82,7 @@ const CitasUser = () => {
         if (!confirmed) return;
 
         try {
-            await appointmentsService.cancelAppointment(id);
+            await appointmentsService.deleteAppointment(id);
             setCitas((prev) => prev.map((cita) => (cita.id === id ? { ...cita, status: 'cancelled' } : cita)));
             notifications.success('Cita cancelada exitosamente.');
         } catch (error) {
