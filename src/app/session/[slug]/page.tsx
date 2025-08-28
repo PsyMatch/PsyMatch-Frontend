@@ -445,7 +445,13 @@ const SessionPage = () => {
                                 <MercadoPagoPayment
                                     amount={psychologist.consultation_fee || 5000}
                                     appointmentId={createdAppointment.id}
-                                    onSuccess={handlePaymentSuccess}
+                                    onSuccess={(data) => {
+                                        // Guardar appointmentId en sessionStorage para usar en payment success
+                                        if (typeof window !== 'undefined') {
+                                            sessionStorage.setItem('current_appointment_id', createdAppointment.id);
+                                        }
+                                        handlePaymentSuccess(data);
+                                    }}
                                     onError={handlePaymentError}
                                     disabled={loading}
                                 />
