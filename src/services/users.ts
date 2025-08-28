@@ -105,36 +105,21 @@ export const usersApi = {
     return response.json();
   },
 
-  // Verificar si faltan datos obligatorios del perfil
   checkMissingData: (user: User): boolean => {
     if (!user) return false;
     
-    // Solo mostrar el modal si el usuario se registró con Google
     if (user.provider !== 'google') {
       return false;
     }
     
-    const requiredFields = ['alias', 'phone', 'birthdate', 'address', 'emergency_contact', 'health_insurance'];
+    // Solo validamos campos obligatorios (emergency_contact y health_insurance son opcionales)
+    const requiredFields = ['alias', 'phone', 'birthdate', 'address'];
     
     const missingFields = requiredFields.filter(field => {
       const value = user[field as keyof User];
       return !value || value === '' || value === null || value === undefined || 
              (typeof value === 'string' && value.trim() === '');
     });
-    
-    /* Debug: log para verificar qué campos faltan
-    if (missingFields.length > 0) {
-      console.log('Usuario registrado con Google - Campos faltantes:', missingFields);
-      console.log('Datos del usuario:', {
-        provider: user.provider,
-        alias: user.alias,
-        phone: user.phone,
-        birthdate: user.birthdate,
-        address: user.address,
-        emergency_contact: user.emergency_contact,
-        health_insurance: user.health_insurance
-      });
-    }*/
     
     return missingFields.length > 0;
   },
