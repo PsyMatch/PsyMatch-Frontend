@@ -5,7 +5,6 @@ import React, { useState } from 'react';
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { dataToSave, getCookieObject } from '@/helpers/formRegister/helpers';
-import { useFotoDePerfil } from '@/context/fotoDePerfil';
 import { useAuthProfessionalContext } from '@/context/registerProfessional';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';

@@ -104,6 +104,7 @@ export const MissingDataModal: React.FC<MissingDataModalProps> = ({ open, onSave
             newErrors.address = 'La dirección debe tener al menos 3 caracteres';
         }
 
+        // Emergency contact es opcional, solo validar formato si se proporciona
         if (formData.emergency_contact?.trim() && formData.emergency_contact.length < 10) {
             newErrors.emergency_contact = 'Debe incluir nombre, teléfono y relación (ej: María Pérez - +5411987654321 - Madre)';
         }

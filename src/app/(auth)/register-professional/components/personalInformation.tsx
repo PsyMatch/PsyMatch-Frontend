@@ -12,7 +12,6 @@ import { envs } from '@/config/envs.config';
 import DniField from '@/components/register-professional-validation/DniField';
 import PhoneField from '@/components/register-professional-validation/PhoneField';
 import EmailField from '@/components/register-professional-validation/EmailField';
-import { useAuthProfessionalContext } from '@/context/registerProfessional';
 
 
 const PersonalInformation = () => {
@@ -101,6 +100,7 @@ const PersonalInformation = () => {
             .required('Confirmar contraseña es obligatorio'),
         birthdate: Yup.date()
             .required('La fecha de nacimiento es obligatoria')
+            .max(new Date(), 'La fecha de nacimiento no puede ser futura')
             .max(haceDieciochoAños, 'Debes ser mayor de 18 años')
             .typeError('Debe ser una fecha válida'),
         dni: Yup.string()

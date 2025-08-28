@@ -16,11 +16,21 @@ import Cookies from 'js-cookie';
 import { envs } from '@/config/envs.config';
 import { useNotifications } from '@/hooks/useNotifications';
 import { triggerAuthStateChange } from '@/utils/auth';
+import EmailField from '../register-professional-validation/EmailField';
+import PhoneField from '../register-professional-validation/PhoneField';
+import DniField from '../register-professional-validation/DniField';
+
+const today = new Date();
+const haceDieciochoAños = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
 
 const RegisterSchema = Yup.object().shape({
     fullName: Yup.string().min(2, 'El nombre debe tener al menos 2 caracteres').required('El nombre completo es requerido'),
     alias: Yup.string().min(2, 'El alias debe tener al menos 2 caracteres'),
-    birthDate: Yup.date().max(new Date(), 'La fecha de nacimiento no puede ser futura').required('La fecha de nacimiento es requerida'),
+    birthDate: Yup.date()
+        .max(new Date(), 'La fecha de nacimiento no puede ser futura')
+        .required('La fecha de nacimiento es obligatoria')
+        .max(haceDieciochoAños, 'Debes ser mayor de 18 años')
+        .typeError('Debe ser una fecha válida'),
     phone: Yup.string().min(10, 'Número de teléfono demasiado corto').required('El número de teléfono es requerido'),
     email: Yup.string().email('Correo electrónico inválido').required('El correo electrónico es requerido'),
     password: Yup.string()
@@ -362,45 +372,18 @@ export default function RegisterForm() {
                                 />
                             </div>
 
-                            <div className="mt-2 md:col-span-1">
-                                <CustomInput
-                                    label="Correo electrónico *"
-                                    id="email"
-                                    type="email"
-                                    name="email"
-                                    placeholder="ejemplo@correo.com"
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                    value={values.email}
-                                    error={errors.email && touched.email && errors.email}
-                                />
+                            <div className='mt-3'>
+                                <EmailField />
                             </div>
 
-                            <div className="mt-2 md:col-span-1">
-                                <CustomInput
-                                    label="DNI *"
-                                    id="dni"
-                                    name="dni"
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                    value={values.dni}
-                                    error={errors.dni && touched.dni && errors.dni}
-                                    placeholder="12345678"
-                                />
+                            <div className='mt-2'>
+                                <DniField />
                             </div>
 
-                            <div className="mt-2 md:col-span-1">
-                                <CustomPhoneInput
-                                    label="Número de teléfono *"
-                                    id="phone"
-                                    name="phone"
-                                    placeholder="11 2345-6789"
-                                    value={values.phone}
-                                    onChange={(phone) => handleChange({ target: { name: 'phone', value: phone } })}
-                                    onBlur={() => handleBlur({ target: { name: 'phone' } })}
-                                    error={errors.phone && touched.phone && errors.phone}
-                                />
+                            <div className='mt-2'>
+                                <PhoneField />
                             </div>
+                            
                         </div>
 
                         <div className="mt-2 md:col-span-1">

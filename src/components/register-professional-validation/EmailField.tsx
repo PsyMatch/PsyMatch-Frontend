@@ -47,7 +47,7 @@ const EmailField = () => {
           onBlur={() => helpers.setTouched(true)}
         />
       </div>
-      {meta.touched && meta.error && <div className="mt-1 text-red-500">{meta.error}</div>}
+      {meta.touched && meta.error && <div className="mt-1 text-xs text-red-500">{meta.error}</div>}
     </div>
   );
 };

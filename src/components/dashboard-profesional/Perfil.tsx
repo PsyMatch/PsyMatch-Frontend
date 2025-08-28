@@ -302,7 +302,7 @@ const Perfil = () => {
                         </span>
                     ))}
                 </div>
-                <div className="flex flex-col items-center justify-center mt-6">
+                <div className='flex flex-col items-center justify-center mt-6'>
                     <span>Haz click en &quot;Editar&quot; para modificar tu perfil</span>
                     <button onClick={abrirModal} className="px-4 mt-1 text-violet-600 hover:underline">
                         ¿Quieres cambiar tu contraseña?

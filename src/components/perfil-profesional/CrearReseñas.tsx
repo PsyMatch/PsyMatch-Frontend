@@ -34,6 +34,7 @@ const CrearReseñas = ({ psychologistId, psychologistName, onReviewCreated }: Cr
         error: canReviewError,
         hasAlreadyReviewed,
         hasCompletedAppointments,
+        isOwnProfile,
     } = useCanReview(psychologistId);
 
     const validateForm = (): boolean => {
@@ -138,6 +139,8 @@ const CrearReseñas = ({ psychologistId, psychologistName, onReviewCreated }: Cr
         } else if (hasAlreadyReviewed) {
             title = 'Ya has dejado una reseña';
             message = 'Ya has enviado una reseña para este psicólogo. Solo puedes dejar una reseña por profesional.';
+        } else if(isOwnProfile) {
+            message = 'No te puedes hacer una reseña a vos mismo.';
         } else if (!hasCompletedAppointments) {
             message = 'No puedes enviar una reseña porque no has tenido sesiones completadas con este psicólogo aún.';
         } else {
