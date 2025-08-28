@@ -5,7 +5,6 @@ const getAuthToken = () => {
     const token = localStorage.getItem('authToken') || 
                   Cookies.get('authToken') || 
                   Cookies.get('auth_token');
-    // console.log('🔑 Token obtenido:', token ? 'Token presente' : 'Token NO encontrado');
     return token;
 };
 
@@ -341,6 +340,35 @@ export const adminService = {
             }
         } catch (error) {
             console.error('Error obteniendo estadísticas:', error);
+            return { success: false, message: 'Error de conexión' };
+        }
+    },
+
+    // Obtener reporte de pagos semanales
+    getWeeklyPaymentsReport: async (): Promise<{ 
+        success: boolean; 
+        data?: Array<{
+            week: string;
+            total_payments: number;
+            total_revenue: number;
+            average_payment: number;
+        }>; 
+        message?: string 
+    }> => {
+        try {
+            const response = await fetch(`${envs.next_public_api_url}/admin/reports/payments/weekly`, {
+                headers: getAuthHeaders(),
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                return { success: true, data: result.data };
+            } else {
+                const errorData = await response.text();
+                return { success: false, message: errorData };
+            }
+        } catch (error) {
+            console.error('Error obteniendo reporte de pagos semanales:', error);
             return { success: false, message: 'Error de conexión' };
         }
     },

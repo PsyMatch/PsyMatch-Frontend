@@ -123,18 +123,6 @@ const Filter = () => {
         } catch (error) {
             console.error('Error loading distances:', error);
 
-            // Si hay error al cargar distancias, mostrar mensaje informativo
-            if (error instanceof Error) {
-                if (error.message.includes('Usuario no tiene dirección configurada')) {
-                    setDistanceError('Para usar el filtro de distancia, necesitas configurar tu dirección en tu perfil.');
-                } else if (error.message.includes('Authentication failed')) {
-                    redirectToLogin();
-                    return;
-                } else {
-                    setDistanceError('Error al calcular distancias. Intenta nuevamente.');
-                }
-            }
-
             setPsychologistsWithDistance(psychologists);
         } finally {
             setIsLoadingDistances(false);
@@ -176,9 +164,10 @@ const Filter = () => {
                 } else if (error.message.includes('Authentication failed')) {
                     redirectToLogin();
                     return;
-                } else {
-                    setDistanceError('Error al calcular distancias. Intenta nuevamente.');
-                }
+                } 
+                //else {
+                //    setDistanceError('Error al calcular distancias. Intenta nuevamente.');
+                //}
             }
 
             setPsychologistsWithDistance(psychologists);

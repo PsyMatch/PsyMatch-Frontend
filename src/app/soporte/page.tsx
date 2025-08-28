@@ -11,16 +11,12 @@ const SoportePage = () => {
             respuesta: "Ofrecemos ambas modalidades. Puedes elegir sesiones presenciales en el consultorio del psicólogo o sesiones virtuales desde la comodidad de tu hogar. La efectividad es la misma en ambos casos."
         },
         {
-            pregunta: "¿Qué pasa si necesito cancelar o reprogramar una sesión?",
-            respuesta: "Puedes cancelar o reprogramar tu sesión hasta 24 horas antes sin ningún costo adicional. Si cancelas con menos tiempo, se aplicará una tarifa del 50% del valor de la sesión."
+            pregunta: "¿Qué pasa si necesito cancelar una sesión?",
+            respuesta: "Puedes cancelar tu sesión hasta 24 horas antes sin ningún costo adicional. Si cancelas con menos tiempo, se aplicará una tarifa del 50% del valor de la sesión."
         },
         {
             pregunta: "¿Cómo garantizan la confidencialidad?",
             respuesta: "Todos nuestros psicólogos están sujetos al secreto profesional. Además, nuestra plataforma cumple con todos los estándares de seguridad y privacidad de datos. Tu información personal y las sesiones están completamente protegidas."
-        },
-        {
-            pregunta: "¿Ofrecen algún tipo de garantía?",
-            respuesta: "Sí, si no estás satisfecho con tu primera sesión, te ofrecemos una segunda sesión gratuita con otro psicólogo de nuestra red. Tu bienestar es nuestra prioridad."
         },
         {
             pregunta: "¿Puedo cambiar de psicólogo si no me siento cómodo?",
@@ -34,29 +30,8 @@ const SoportePage = () => {
             titulo: "Email",
             descripcion: "psymatch.contact@gmail.com",
             contacto: "Enviar Email",
-            accion: "mailto:psymatch.contact@gmail.com"
+            accion: "https://mail.google.com/mail/?view=cm&fs=1&to=psymatch.contact@gmail.com"
         },
-        {
-            icono: <Phone className="w-8 h-8 text-green-600" />,
-            titulo: "Teléfono",
-            descripcion: "Lunes a Viernes, 9:00 - 18:00",
-            contacto: "+54 11 4567-8900",
-            accion: "tel:+5411456789000"
-        },
-        {
-            icono: <MessageCircle className="w-8 h-8 text-purple-600" />,
-            titulo: "Chat en Vivo",
-            descripcion: "Disponible 24/7",
-            contacto: "Iniciar Chat",
-            accion: "#"
-        },
-        {
-            icono: <MapPin className="w-8 h-8 text-red-600" />,
-            titulo: "Oficina Central",
-            descripcion: "Visítanos en persona",
-            contacto: "Av. Corrientes 1234, CABA",
-            accion: "https://maps.google.com"
-        }
     ];
 
     const tiposSoporte = [
@@ -73,7 +48,7 @@ const SoportePage = () => {
         {
             icono: <FileText className="w-12 h-12 text-purple-600" />,
             titulo: "Facturación",
-            descripcion: "Consultas sobre pagos, reembolsos, planes"
+            descripcion: "Consultas sobre pagos y reembolsos"
         }
     ];
 
@@ -118,21 +93,23 @@ const SoportePage = () => {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {canalesContacto.map((canal, index) => (
-                            <a 
-                                key={index}
-                                href={canal.accion}
-                                className="group p-6 rounded-xl border-2 border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg text-center"
-                            >
-                                <div className="flex justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                                    {canal.icono}
-                                </div>
-                                <h3 className="text-lg font-semibold text-gray-900 mb-2">{canal.titulo}</h3>
-                                <p className="text-sm text-gray-600 mb-3">{canal.descripcion}</p>
-                                <p className="text-blue-600 font-medium group-hover:text-blue-700">{canal.contacto}</p>
-                            </a>
-                        ))}
+                    <div className="flex justify-center">
+                        <div className="grid grid-cols-1 gap-6 max-w-md">
+                            {canalesContacto.map((canal, index) => (
+                                <a 
+                                    key={index}
+                                    href={canal.accion}
+                                    className="group p-6 rounded-xl border-2 border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg text-center"
+                                >
+                                    <div className="flex justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                                        {canal.icono}
+                                    </div>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{canal.titulo}</h3>
+                                    <p className="text-sm text-gray-600 mb-3">{canal.descripcion}</p>
+                                    <p className="text-blue-600 font-medium group-hover:text-blue-700">{canal.contacto}</p>
+                                </a>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
@@ -172,14 +149,13 @@ const SoportePage = () => {
                                 <p><strong className="text-white">Lunes a Viernes:</strong> 9:00 - 18:00</p>
                                 <p><strong className="text-white">Sábados:</strong> 10:00 - 14:00</p>
                                 <p><strong className="text-white">Domingos:</strong> Solo emergencias</p>
-                                <p><strong className="text-white">Chat en vivo:</strong> 24/7</p>
                             </div>
                         </div>
                         <div className="text-center md:text-right">
                             <p className="text-xl mb-6 text-blue-100">
                                 ¿No encontraste lo que buscabas?
                             </p>
-                            <a href="mailto:psymatch.contact@gmail.com">
+                            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=psymatch.contact@gmail.com">
                                 <button className="bg-white text-blue-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-300">
                                     Contactar Soporte
                                 </button>
@@ -198,7 +174,7 @@ const SoportePage = () => {
                             Nuestro equipo está disponible para asistirte en cualquier momento
                         </p>
                         <div className="flex justify-center">
-                            <a href="mailto:psymatch.contact@gmail.com">
+                            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=psymatch.contact@gmail.com">
                                 <button className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-8 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-800 transition-all duration-300 shadow-lg hover:shadow-xl">
                                     Enviar Email
                                 </button>

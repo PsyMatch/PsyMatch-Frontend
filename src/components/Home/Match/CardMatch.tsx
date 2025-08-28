@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useAuthState } from '@/hooks/useAuthState';
 import { useNotifications } from '@/hooks/useNotifications';
+import Link from 'next/link';
 
 const CardMatch = () => {
     const router = useRouter();
@@ -70,13 +71,14 @@ const CardMatch = () => {
                     ))}
                 </div>
 
-                <button 
+                <Link
+                    href="/search-professionals"
                     onClick={handleFindPsychologist}
                     className="inline-flex mt-4 items-center justify-center gap-2 whitespace-nowrap text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-800 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-gray-900 text-white hover:bg-gray-900/90 h-11 rounded-md px-8 w-full sm:w-auto"
                 >
                     <Search className="w-5 h-5 mr-2" />
                     Encontrar Mi Psicólogo
-                </button>
+                </Link>
             </div>
         </div>
     );

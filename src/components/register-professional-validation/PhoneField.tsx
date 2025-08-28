@@ -20,7 +20,6 @@ const PhoneField = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ field: 'phone', phoneValue: `+${value}` }),
           });
-          console.log("Value que mando", value)
           if (res.status === 409) return resolve('El teléfono ya está registrado');
           resolve(undefined);
         } catch {
@@ -38,7 +37,7 @@ const PhoneField = () => {
             placeholder="Tu número"
             validate={validatePhone}
         />
-      {meta.touched && meta.error && <div className="mt-1 text-red-500">{meta.error}</div>}
+      {meta.touched && meta.error && <div className="mt-1 text-xs text-red-500">{meta.error}</div>}
     </div>
   );
 };

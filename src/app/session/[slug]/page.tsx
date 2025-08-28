@@ -326,7 +326,6 @@ const SessionPage = () => {
     // Manejar éxito del pago
     const handlePaymentSuccess = () => {
         setPaymentCompleted(true);
-        // console.log('Pago completado, redirigiendo a MercadoPago...');
         // El componente MercadoPagoPayment ya maneja la redirección automáticamente
     };
 

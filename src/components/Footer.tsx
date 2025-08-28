@@ -16,17 +16,6 @@ const botonesPacientes = [
     </Link>,
 ];
 
-const botonesProfesionales = [
-    <Link key={1} href="/register-professional" className="hover:text-blue-400 transition-colors">
-        Únete a Nuestra Red
-    </Link>,
-    <Link key={2} href="/panel-profesional" className="hover:text-blue-400 transition-colors">
-        Panel Profesional
-    </Link>,
-    <Link key={3} href="/recursos" className="hover:text-blue-400 transition-colors">
-        Recursos
-    </Link>,
-];
 const botonesEmpresa = [
     <Link key={1} href="/about" className="hover:text-blue-400 transition-colors">
         Acerca de Nosotros
@@ -45,7 +34,7 @@ const botonesEmpresa = [
 const Footer = () => {
     return (
         <div className="w-[100%] h-fit bg-[#111827] flex flex-col items-center py-9">
-            <div className="flex flex-col gap-10 lg:flex-row lg:gap-0 justify-between w-[80%] h-fit border-b-gray-800 border-b-2 pb-3">
+            <div className="flex flex-col gap-10 lg:flex-row lg:gap-20 justify-start w-[80%] h-fit border-b-gray-800 border-b-2 pb-3">
                 <div className="w-80">
                     <div className="flex flex-row gap-2">
                         <Brain className="text-[#5046E7]" />
@@ -62,17 +51,6 @@ const Footer = () => {
                     <h3 className="font-bold text-white">Para Pacientes</h3>
                     <div className="mt-5 w-fit">
                         {botonesPacientes.map((boton) => (
-                            <li key={boton.key} className="mb-2 font-medium text-gray-400 list-none w-fit">
-                                {boton}
-                            </li>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="w-40">
-                    <h3 className="font-bold text-white">Para Profesionales</h3>
-                    <div className="mt-5 w-fit">
-                        {botonesProfesionales.map((boton) => (
                             <li key={boton.key} className="mb-2 font-medium text-gray-400 list-none w-fit">
                                 {boton}
                             </li>
