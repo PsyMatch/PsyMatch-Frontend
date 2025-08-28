@@ -32,7 +32,7 @@ const FlowbitePaymentsChart: React.FC<FlowbitePaymentsChartProps> = ({ data, tit
 
           const options = {
             series: [{
-              name: 'Monto',
+              name: 'Amount',
               data: chartData,
             }],
             chart: {

@@ -29,6 +29,13 @@ interface User {
 const AdminDashboard = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [loadingUsers, setLoadingUsers] = useState(true);
+    const [weeklyPayments, setWeeklyPayments] = useState<Array<{
+        week: string;
+        total_payments: number;
+        total_revenue: number;
+        average_payment: number;
+    }>>([]);
+    const [loadingPayments, setLoadingPayments] = useState(true);
     const { metrics, loading: loadingMetrics, error: errorMetrics } = useAdminDashboardMetrics();
 
     useEffect(() => {
@@ -44,7 +51,22 @@ const AdminDashboard = () => {
                 setLoadingUsers(false);
             }
         };
+        
+        const fetchWeeklyPayments = async () => {
+            try {
+                const result = await adminService.getWeeklyPaymentsReport();
+                if (result.success && result.data) {
+                    setWeeklyPayments(result.data);
+                }
+            } catch (error) {
+                console.error('Error fetching weekly payments:', error);
+            } finally {
+                setLoadingPayments(false);
+            }
+        };
+
         fetchUsers();
+        fetchWeeklyPayments();
     }, []);
 
     // Función para actualizar el estado global de usuarios
@@ -127,13 +149,13 @@ const AdminDashboard = () => {
               { name: 'Pagos', value: 1829, color: '#A855F7' },
           ];
 
-    // Datos para el gráfico de pagos semanales
-    const paymentsData = metrics?.weekly?.payments
-        ? metrics.weekly.payments.map((item: { week: string; value: number }) => ({
+    // Datos para el gráfico de pagos semanales - USAR DATOS REALES DEL BACKEND
+    const paymentsData = weeklyPayments.length > 0
+        ? weeklyPayments.map((item) => ({
               date: item.week,
-              amount: item.value * 50, // Multiplicar por precio promedio por sesión
+              amount: parseFloat(item.total_revenue.toString()) || 0,
               status: 'completed' as const,
-              method: 'credit_card',
+              method: 'mercado_pago',
           }))
         : [
               { date: 'Sem 1', amount: 2500, status: 'completed' as const, method: 'credit_card' },
@@ -147,12 +169,18 @@ const AdminDashboard = () => {
 
     return (
         <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 to-indigo-100 relative overflow-hidden">
-            {(loadingMetrics || loadingUsers) && (
+            {(loadingMetrics || loadingUsers || loadingPayments) && (
                 <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-60 z-50">
                     <div className="text-center px-4">
                         <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-[#5046E7] mx-auto mb-4"></div>
                         <span className="text-lg sm:text-xl font-semibold text-[#5046E7]">
-                            {loadingMetrics && loadingUsers ? 'Cargando datos...' : loadingMetrics ? 'Cargando métricas...' : 'Cargando usuarios...'}
+                            {loadingMetrics && loadingUsers && loadingPayments 
+                                ? 'Loading dashboard data...' 
+                                : loadingMetrics 
+                                    ? 'Loading metrics...' 
+                                    : loadingUsers 
+                                        ? 'Loading users...'
+                                        : 'Loading payments data...'}
                         </span>
                     </div>
                 </div>
