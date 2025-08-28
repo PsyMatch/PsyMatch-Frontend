@@ -309,12 +309,6 @@ export default function PanelProfesionalPage() {
                         >
                             Contactar Soporte
                         </a>
-                        <Link
-                            href="/recursos"
-                            className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200 font-semibold"
-                        >
-                            Ver Recursos
-                        </Link>
                     </div>
                 </div>
             </section>

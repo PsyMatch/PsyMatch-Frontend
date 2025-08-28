@@ -157,8 +157,6 @@ const FlowbitePaymentsChart: React.FC<FlowbitePaymentsChartProps> = ({ data, tit
   }
 
   const totalAmount = data.reduce((sum, item) => sum + item.amount, 0);
-  const completedPayments = data.filter(item => item.status === 'completed').length;
-  const pendingPayments = data.filter(item => item.status === 'pending').length;
 
   return (
     <div className="bg-white rounded-lg shadow dark:bg-gray-800 p-4 md:p-6">
@@ -176,49 +174,7 @@ const FlowbitePaymentsChart: React.FC<FlowbitePaymentsChartProps> = ({ data, tit
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="flex justify-between items-start w-full mt-4 mb-4">
-        <div className="flex items-center">
-          <div className="flex items-center me-4">
-            <span className="flex w-2.5 h-2.5 bg-green-500 rounded-full me-1.5 flex-shrink-0"></span>
-            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Completados: {completedPayments}
-            </span>
-          </div>
-          <div className="flex items-center">
-            <span className="flex w-2.5 h-2.5 bg-yellow-500 rounded-full me-1.5 flex-shrink-0"></span>
-            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Pendientes: {pendingPayments}
-            </span>
-          </div>
-        </div>
-      </div>
-
       <div id="flowbite-payments-chart"></div>
-      
-      {/* Additional info */}
-      <div className="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 pt-5">
-        <div className="flex justify-between items-center pt-5">
-          <button
-            className="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
-            type="button"
-          >
-            Últimos 7 días
-            <svg className="w-2.5 ms-1.5 h-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4"/>
-            </svg>
-          </button>
-          <button
-            className="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2"
-            type="button"
-          >
-            Reporte de pagos
-            <svg className="w-2.5 h-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 9 4-4-4-4"/>
-            </svg>
-          </button>
-        </div>
-      </div>
     </div>
   );
 };
