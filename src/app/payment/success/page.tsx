@@ -3,16 +3,58 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle, Clock, ArrowRight } from 'lucide-react';
+import Cookies from 'js-cookie';
 
 function PaymentSuccessContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const [countdown, setCountdown] = useState(10);
+    const [appointmentUpdated, setAppointmentUpdated] = useState(false);
 
-    // Obtener parámetros de MercadoPago
+    // Obtener parámetros de MercadoPago y appointmentId del sessionStorage
     const paymentId = searchParams?.get('payment_id');
     const status = searchParams?.get('status');
     const merchantOrderId = searchParams?.get('merchant_order_id');
+    const appointmentId = typeof window !== 'undefined' ? sessionStorage.getItem('current_appointment_id') : null;
+
+    // Función para confirmar el pago y actualizar estado de cita
+    const confirmPaymentSuccess = async () => {
+        if (!appointmentId || appointmentUpdated) return;
+
+        try {
+            const token = Cookies.get('authToken') || Cookies.get('auth_token');
+            const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+            
+
+            
+            const response = await fetch(`${API_BASE_URL}/payments/confirm-payment-success`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    appointmentId,
+                    paymentId
+                }),
+            });
+
+            if (response.ok) {
+                setAppointmentUpdated(true);
+                // Limpiar el appointmentId del sessionStorage
+                sessionStorage.removeItem('current_appointment_id');
+            }
+        } catch (error) {
+            console.error('Error al confirmar pago:', error);
+        }
+    };
+
+    useEffect(() => {
+        // Confirmar pago exitoso cuando llegue a esta página
+        if (appointmentId && status === 'approved' && !appointmentUpdated) {
+            confirmPaymentSuccess();
+        }
+    }, [appointmentId, status, appointmentUpdated]);
 
     useEffect(() => {
         // Countdown para redirección automática
@@ -55,7 +97,7 @@ function PaymentSuccessContent() {
                 </h1>
                 
                 <p className="text-gray-600 mb-6">
-                    Tu pago ha sido procesado correctamente. Tu cita ha sido confirmada automáticamente.
+                    Tu pago ha sido procesado correctamente. Tu cita está pendiente de aprobación del psicólogo.
                 </p>
 
                 {/* Información del pago */}
@@ -76,7 +118,7 @@ function PaymentSuccessContent() {
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
                     <div className="flex items-center justify-center mb-2">
                         <Clock className="w-5 h-5 text-green-600 mr-2" />
-                        <span className="font-semibold text-green-800">Cita Confirmada</span>
+                        <span className="font-semibold text-green-800">Pago Confirmado</span>
                     </div>
                     <p className="text-green-700 text-sm">
                         Recibirás un email de confirmación con todos los detalles de tu cita.
@@ -89,7 +131,7 @@ function PaymentSuccessContent() {
                         onClick={handleConfirmAppointment}
                         className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
                     >
-                        <span>Ver Mi Cita Confirmada</span>
+                        <span>Ver Mi Cita</span>
                         <ArrowRight className="w-4 h-4 ml-2" />
                     </button>
                     
