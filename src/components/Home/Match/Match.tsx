@@ -40,7 +40,7 @@ const Match = () => {
                   </svg>
                 </div>
 
-                {role === "Psicólogo" ? (
+                {role === "Psicólogo" || role === "Administrador" ? (
                   <p className="mb-6 text-gray-600">
                     Debes ser un usuario paciente para usar nuestra herramienta de búsqueda de psicólogos
                   </p>

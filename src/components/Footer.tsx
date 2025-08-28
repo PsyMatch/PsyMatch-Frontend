@@ -8,9 +8,6 @@ const botonesPacientes = [
     <Link key={2} href="/how-does-it-work" className="hover:text-blue-400 transition-colors">
         Cómo Funciona
     </Link>,
-    <Link key={3} href="/precios" className="hover:text-blue-400 transition-colors">
-        Precios
-    </Link>,
     <Link key={4} href="/soporte" className="hover:text-blue-400 transition-colors">
         Soporte
     </Link>,

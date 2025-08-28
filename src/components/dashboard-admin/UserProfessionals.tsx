@@ -62,6 +62,19 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                     allPsychologists = [...allPsychologists, ...psychologists];
                 }
                 
+                // También obtenemos los usuarios baneados
+                const bannedResult = await adminService.getBannedUsers({ page: 1, limit: 100 });
+                
+                if (bannedResult.success && bannedResult.data) {
+                    // Filtrar solo psicólogos baneados
+                    const bannedData = bannedResult.data as any;
+                    const bannedItems = Array.isArray(bannedData) ? bannedData : (bannedData.items || []);
+                    const bannedPsychologists = (bannedItems as Paciente[]).filter(user => 
+                        user.role === "Psicólogo"
+                    );
+                    allPsychologists = [...allPsychologists, ...bannedPsychologists];
+                }
+                
                 // Remover duplicados basado en ID
                 const uniquePsychologists = allPsychologists.filter((psy, index, self) => 
                     index === self.findIndex(p => p.id === psy.id)
@@ -85,7 +98,7 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
 
     // Sincronizar con datos del componente padre cuando cambien
     useEffect(() => {
-        // Actualizar localData con los datos más recientes del padre
+        // Actualizar localData con los datos más recientes del padre (activos e inactivos)
         const activePsychologists = data.filter(user => user.role === "Psicólogo");
         if (activePsychologists.length > 0) {
             setLocalData(prevData => {
@@ -96,8 +109,8 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                     if (existingIndex >= 0) {
                         // Actualizar usuario existente
                         mergedData[existingIndex] = { ...mergedData[existingIndex], ...user };
-                    } else if (user.is_active !== false) {
-                        // Agregar nuevo usuario activo
+                    } else {
+                        // Agregar nuevo usuario (activo o inactivo)
                         mergedData.push(user);
                     }
                 });
@@ -250,8 +263,8 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
 
     const [filter, setFilter] = useState<'Pendiente' | 'Validado' | 'Rechazado'>('Pendiente');
 
-        // Función para obtener solo los profesionales activos (role === "Psicólogo" y is_active !== false)
-    const profesionales = localData.filter(user => user.role === "Psicólogo" && user.is_active !== false);
+        // Función para obtener todos los profesionales (activos e inactivos)
+    const profesionales = localData.filter(user => user.role === "Psicólogo");
     
     // Filtrar solo por verificación
     const filtrados = profesionales.filter((u) => u.verified === filter);
