@@ -209,9 +209,6 @@ const Perfil = () => {
                 bodySend = {};
                 setEditable(false);
 
-                console.log('Respuesta completa', response);
-                console.log('imagen', response.data.profile_picture);
-
                 notifications.success(`${response.message}`);
             })
             .catch((error) => {
