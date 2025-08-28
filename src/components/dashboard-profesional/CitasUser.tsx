@@ -82,7 +82,7 @@ const CitasUser = () => {
         if (!confirmed) return;
 
         try {
-            await appointmentsService.cancelAppointment(id);
+            await appointmentsService.deleteAppointment(id);
             setCitas((prev) => prev.map((cita) => (cita.id === id ? { ...cita, status: 'cancelled' } : cita)));
             notifications.success('Cita cancelada exitosamente.');
         } catch (error) {
@@ -258,13 +258,6 @@ const CitasUser = () => {
                                                     <span className="ml-2 text-gray-700 text-sm sm:text-base">{cita.psychologist.name}</span>
                                                     <br />
                                                     <span className="text-xs sm:text-sm text-gray-500">{cita.psychologist.email}</span>
-                                                </div>
-                                            )}
-
-                                            {cita.notes && (
-                                                <div className="mb-3">
-                                                    <span className="font-semibold text-sm sm:text-base">Notas:</span>
-                                                    <p className="mt-1 text-gray-700 text-xs sm:text-sm">{cita.notes}</p>
                                                 </div>
                                             )}
 

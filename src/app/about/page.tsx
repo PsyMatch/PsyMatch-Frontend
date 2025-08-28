@@ -111,7 +111,7 @@ export default function AcercaDeNosotrosPage() {
         },
         {
             nombre: 'Fausto',
-            apodo: 'El Profe',
+            apodo: '',
             rol: 'Backend Developer',
             descripcion: '',
             personalidad: '',

@@ -232,7 +232,7 @@ export const appointmentsService = {
             }
 
             const response = await fetch(`${API_BASE_URL}/appointments/${appointmentId}`, {
-                method: 'DELETE',
+                method: 'PATCH',
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json',

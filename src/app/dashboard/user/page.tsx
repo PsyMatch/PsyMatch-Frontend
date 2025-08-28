@@ -13,7 +13,7 @@ const DashboardUser = () => {
     const [dataCompleted, setDataCompleted] = useState(false);
     const notifications = useNotifications();
 
-   useEffect(() => {
+    useEffect(() => {
             if (!loading && user && !dataCompleted) {
                 const hasMissingData = checkMissingData();
                 setShowMissingDataModal(hasMissingData);
@@ -35,7 +35,7 @@ const DashboardUser = () => {
 
     if (loading) {
         return (
-           <div className="w-full flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+            <div className="w-full flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                     <p className="text-gray-600 text-sm sm:text-base">Cargando tu dashboard...</p>

@@ -18,9 +18,8 @@ export function middleware(request: NextRequest) {
     if (
         (pathname === '/dashboard/professional' ||
             pathname === '/dashboard/admin' ||
-            pathname.startsWith('/professionalProfile') ||
+            pathname.startsWith('/profile') ||
             pathname === '/search-professionals' ||
-            pathname.startsWith('/userProfile/') ||
             pathname.startsWith('/session/')) &&
         !authToken
     ) {
@@ -53,7 +52,7 @@ export function middleware(request: NextRequest) {
         return NextResponse.redirect(homeUrl);
     }
 
-    if (pathname === '/search-professionals' || pathname.startsWith('/session') && (userRole === 'Psicólogo')) {
+    if ((pathname === '/search-professionals' || pathname.startsWith('/session')) && (userRole === 'Psicólogo')) {
         const homeUrl = new URL('/', origin);
         return NextResponse.redirect(homeUrl);
     }
