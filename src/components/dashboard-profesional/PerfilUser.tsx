@@ -66,7 +66,6 @@ const extractUserFromToken = (token: string) => {
 };
 
 const socialWorkOptions = [
-    { value: '', label: 'Seleccionar obra social' },
     { value: 'OSDE', label: 'OSDE' },
     { value: 'Swiss Medical', label: 'Swiss Medical' },
     { value: 'IOMA', label: 'IOMA' },

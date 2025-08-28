@@ -165,7 +165,7 @@ const Navbar = () => {
                 return false;
             }
 
-            if (userRole === 'Psicólogo' && item.href === '/search-professionals') {
+            if ((userRole === 'Psicólogo' || userRole === 'Administrador') && item.href === '/search-professionals') {
                 return false;
             }
 

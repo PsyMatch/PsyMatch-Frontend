@@ -11,6 +11,40 @@ import { useParams, useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { useNotifications } from '@/hooks/useNotifications';
 
+const PsychologistNotFound = () => {
+    const [showMessage, setShowMessage] = useState(false);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setShowMessage(true);
+        }, 5000); // Esperar 5 segundos antes de mostrar el mensaje
+
+        return () => clearTimeout(timer);
+    }, []);
+
+    if (!showMessage) {
+        return (
+            <div className="flex items-center justify-center py-16">
+                <div className="text-center">
+                    <div className="w-8 h-8 mx-auto mb-4 border-2 border-blue-600 rounded-full animate-spin border-t-transparent"></div>
+                    <p className="text-gray-600">Cargando psicólogo...</p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex items-center justify-center py-16">
+            <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-4 text-gray-400">
+                    <User className="w-full h-full" />
+                </div>
+                <p className="text-gray-600">Psicólogo no encontrado</p>
+            </div>
+        </div>
+    );
+};
+
 const SessionPage = () => {
     const params = useParams();
     const router = useRouter();
@@ -400,14 +434,7 @@ const SessionPage = () => {
                         </div>
                     </div>
                 ) : !psychologist ? (
-                    <div className="flex items-center justify-center py-16">
-                        <div className="text-center">
-                            <div className="w-16 h-16 mx-auto mb-4 text-gray-400">
-                                <User className="w-full h-full" />
-                            </div>
-                            <p className="text-gray-600">Psicólogo no encontrado</p>
-                        </div>
-                    </div>
+                    <PsychologistNotFound />
                 ) : !getAuthToken() ? (
                     <div className="flex items-center justify-center py-16">
                         <div className="max-w-md p-8 text-center bg-white border border-amber-200 rounded-xl shadow-sm">
