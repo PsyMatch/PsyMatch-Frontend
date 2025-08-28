@@ -38,7 +38,7 @@ const PhoneField = () => {
             placeholder="Tu número"
             validate={validatePhone}
         />
-      {meta.touched && meta.error && <div className="mt-1 text-red-500">{meta.error}</div>}
+      {meta.touched && meta.error && <div className="mt-1 text-xs text-red-500">{meta.error}</div>}
     </div>
   );
 };
