@@ -9,8 +9,8 @@ import { Camera, MapPinIcon, Pencil } from 'lucide-react';
 import ModalContraseña from './ModalContraseña';
 import { useModalContext } from '@/context/modalContraseña';
 import { useNotifications } from '@/hooks/useNotifications';
-import React from 'react'
-import Select from 'react-select'
+import React from 'react';
+import Select from 'react-select';
 import * as Yup from 'yup';
 
 interface MapboxSuggestion {
@@ -94,8 +94,7 @@ const Perfil = () => {
                 setPerfil(response.data);
                 setProfileImage(
                     response.data.profileImage ||
-                        response.data.profile_picture 
-                        ||
+                        response.data.profile_picture ||
                         `https://ui-avatars.com/api/?name=${encodeURIComponent(response.data.fullName || response.data.name || 'Usuario')}`
                 );
             })
@@ -230,32 +229,26 @@ const Perfil = () => {
     const [menuModalidad, setMenuModalidad] = useState<boolean>(false);
     const [menuAvailability, setMenuAvailability] = useState<boolean>(false);
 
-
     const modalidadOptions = [
         { value: 'En línea', label: 'En línea' },
         { value: 'Presencial', label: 'Presencial' },
-        { value: 'Híbrido', label: 'Híbrido' }
-    ]
+        { value: 'Híbrido', label: 'Híbrido' },
+    ];
 
     const validationSchema = Yup.object().shape({
         modality: Yup.string()
-        .required('Debes seleccionar modalidad')
-        .test(
-            'direccion-requerida',
-            'Para seleccionar "Presencial" o "Híbrido" debes ingresar la dirección de tu oficina',
-            function (value) {
-            const { office_address } = this.parent;
+            .required('Debes seleccionar modalidad')
+            .test('direccion-requerida', 'Para seleccionar "Presencial" o "Híbrido" debes ingresar la dirección de tu oficina', function (value) {
+                const { office_address } = this.parent;
 
-            // Bloquea "Presencial" o "Híbrido" si no hay dirección
-            if ((value === 'Presencial' || value === 'Híbrido') && (!office_address || office_address.trim() === '')) {
-                return false;
-            }
+                // Bloquea "Presencial" o "Híbrido" si no hay dirección
+                if ((value === 'Presencial' || value === 'Híbrido') && (!office_address || office_address.trim() === '')) {
+                    return false;
+                }
 
-            return true;
-            }
-        ),
-    })
-
+                return true;
+            }),
+    });
 
     return (
         <div className="flex flex-col items-center w-full min-h-screen px-2 pb-8 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl">
@@ -273,7 +266,7 @@ const Perfil = () => {
                         />
                     ) : (
                         <Image
-                            key={profileImage} // fuerza re-render al cambiar
+                            key={profileImage}
                             src={
                                 profileImage && profileImage.trim() !== ''
                                     ? profileImage
@@ -323,11 +316,20 @@ const Perfil = () => {
                         <div>
                             <h2 className="text-xl font-bold md:text-2xl">Mi cuenta profesional</h2>
                         </div>
-                            <div className="flex justify-end">
-                                <button onClick={() => setEditable((e) => !e)} className="px-[22px] py-2 text-white rounded bg-violet-600 hover:bg-violet-700">
-                                    {editable ? 'Cancelar' : <div className='flex flex-row items-center gap-2'><Pencil className='w-5 h-5'/> Editar</div>}
-                                </button>
-                            </div>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => setEditable((e) => !e)}
+                                className="px-[22px] py-2 text-white rounded bg-violet-600 hover:bg-violet-700"
+                            >
+                                {editable ? (
+                                    'Cancelar'
+                                ) : (
+                                    <div className="flex flex-row items-center gap-2">
+                                        <Pencil className="w-5 h-5" /> Editar
+                                    </div>
+                                )}
+                            </button>
+                        </div>
                     </div>
                     <Formik<Partial<ResponseDataProfile>>
                         enableReinitialize
@@ -353,17 +355,16 @@ const Perfil = () => {
                     >
                         {({ values, setFieldValue }) => (
                             <Form className="space-y-6">
-                                
-                                        <div>
-                                            {editable && (
-                                                <div className="flex flex-col items-end justify-end">
-                                                    <button type="submit" className="px-6 py-2 w-[11%] text-white bg-green-600 rounded hover:bg-green-700">
-                                                        Guardar
-                                                    </button>
-                                                    <ErrorMessage name="modality" component="div" className="mt-1 text-sm text-red-600" />
-                                                </div>
-                                            )}
+                                <div>
+                                    {editable && (
+                                        <div className="flex flex-col items-end justify-end">
+                                            <button type="submit" className="px-6 py-2 w-[11%] text-white bg-green-600 rounded hover:bg-green-700">
+                                                Guardar
+                                            </button>
+                                            <ErrorMessage name="modality" component="div" className="mt-1 text-sm text-red-600" />
                                         </div>
+                                    )}
+                                </div>
                                 <div className="grid grid-cols-1 gap-6 md:gap-10 md:grid-cols-2">
                                     <div className="w-full col-span-2">
                                         <div className="flex flex-col gap-6 md:grid md:grid-cols-2 md:gap-10">
@@ -745,11 +746,11 @@ const Perfil = () => {
 
                                             {editable && (
                                                 <button
-                                                type="button"
-                                                className="px-5 py-1 mt-2 text-xs text-white rounded bg-violet-800 hover:bg-violet-700"
-                                                onClick={() => setMenuModalidad(!menuModalidad)}
+                                                    type="button"
+                                                    className="px-5 py-1 mt-2 text-xs text-white rounded bg-violet-800 hover:bg-violet-700"
+                                                    onClick={() => setMenuModalidad(!menuModalidad)}
                                                 >
-                                                {menuModalidad ? 'Cerrar' : 'Agregar Modalidad de Sesión'}
+                                                    {menuModalidad ? 'Cerrar' : 'Agregar Modalidad de Sesión'}
                                                 </button>
                                             )}
 
@@ -757,35 +758,35 @@ const Perfil = () => {
                                                 <div className="mt-2">
                                                     <Select
                                                         options={modalidadOptions}
-                                                        value={modalidadOptions.find(opt => opt.value === values.modality)}
+                                                        value={modalidadOptions.find((opt) => opt.value === values.modality)}
                                                         onChange={(selectedOption) => setFieldValue('modality', selectedOption?.value)}
                                                         placeholder="Selecciona modalidad"
                                                         isSearchable={false} // no se puede buscar
                                                         styles={{
                                                             control: (provided, state) => ({
-                                                            ...provided,
-                                                            backgroundColor: '#F9FAFB', 
-                                                            borderColor: '#D1D5DB', 
-                                                            borderRadius: '0.375rem', 
-                                                            minHeight: '2.5rem', 
-                                                            boxShadow: state.isFocused ? '0 0 0 2px #A78BFA' : 'none',
-                                                            '&:hover': { borderColor: '#D1D5DB' },
+                                                                ...provided,
+                                                                backgroundColor: '#F9FAFB',
+                                                                borderColor: '#D1D5DB',
+                                                                borderRadius: '0.375rem',
+                                                                minHeight: '2.5rem',
+                                                                boxShadow: state.isFocused ? '0 0 0 2px #A78BFA' : 'none',
+                                                                '&:hover': { borderColor: '#D1D5DB' },
                                                             }),
                                                             menu: (provided) => ({
-                                                            ...provided,
-                                                            borderRadius: '0.375rem',
+                                                                ...provided,
+                                                                borderRadius: '0.375rem',
                                                             }),
                                                             option: (provided, state) => ({
-                                                            ...provided,
-                                                            backgroundColor: state.isSelected ? '#EDE9FE' : 'white', 
-                                                            color: 'black',
-                                                            '&:hover': { backgroundColor: '#F3F4F6' },
+                                                                ...provided,
+                                                                backgroundColor: state.isSelected ? '#EDE9FE' : 'white',
+                                                                color: 'black',
+                                                                '&:hover': { backgroundColor: '#F3F4F6' },
                                                             }),
                                                         }}
                                                     />
                                                 </div>
                                             )}
-                                            </div>
+                                        </div>
                                         <div>
                                             <label className="block mb-1 text-sm font-medium">Días Disponibles</label>
                                             <div className="flex flex-row flex-wrap gap-2">
@@ -840,10 +841,8 @@ const Perfil = () => {
                                                 disabled={!editable}
                                             />
                                         </div>
-                                        
                                     </div>
                                 </div>
-
                             </Form>
                         )}
                     </Formik>
