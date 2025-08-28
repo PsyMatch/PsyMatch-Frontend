@@ -14,11 +14,8 @@ interface SocialTrafficProps {
 
 const SocialTrafficTable: React.FC<SocialTrafficProps> = ({ title, data }) => (
     <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300">
-        <div className="flex justify-between items-center mb-6">
+        <div className="mb-6">
             <h3 className="text-xl font-bold text-gray-800">{title}</h3>
-            <button className="bg-[#6366F1] text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-[#5046E7] transition-colors duration-300">
-                Ver todo
-            </button>
         </div>
 
         <div className="overflow-x-auto">

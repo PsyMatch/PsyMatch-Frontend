@@ -187,16 +187,6 @@ const PreciosPage = () => {
                                     </li>
                                 ))}
                             </ul>
-
-                            <Link href="/search-professionals" className="w-full">
-                                <button className={`w-full py-3 px-6 rounded-lg font-semibold transition-all duration-300 ${
-                                    sesion.destacado
-                                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 shadow-lg hover:shadow-xl'
-                                        : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl'
-                                }`}>
-                                    Buscar Psicólogos
-                                </button>
-                            </Link>
                         </div>
                     ))}
                 </div>
@@ -256,14 +246,9 @@ const PreciosPage = () => {
                             Conecta con profesionales certificados que se ajusten a tu presupuesto
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <Link href="/search-professionals">
-                                <button className="bg-white text-blue-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-300">
-                                    Buscar Psicólogos
-                                </button>
-                            </Link>
                             <Link href="/register-user">
                                 <button className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-700 transition-all duration-300">
-                                    Registrarse Gratis
+                                    Registrarse
                                 </button>
                             </Link>
                         </div>

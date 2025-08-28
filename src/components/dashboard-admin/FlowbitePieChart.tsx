@@ -124,7 +124,7 @@ const FlowbitePieChart: React.FC<FlowbitePieChartProps> = ({ data, title }) => {
 
       {/* Legend */}
       <div className="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 pt-5">
-        <div className="flex justify-between items-center pt-5">
+        <div className="pt-5">
           {/* Legend List */}
           <div className="grid grid-cols-1 gap-3">
             {data.slice(0, 3).map((item, index) => (
@@ -139,19 +139,6 @@ const FlowbitePieChart: React.FC<FlowbitePieChartProps> = ({ data, title }) => {
               </div>
             ))}
           </div>
-          
-          {/* Button */}
-          <button
-            data-popover-target="chart-info"
-            data-popover-placement="bottom"
-            type="button"
-            className="hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 inline-flex items-center"
-          >
-            <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 18">
-              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 1v11m0 0 4-4m-4 4L4 8m11 4v3a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-3"/>
-            </svg>
-            <span className="sr-only">Download data</span>
-          </button>
         </div>
       </div>
 
