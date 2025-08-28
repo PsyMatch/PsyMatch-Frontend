@@ -9,6 +9,7 @@ interface UseCanReviewReturn {
     error: string | null;
     hasAlreadyReviewed: boolean;
     hasCompletedAppointments: boolean;
+    isOwnProfile: boolean;
 }
 
 export const useCanReview = (psychologistId: string): UseCanReviewReturn => {
@@ -17,6 +18,7 @@ export const useCanReview = (psychologistId: string): UseCanReviewReturn => {
     const [error, setError] = useState<string | null>(null);
     const [hasAlreadyReviewed, setHasAlreadyReviewed] = useState(false);
     const [hasCompletedAppointments, setHasCompletedAppointments] = useState(false);
+    const [isOwnProfile, setIsOwnProfile] = useState(false);
     const { user } = useAuth();
 
     useEffect(() => {
@@ -26,6 +28,16 @@ export const useCanReview = (psychologistId: string): UseCanReviewReturn => {
                 setError(null);
 
                 if (!user) {
+                    setCanReview(false);
+                    setHasAlreadyReviewed(false);
+                    setHasCompletedAppointments(false);
+                    return;
+                }
+
+                const ownProfile = user.id === psychologistId;
+                setIsOwnProfile(ownProfile);
+
+                if (ownProfile) {
                     setCanReview(false);
                     setHasAlreadyReviewed(false);
                     setHasCompletedAppointments(false);
@@ -48,6 +60,7 @@ export const useCanReview = (psychologistId: string): UseCanReviewReturn => {
                 setCanReview(false);
                 setHasAlreadyReviewed(false);
                 setHasCompletedAppointments(false);
+                setIsOwnProfile(false);
             } finally {
                 setLoading(false);
             }
@@ -64,5 +77,6 @@ export const useCanReview = (psychologistId: string): UseCanReviewReturn => {
         error,
         hasAlreadyReviewed,
         hasCompletedAppointments,
+        isOwnProfile,
     };
 };
