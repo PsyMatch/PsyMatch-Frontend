@@ -17,7 +17,7 @@ export default function OAuthCallback() {
         if (token) {
           // Guardar token en las cookies del frontend
           Cookies.set('auth_token', token, {
-            expires: 1, // El token expira en 1 día
+            expires: 7, // El token expira en 7 días
             secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
             sameSite: 'strict', // Protección CSRF
           });
