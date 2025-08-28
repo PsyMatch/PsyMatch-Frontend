@@ -33,15 +33,20 @@ export const validationSchemaInfoProfesional = Yup.object().shape({
     .min(0, 'La experiencia no puede ser negativa')
     .required('Debes ingresar tu experiencia profesional')
     .test(
-      'experience-not-greater-than-age',
-      'La experiencia profesional no puede ser mayor a tu edad',
-      function (value) {
-        const { birthdate } = this.parent; // accedemos a otros campos del formulario
-        if (!birthdate || !value) return true; // si no hay fecha o experiencia, dejamos pasar (otra validación se encargará)
+        'experience-not-greater-than-possible',
+        'La experiencia profesional no puede ser mayor al tiempo posible desde los 18 años',
+        function (value) {
+        const { birthdate } = this.parent;
+        if (!birthdate || value == null) return true;
+
         const birth = dayjs(birthdate);
-        const age = dayjs().diff(birth, 'year'); // calcula edad en años
-        return value <= age; // True si la experiencia es menor o igual a la edad
-      }
+        const age = dayjs().diff(birth, 'year');
+
+        // La edad mínima en la que se puede empezar a trabajar
+        const possibleExperience = Math.max(0, age - 18);
+
+        return value <= possibleExperience;
+        }
     ),
 })
 
