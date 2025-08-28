@@ -203,7 +203,6 @@ const PerfilUser = () => {
                         Authorization: `Bearer ${token}`,
                     },
                 });
-                console.log(res)
                 if (res.status === 401) {
                     router.push('/login');
                     return;

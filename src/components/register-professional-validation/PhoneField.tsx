@@ -20,7 +20,6 @@ const PhoneField = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ field: 'phone', phoneValue: `+${value}` }),
           });
-          console.log("Value que mando", value)
           if (res.status === 409) return resolve('El teléfono ya está registrado');
           resolve(undefined);
         } catch {
