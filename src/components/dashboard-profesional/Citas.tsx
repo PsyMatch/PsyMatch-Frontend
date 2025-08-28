@@ -115,10 +115,10 @@ const Citas = () => {
     // Función para aprobar cita (nuevo)
     const handleApproveAppointment = async (id: string) => {
         try {
-            await appointmentsService.approveAppointment(id);
+            const updatedAppointment = await appointmentsService.approveAppointment(id);
 
-            // Actualizar la lista local
-            setCitas((prev) => prev.map((cita) => (cita.id === id ? { ...cita, status: 'confirmed' } : cita)));
+            // Actualizar la lista local con los datos completos del backend
+            setCitas((prev) => prev.map((cita) => (cita.id === id ? updatedAppointment : cita)));
 
             notifications.success('Cita aprobada exitosamente.');
         } catch (error) {
@@ -137,10 +137,10 @@ const Citas = () => {
     // Función para marcar como completada (nuevo)
     const handleMarkCompleted = async (id: string) => {
         try {
-            await appointmentsService.markAsCompleted(id);
+            const updatedAppointment = await appointmentsService.markAsCompleted(id);
 
-            // Actualizar la lista local
-            setCitas((prev) => prev.map((cita) => (cita.id === id ? { ...cita, status: 'completed' } : cita)));
+            // Actualizar la lista local con los datos completos del backend
+            setCitas((prev) => prev.map((cita) => (cita.id === id ? updatedAppointment : cita)));
 
             notifications.success('Cita marcada como realizada exitosamente.');
         } catch (error) {
