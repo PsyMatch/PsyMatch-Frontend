@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { appointmentsService, type AppointmentResponse } from '@/services/appointments';
 import { psychologistsService, type PsychologistResponse } from '@/services/psychologists';
@@ -19,17 +19,7 @@ function PaymentPageContent() {
     const [loading, setLoading] = useState(true);
     const [paymentCompleted, setPaymentCompleted] = useState(false);
 
-    useEffect(() => {
-        if (!appointmentId) {
-            notifications.error('ID de cita no proporcionado');
-            router.push('/dashboard/user');
-            return;
-        }
-
-        loadAppointmentData();
-    }, [appointmentId]);
-
-    const loadAppointmentData = async () => {
+    const loadAppointmentData = useCallback(async () => {
         try {
             setLoading(true);
             
@@ -49,7 +39,17 @@ function PaymentPageContent() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [appointmentId, notifications, router]);
+
+    useEffect(() => {
+        if (!appointmentId) {
+            notifications.error('ID de cita no proporcionado');
+            router.push('/dashboard/user');
+            return;
+        }
+
+        loadAppointmentData();
+    }, [appointmentId, loadAppointmentData, notifications, router]);
 
     const handlePaymentSuccess = () => {
         // Guardar appointmentId en sessionStorage para usar en payment success
@@ -75,7 +75,7 @@ function PaymentPageContent() {
                 month: 'long',
                 day: 'numeric',
             });
-        } catch (error) {
+        } catch {
             return isoDate;
         }
     };
@@ -88,7 +88,7 @@ function PaymentPageContent() {
             const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
             const ampm = hours >= 12 ? 'PM' : 'AM';
             return `${hour12.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${ampm}`;
-        } catch (error) {
+        } catch {
             return time;
         }
     };

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle, Clock, ArrowRight } from 'lucide-react';
 import Cookies from 'js-cookie';
@@ -18,7 +18,7 @@ function PaymentSuccessContent() {
     const appointmentId = typeof window !== 'undefined' ? sessionStorage.getItem('current_appointment_id') : null;
 
     // Función para confirmar el pago y actualizar estado de cita
-    const confirmPaymentSuccess = async () => {
+    const confirmPaymentSuccess = useCallback(async () => {
         if (!appointmentId || appointmentUpdated) return;
 
         try {
@@ -47,14 +47,14 @@ function PaymentSuccessContent() {
         } catch (error) {
             console.error('Error al confirmar pago:', error);
         }
-    };
+    }, [appointmentId, appointmentUpdated, paymentId]);
 
     useEffect(() => {
         // Confirmar pago exitoso cuando llegue a esta página
         if (appointmentId && status === 'approved' && !appointmentUpdated) {
             confirmPaymentSuccess();
         }
-    }, [appointmentId, status, appointmentUpdated]);
+    }, [appointmentId, status, appointmentUpdated, confirmPaymentSuccess]);
 
     useEffect(() => {
         // Countdown para redirección automática

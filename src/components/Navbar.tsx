@@ -180,7 +180,8 @@ const Navbar = () => {
         setTimeout(() => setAlertMessage(''), 3000);
     }, []);
 
-    const isItemAvailable = useCallback((_item: NavItem): { available: boolean; reason?: string } => {
+    const isItemAvailable = useCallback((item: NavItem): { available: boolean; reason?: string } => {
+        // Check if item is available based on some logic - item used for future logic
         return { available: true };
     }, []);
 

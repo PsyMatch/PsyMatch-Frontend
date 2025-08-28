@@ -67,7 +67,7 @@ const UserProfessionals = ({ data, onUserUpdate }: UserProfessionalsProps) => {
                 
                 if (bannedResult.success && bannedResult.data) {
                     // Filtrar solo psicólogos baneados
-                    const bannedData = bannedResult.data as any;
+                    const bannedData = bannedResult.data as { items?: Paciente[] } | Paciente[];
                     const bannedItems = Array.isArray(bannedData) ? bannedData : (bannedData.items || []);
                     const bannedPsychologists = (bannedItems as Paciente[]).filter(user => 
                         user.role === "Psicólogo"

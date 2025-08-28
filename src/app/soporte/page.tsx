@@ -1,4 +1,4 @@
-import { Mail, Phone, MapPin, Clock, MessageCircle, HelpCircle, Users, FileText } from 'lucide-react';
+import { Mail, Clock, HelpCircle, Users, FileText } from 'lucide-react';
 
 const SoportePage = () => {
     const preguntasFrecuentes = [
