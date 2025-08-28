@@ -15,7 +15,7 @@ const Match = () => {
                     <CardMatch />
                 </div>
 
-                {!isAuthenticated || role === "Psicólogo" && (
+                {!isAuthenticated && (
                     <div className="absolute inset-0 flex items-center justify-center">
                         <div className="max-w-md px-8 py-2 mx-4 border border-gray-200 rounded-lg shadow-lg bg-white/95 backdrop-blur-sm">
                             <div className="text-center">
@@ -30,12 +30,12 @@ const Match = () => {
                                     </svg>
                                 </div>
                                 {role === "Psicólogo" ?
-                                <p className="mb-6 text-gray-600">Debes ser un usuario paciente para usar nuestra herramienta de búsqueda de psicólogos</p>
-                                : 
-                                <>
+                                    <p className="mb-6 text-gray-600">Debes ser un usuario paciente para usar nuestra herramienta de búsqueda de psicólogos</p>
+                                    : 
+                                    <>
                                         <h3 className="mb-2 text-lg font-semibold text-gray-900">Inicia sesión para continuar</h3>
-                                    <p className="mb-6 text-gray-600">Debes estar logueado para usar nuestra herramienta de búsqueda de psicólogos</p>
-                                </>
+                                        <p className="mb-6 text-gray-600">Debes estar logueado para usar nuestra herramienta de búsqueda de psicólogos</p>
+                                    </>
                                 }
                             </div>
                         </div>

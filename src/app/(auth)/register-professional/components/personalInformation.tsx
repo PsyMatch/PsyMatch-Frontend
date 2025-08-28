@@ -12,7 +12,6 @@ import { envs } from '@/config/envs.config';
 import DniField from '@/components/register-professional-validation/DniField';
 import PhoneField from '@/components/register-professional-validation/PhoneField';
 import EmailField from '@/components/register-professional-validation/EmailField';
-import { useAuthProfessionalContext } from '@/context/registerProfessional';
 
 
 const PersonalInformation = () => {
