@@ -65,7 +65,7 @@ export const obrasSociales = [
 ];
 
 export const opcionesOrdenamiento = [
-    { label: 'Mejor Valorados', value: 'rating' },
+    { label: 'Ordenar por...', value: 'default' },
     { label: 'Precio: Menor a Mayor', value: 'price_asc' },
     { label: 'Precio: Mayor a Menor', value: 'price_desc' },
     { label: 'Más Experiencia', value: 'experience' },
