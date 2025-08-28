@@ -6,24 +6,21 @@ export default function OAuthCallback() {
   const router = useRouter();
 
   useEffect(() => {
-    const handleAuth = async () => {
-      // Leer token de la URL (query param)
-      const params = new URLSearchParams(window.location.search);
-      const token = params.get('token');
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
 
-      if (token) {
-        // Guardar el token en localStorage (o en un cookie client-side)
-        localStorage.setItem('auth_token', token);
+    if (token) {
+      // Guardar token
+      localStorage.setItem('auth_token', token);
 
-        // Redirigir al dashboard
-        router.push('/dashboard/user');
-      } else {
-        // Si no hay token, mandar al login
-        router.push('/login?error=oauth_failed');
-      }
-    };
+      // Limpiar la URL (sacamos el query param)
+      window.history.replaceState({}, document.title, window.location.pathname);
 
-    handleAuth();
+      // Redirigir al dashboard
+      router.push('/dashboard/user');
+    } else {
+      router.push('/login?error=oauth_failed');
+    }
   }, [router]);
 
   return (
