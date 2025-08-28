@@ -45,9 +45,12 @@ const Match = () => {
                     Debes ser un usuario paciente para usar nuestra herramienta de búsqueda de psicólogos
                   </p>
                 ) : (
-                  <h3 className="mb-2 text-lg font-semibold text-gray-900">
-                    Inicia sesión para continuar
-                  </h3>
+                  <>
+                    <h3 className="mb-2 text-lg font-semibold text-gray-900">
+                      Inicia sesión para continuar
+                    </h3>
+                    <p className="mb-6 text-gray-600">Debes estar logueado para usar nuestra herramienta de búsqueda de psicólogos</p>
+                  </>
                 )}
               </div>
             </div>
