@@ -94,7 +94,6 @@ export function getAppointmentDisplayStatus(appointment: AppointmentWithPayment)
 
   // Lógica basada en estados de pago y aprobación
   const hasPayment = appointment.payment;
-  const isPaymentCompleted = hasPayment && appointment.payment!.pay_status === 'COMPLETED';
   
   // Priorizar el estado del appointment sobre el estado del pago
   
@@ -114,8 +113,8 @@ export function getAppointmentDisplayStatus(appointment: AppointmentWithPayment)
   }
   
   // Estado PENDING o PENDING_PAYMENT - Sin pago o pago pendiente
-  if (appointment.status === 'pending' || appointment.status === 'pending_payment' || 
-      (!hasPayment || appointment.payment!.pay_status === 'PENDING')) {
+  // Solo mostrar como pendiente de pago si realmente está en estado pending/pending_payment
+  if (appointment.status === 'pending' || appointment.status === 'pending_payment') {
     return {
       status: AppointmentDisplayStatus.PENDING_PAYMENT,
       label: 'Pendiente de pago',
@@ -128,9 +127,28 @@ export function getAppointmentDisplayStatus(appointment: AppointmentWithPayment)
       isTimeToConfirm: false,
     };
   }
+  
+  // Si no hay información de pago pero no está en estado pending, asumir que está pagado
+  if (!hasPayment && (appointment.status === 'pending_approval' || appointment.status === 'confirmed')) {
+    // El turno está en estado de aprobación o confirmado, pero no hay info de pago
+    // Esto puede suceder si el pago se procesó pero no se sincronizó la información
+    if (appointment.status === 'pending_approval') {
+      return {
+        status: AppointmentDisplayStatus.PENDING_APPROVAL,
+        label: 'Pendiente de aprobación',
+        color: 'bg-orange-100 text-orange-800',
+        description: 'El pago fue procesado, esperando aprobación del psicólogo',
+        canCancel: true,
+        canPay: false,
+        canApprove: true,
+        canConfirmCompletion: false,
+        isTimeToConfirm: false,
+      };
+    }
+  }
 
-  // Confirmado por psicólogo
-  if (isPaymentCompleted && appointment.status === 'confirmed') {
+  // Confirmado por psicólogo - El estado 'confirmed' indica que ya fue aprobado
+  if (appointment.status === 'confirmed') {
     // Si ya pasó el tiempo, necesita confirmación de realización
     if (isTimeToConfirm) {
       return {
@@ -159,12 +177,28 @@ export function getAppointmentDisplayStatus(appointment: AppointmentWithPayment)
     };
   }
 
-  // Fallback - estado pendiente de pago
+  // Fallback - determinar estado basado en la información disponible
+  // Si tiene información de pago pendiente, mostrar pendiente de pago
+  if (hasPayment && appointment.payment!.pay_status === 'PENDING') {
+    return {
+      status: AppointmentDisplayStatus.PENDING_PAYMENT,
+      label: 'Pendiente de pago',
+      color: 'bg-yellow-100 text-yellow-800',
+      description: 'El pago está siendo procesado',
+      canCancel: true,
+      canPay: false,
+      canApprove: false,
+      canConfirmCompletion: false,
+      isTimeToConfirm: false,
+    };
+  }
+  
+  // Si no hay información clara, mostrar como pendiente de pago
   return {
     status: AppointmentDisplayStatus.PENDING_PAYMENT,
     label: 'Pendiente de pago',
     color: 'bg-yellow-100 text-yellow-800',
-    description: 'Estado no determinado - pendiente de pago',
+    description: 'Estado no determinado - verificar estado del pago',
     canCancel: true,
     canPay: true,
     canApprove: false,
