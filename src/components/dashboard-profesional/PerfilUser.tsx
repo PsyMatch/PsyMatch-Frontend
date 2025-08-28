@@ -203,6 +203,7 @@ const PerfilUser = () => {
                         Authorization: `Bearer ${token}`,
                     },
                 });
+                console.log(res)
                 if (res.status === 401) {
                     router.push('/login');
                     return;
@@ -237,7 +238,14 @@ const PerfilUser = () => {
             }
         };
         fetchUser();
-    }, [router]);
+    }, []);
+
+
+    const extractPhoneNumber = (text: string) => {
+    // Esto toma todos los dígitos consecutivos, por ejemplo "+5411987654321" → "5411987654321"
+    const match = text.match(/\d+/g);
+    return match ? match.join('') : '';
+    };
 
     // --- Manejadores ---
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -249,17 +257,20 @@ const PerfilUser = () => {
             const newValidationErrors = { ...validationErrors };
 
             if (name === 'phone' || name === 'emergencyContact') {
-                if (newUser.phone && newUser.emergencyContact && newUser.phone === newUser.emergencyContact) {
-                    newValidationErrors.phoneEmergency = 'El número de teléfono y el contacto de emergencia deben ser diferentes';
-                } else {
-                    delete newValidationErrors.phoneEmergency;
-                }
-                setValidationErrors(newValidationErrors);
+            const phoneNumber = extractPhoneNumber(newUser.phone || '');
+            const emergencyNumber = extractPhoneNumber(newUser.emergencyContact || '');
+
+            if (phoneNumber && emergencyNumber && phoneNumber === emergencyNumber) {
+                newValidationErrors.phoneEmergency = 'El número de teléfono y el contacto de emergencia deben ser diferentes';
+            } else {
+                delete newValidationErrors.phoneEmergency;
             }
 
-            return newUser;
-        });
-    };
+            setValidationErrors(newValidationErrors);
+            }
+                    return newUser;
+                });
+            };
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -346,11 +357,9 @@ const PerfilUser = () => {
                 emergencyContact: userData.emergencyContact ?? userData.emergency_contact ?? prev.emergencyContact,
                 profileImage: userData.profileImage ?? userData.profile_picture ?? prev.profileImage,
             }));
-            setProfileImage(
-                userData.profileImage ||
-                    userData.profile_picture ||
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.fullName || userData.name || user.fullName || 'Usuario')}`
-            );
+setProfileImage((prevImage) =>
+    profileFile ? URL.createObjectURL(profileFile) : prevImage
+);
             setEditable(false);
             setProfileFile(null);
             setSuccessMsg('¡Datos guardados correctamente!');
