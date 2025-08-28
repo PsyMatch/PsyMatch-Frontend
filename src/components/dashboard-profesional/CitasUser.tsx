@@ -261,13 +261,6 @@ const CitasUser = () => {
                                                 </div>
                                             )}
 
-                                            {cita.notes && (
-                                                <div className="mb-3">
-                                                    <span className="font-semibold text-sm sm:text-base">Notas:</span>
-                                                    <p className="mt-1 text-gray-700 text-xs sm:text-sm">{cita.notes}</p>
-                                                </div>
-                                            )}
-
                                             {cita.price && (
                                                 <div className="mb-3">
                                                     <span className="font-semibold text-sm sm:text-base">Precio:</span>

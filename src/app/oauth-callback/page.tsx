@@ -10,9 +10,10 @@ export default function OAuthCallback() {
   useEffect(() => {
     const processOAuthCallback = async () => {
       try {
-        // Obtener el token de los parámetros de la URL
+        // Obtener el token y role de los parámetros de la URL
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
+        const role = urlParams.get('role');
 
         if (token) {
           // Guardar token en las cookies del frontend
@@ -21,6 +22,15 @@ export default function OAuthCallback() {
             secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
             sameSite: 'strict', // Protección CSRF
           });
+
+          // Guardar role en las cookies del frontend
+          if (role) {
+            Cookies.set('role', role, {
+              expires: 7, // El role expira en 7 días
+              secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
+              sameSite: 'strict', // Protección CSRF
+            });
+          }
 
           // Limpiar la URL (sacamos el query param)
           window.history.replaceState({}, document.title, window.location.pathname);
