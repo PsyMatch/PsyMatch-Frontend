@@ -1,65 +1,62 @@
 import { NextResponse, NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-    const { pathname, origin } = request.nextUrl;
+  const { pathname, origin } = request.nextUrl;
 
-    const authToken = request.cookies.get('auth_token')?.value;
-    const userRole = request.cookies.get('role')?.value;
+  if (pathname.startsWith('/api/') && !pathname.startsWith('/api/auth')) {
+    return NextResponse.next();
+  }
 
-    const response = NextResponse.next();
+  const authToken = request.cookies.get('auth_token')?.value;
+  const userRole = request.cookies.get('role')?.value;
 
-    response.headers.set('x-auth-status', authToken ? 'authenticated' : 'guest');
-    response.headers.set('x-user-role', userRole || 'none');
+  const response = NextResponse.next();
 
-    if (request.nextUrl.pathname.startsWith('/api/auth')) {
-        response.headers.set('x-auth-change', 'true');
-    }
+  response.headers.set('x-auth-status', authToken ? 'authenticated' : 'guest');
+  response.headers.set('x-user-role', userRole || 'none');
 
-    if (
-        (pathname === '/dashboard/professional' ||
-            pathname === '/dashboard/admin' ||
-            pathname.startsWith('/profile') ||
-            pathname === '/search-professionals' ||
-            pathname.startsWith('/session/')) &&
-        !authToken
-    ) {
-        const homeUrl = new URL('/', origin);
-        return NextResponse.redirect(homeUrl);
-    }
+  if (request.nextUrl.pathname.startsWith('/api/auth')) {
+    response.headers.set('x-auth-change', 'true');
+  }
 
-    if (pathname === '/dashboard/user' && !authToken) {
-        const homeUrl = new URL('/', origin);
-        return NextResponse.redirect(homeUrl);
-    }
+  if ((pathname === '/dashboard/professional' || pathname === '/dashboard/admin' || pathname.startsWith('/profile') || pathname === '/search-professionals' || pathname.startsWith('/session/')) && !authToken) {
+    const homeUrl = new URL('/', origin);
+    return NextResponse.redirect(homeUrl);
+  }
 
-    if ((pathname === '/login' || pathname === '/register-user' || pathname === '/register-professional') && authToken) {
-        const dashboardUrl = new URL('/', origin);
-        return NextResponse.redirect(dashboardUrl);
-    }
+  if (pathname === '/dashboard/user' && !authToken) {
+    const homeUrl = new URL('/', origin);
+    return NextResponse.redirect(homeUrl);
+  }
 
-    if (pathname === '/dashboard/professional' && (userRole === 'Paciente' || userRole === 'Administrador')) {
-        const homeUrl = new URL('/', origin);
-        return NextResponse.redirect(homeUrl);
-    }
+  if ((pathname === '/login' || pathname === '/register-user' || pathname === '/register-professional') && authToken) {
+    const dashboardUrl = new URL('/', origin);
+    return NextResponse.redirect(dashboardUrl);
+  }
 
-    if (pathname === '/dashboard/user' && (userRole === 'Psicólogo' || userRole === 'Administrador')) {
-        const homeUrl = new URL('/', origin);
-        return NextResponse.redirect(homeUrl);
-    }
+  if (pathname === '/dashboard/professional' && (userRole === 'Paciente' || userRole === 'Administrador')) {
+    const homeUrl = new URL('/', origin);
+    return NextResponse.redirect(homeUrl);
+  }
 
-    if (pathname === '/dashboard/admin' && (userRole === 'Psicólogo' || userRole === 'Paciente')) {
-        const homeUrl = new URL('/', origin);
-        return NextResponse.redirect(homeUrl);
-    }
+  if (pathname === '/dashboard/user' && (userRole === 'Psicólogo' || userRole === 'Administrador')) {
+    const homeUrl = new URL('/', origin);
+    return NextResponse.redirect(homeUrl);
+  }
 
-    if ((pathname === '/search-professionals' || pathname.startsWith('/session')) && ((userRole === 'Psicólogo') || (userRole === 'Administrador'))) {
-        const homeUrl = new URL('/', origin);
-        return NextResponse.redirect(homeUrl);
-    }
+  if (pathname === '/dashboard/admin' && (userRole === 'Psicólogo' || userRole === 'Paciente')) {
+    const homeUrl = new URL('/', origin);
+    return NextResponse.redirect(homeUrl);
+  }
 
-    return response;
+  if ((pathname === '/search-professionals' || pathname.startsWith('/session')) && (userRole === 'Psicólogo' || userRole === 'Administrador')) {
+    const homeUrl = new URL('/', origin);
+    return NextResponse.redirect(homeUrl);
+  }
+
+  return response;
 }
 
 export const config = {
-    matcher: ['/((?!api/(?!auth)|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };
