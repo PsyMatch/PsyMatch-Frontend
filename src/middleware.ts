@@ -14,7 +14,9 @@ export function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
   response.headers.set('x-auth-status', authToken ? 'authenticated' : 'guest');
-  response.headers.set('x-user-role', userRole || 'none');
+
+  //BREAKS VERCEL
+  // response.headers.set('x-user-role', userRole || 'none');
 
   if (request.nextUrl.pathname.startsWith('/api/auth')) {
     response.headers.set('x-auth-change', 'true');
